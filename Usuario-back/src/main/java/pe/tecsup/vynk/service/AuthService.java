@@ -1,6 +1,7 @@
 package pe.tecsup.vynk.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -23,21 +24,27 @@ public class AuthService {
     private final VerificadorCredencial verificador;
     private final UsuarioRepository repo;
     private final JwtEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
     private final String dominio;
     private final long horas;
+    private final String hashFalso; // para que el login con correo inexistente tarde lo mismo
 
     public AuthService(VerificadorCredencial verificador,
                        UsuarioRepository repo,
                        JwtEncoder encoder,
+                       PasswordEncoder passwordEncoder,
                        @Value("${vynk.auth.dominio}") String dominio,
                        @Value("${vynk.jwt.horas}") long horas) {
         this.verificador = verificador;
         this.repo = repo;
         this.encoder = encoder;
+        this.passwordEncoder = passwordEncoder;
         this.dominio = dominio;
         this.horas = horas;
+        this.hashFalso = passwordEncoder.encode("vynk-hash-falso");
     }
 
+    /** Login con Google: valida el ID token y crea el usuario la primera vez. */
     public LoginResponse login(String idToken) {
         Jwt credencial;
         try {
@@ -59,6 +66,32 @@ public class AuthService {
             return repo.save(nuevo); // rol "usuario" por defecto
         });
 
+        return emitir(usuario);
+    }
+
+    /**
+     * Login con correo y contraseña. Solo funciona para usuarios que ya
+     * entraron con Google y definieron una contraseña (ver definirPassword).
+     */
+    public LoginResponse loginConPassword(String correo, String password) {
+        Usuario usuario = repo.findByCorreo(correo.trim().toLowerCase()).orElse(null);
+        String hash = (usuario != null) ? usuario.getPasswordHash() : null;
+
+        boolean coincide = passwordEncoder.matches(password, hash != null ? hash : hashFalso);
+        if (usuario == null || hash == null || !coincide || !usuario.isActivo()) {
+            throw new LoginIncorrectoException();
+        }
+        return emitir(usuario);
+    }
+
+    /** Crea o cambia la contraseña del usuario autenticado (id = subject del JWT). */
+    public void definirPassword(String usuarioId, String password) {
+        Usuario usuario = repo.findById(usuarioId).orElseThrow(CredencialInvalidaException::new);
+        usuario.setPasswordHash(passwordEncoder.encode(password));
+        repo.save(usuario);
+    }
+
+    private LoginResponse emitir(Usuario usuario) {
         Instant ahora = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(usuario.getId())

@@ -16,6 +16,7 @@ public class Usuario {
     private String nombre;
     private String rol = "usuario";
     private boolean activo = true;
+    private String passwordHash; // null si el usuario solo entra con Google
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -28,6 +29,9 @@ public class Usuario {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
