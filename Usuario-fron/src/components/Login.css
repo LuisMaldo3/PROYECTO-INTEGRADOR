@@ -1,0 +1,621 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul: #0061d4;
+  --azul-oscuro: #004fae;
+  --celeste: #2bb2f9;
+  --marino: #071a3e;
+  --texto: #0b1b3a;
+  --texto-suave: #4b5a73;
+  --borde: #d9e1ec;
+  --fuente: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ================= Pantalla partida ================= */
+.vynk-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(420px, 38vw, 580px);
+  background: var(--marino);
+  font-family: var(--fuente);
+}
+
+/* Izquierda: la foto de Tecsup, sin nada encima */
+.vynk-campus {
+  background: var(--vynk-campus) center / cover no-repeat;
+  background-color: var(--marino);
+}
+
+/* Derecha: panel de arriba a abajo, hasta las esquinas */
+.vynk-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 32px 0 0 32px;
+  box-shadow: -18px 0 50px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Foto de la comunidad con el nombre de la app al centro ---------- */
+.portada {
+  position: relative;
+  flex: none;
+  height: clamp(170px, 27vh, 250px);
+  background: var(--azul);
+}
+
+.portada-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 32%;
+}
+
+/* Capa plana del azul de marca para que el nombre se lea sobre la foto */
+.portada::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 38, 102, 0.55);
+}
+
+.portada-texto {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.portada-texto h1 {
+  margin: 0;
+  line-height: 1;
+}
+
+.portada-texto p {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 2px solid var(--celeste);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* ---------- Inicio de sesión ---------- */
+.vynk-sheet-body {
+  flex: 1;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 4vh, 44px) 24px;
+  padding-right: max(24px, env(safe-area-inset-right));
+}
+
+.logo {
+  font-size: clamp(3rem, 5vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 20, 60, 0.45);
+}
+
+.logo-k {
+  color: var(--celeste);
+}
+
+/* ================= Contenido ================= */
+.card-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.4rem, 4vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--texto);
+}
+
+.card-subtitle {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
+
+.card-error-msg,
+.card-ok-msg {
+  margin-bottom: 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.card-error-msg {
+  background: #fdf1f1;
+  border: 1px solid #f3c4c4;
+  color: #a31d1d;
+}
+
+.card-ok-msg {
+  background: #eefaf2;
+  border: 1px solid #b7e4c7;
+  color: #186a3b;
+}
+
+.card-error-msg code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(163, 29, 29, 0.08);
+  font-size: 0.8rem;
+}
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Formulario ---------- */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label,
+.opcion-password label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-box input {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 44px 11px 42px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--texto);
+  font: inherit;
+  font-size: 1rem; /* 16px: evita el zoom automático en iPhone */
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.opcion-password .input-box input {
+  padding-left: 14px;
+}
+
+.input-box input::placeholder {
+  color: #8d9ab0;
+}
+
+.input-box input:focus {
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px rgba(0, 97, 212, 0.16);
+}
+
+.input-box input:disabled {
+  background: #f3f6fa;
+  color: #71809a;
+}
+
+.input-icon {
+  position: absolute;
+  left: 13px;
+  width: 19px;
+  height: 19px;
+  color: #8d9ab0;
+  pointer-events: none;
+}
+
+.toggle-pass {
+  position: absolute;
+  right: 5px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #8d9ab0;
+  cursor: pointer;
+}
+
+.toggle-pass:hover {
+  color: var(--azul);
+  background: #eef4fc;
+}
+
+.toggle-pass svg {
+  width: 19px;
+  height: 19px;
+}
+
+.btn-blue-submit {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--azul);
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-blue-submit:hover:not(:disabled) {
+  background: var(--azul-oscuro);
+}
+
+.btn-blue-submit:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+.line-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.line-divider::before,
+.line-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.line-divider span {
+  padding: 0 14px;
+  color: #71809a;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ---------- Botón de Google ---------- */
+.google-zone {
+  position: relative;
+  min-height: 44px;
+}
+
+.google-slot {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  color-scheme: light;
+}
+
+.google-zone.is-busy .google-slot {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.google-skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eef2f7 25%, #e1e8f1 50%, #eef2f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.google-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #bcd6f5;
+  border-top-color: var(--azul);
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+
+.spinner-claro {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+}
+
+.card-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 18px 0 0;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.card-hint strong {
+  color: var(--texto);
+}
+
+.card-nota {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--texto-suave);
+}
+
+.card-hint + .card-nota {
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+/* ---------- Pantalla de inicio (después de entrar) ---------- */
+.perfil-datos {
+  display: grid;
+  gap: 1px;
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--borde);
+}
+
+.perfil-datos > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.perfil-datos dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.perfil-datos dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+.rol-badge {
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: #e8f1fc;
+  color: var(--azul-oscuro);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.opcion-password {
+  margin-bottom: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.opcion-password summary {
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.opcion-password form {
+  padding: 0 14px 14px;
+}
+
+.opcion-password .input-box {
+  margin-bottom: 12px;
+}
+
+.btn-secundario {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-secundario:hover {
+  background: #f3f6fa;
+  border-color: #b8c4d6;
+}
+
+/* ---------- Pie ---------- */
+.vynk-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 14px;
+  padding: 14px 24px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid #edf1f6;
+  font-size: 0.75rem;
+  color: #5d6b82;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--azul);
+  text-decoration: underline;
+}
+
+.dot-sep {
+  margin: 0 8px;
+  opacity: 0.6;
+}
+
+/* ================= Accesibilidad ================= */
+.vynk-page a:focus-visible,
+.vynk-page button:focus-visible,
+.opcion-password summary:focus-visible {
+  outline: 3px solid var(--celeste);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .google-skeleton {
+    animation: none;
+  }
+}
+
+/* ================= Responsive ================= */
+
+/* Celular y tablet angosta: el panel ocupa toda la pantalla (la foto de Tecsup se oculta) */
+@media (max-width: 700px) {
+  .vynk-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vynk-campus {
+    display: none;
+  }
+
+  .vynk-panel {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .portada {
+    height: clamp(170px, 26vh, 230px);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .card-subtitle {
+    margin-bottom: 18px;
+  }
+}
+
+/* Pantallas bajitas (celular en horizontal): foto más baja */
+@media (max-height: 520px) {
+  .portada {
+    height: 130px;
+  }
+
+  .logo {
+    font-size: 2.6rem;
+  }
+
+  .portada-texto {
+    gap: 6px;
+  }
+}
+.alerta-denegado {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #fef2f2;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.alerta-icono {
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.alerta-contenido {
+  display: flex;
+  flex-direction: column;
+}
+
+.alerta-titulo {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #991b1b;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.alerta-mensaje {
+  margin: 2px 0 0 0;
+  font-size: 0.83rem;
+  color: #7f1d1d;
+  line-height: 1.35;
+}
+
+.alerta-mensaje strong {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

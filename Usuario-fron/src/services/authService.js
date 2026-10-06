@@ -1,4 +1,5 @@
 import { API_URL } from '../config'
+import { decidirAcceso, MENSAJES, tokenVigente } from './acceso'
 
 const KEY_TOKEN = 'vynk.token'
 const KEY_USUARIO = 'vynk.usuario'
@@ -11,10 +12,10 @@ export class AuthError extends Error {
   }
 }
 
-async function pedir(ruta, { metodo = 'POST', cuerpo, token } = {}) {
-  let respuesta
+/** Hace la petición y devuelve { estado, datos } o { errorDeRed: true } si no hubo conexión. */
+async function enviar(ruta, { metodo = 'POST', cuerpo, token } = {}) {
   try {
-    respuesta = await fetch(`${API_URL}${ruta}`, {
+    const respuesta = await fetch(`${API_URL}${ruta}`, {
       method: metodo,
       headers: {
         'Content-Type': 'application/json',
@@ -22,37 +23,38 @@ async function pedir(ruta, { metodo = 'POST', cuerpo, token } = {}) {
       },
       body: JSON.stringify(cuerpo),
     })
+    const datos = await respuesta.json().catch(() => null)
+    return { estado: respuesta.status, datos }
   } catch {
-    throw new AuthError('SIN_CONEXION', 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.')
+    return { errorDeRed: true }
   }
-
-  if (respuesta.status === 401 && token) {
-    throw new AuthError('SESION_EXPIRADA', 'Tu sesión expiró. Cierra sesión y vuelve a entrar.')
-  }
-
-  const datos = await respuesta.json().catch(() => null)
-  if (!respuesta.ok) {
-    throw new AuthError(
-      datos?.codigo ?? 'ERROR',
-      datos?.mensaje ?? 'No se pudo completar la operación. Inténtalo nuevamente.',
-    )
-  }
-  return datos
 }
 
-/** Envía el ID token de Google (POST /auth/login). Devuelve { token, usuario }. */
-export function loginConGoogle(idToken) {
-  return pedir('/auth/login', { cuerpo: { idToken } })
+/** Tarea 4: si se PERMITE devuelve { token, usuario }; si se BLOQUEA lanza AuthError con el motivo. */
+function resolverAcceso(respuesta) {
+  const decision = decidirAcceso(respuesta)
+  if (!decision.permitido) throw new AuthError(decision.codigo, decision.mensaje)
+  return decision.sesion
 }
 
-/** Login con correo y contraseña (POST /auth/login-password). Devuelve { token, usuario }. */
-export function loginConPassword(correo, password) {
-  return pedir('/auth/login-password', { cuerpo: { correo, password } })
+/** Envía el ID token de Google (POST /auth/login). */
+export async function loginConGoogle(idToken) {
+  return resolverAcceso(await enviar('/auth/login', { cuerpo: { idToken } }))
+}
+
+/** Login con correo y contraseña (POST /auth/login-password). */
+export async function loginConPassword(correo, password) {
+  return resolverAcceso(await enviar('/auth/login-password', { cuerpo: { correo, password } }))
 }
 
 /** Crea o cambia la contraseña del usuario con sesión (PUT /auth/password). */
-export function definirPassword(token, password) {
-  return pedir('/auth/password', { metodo: 'PUT', cuerpo: { password }, token })
+export async function definirPassword(token, password) {
+  const r = await enviar('/auth/password', { metodo: 'PUT', cuerpo: { password }, token })
+  if (r.errorDeRed) throw new AuthError('SIN_CONEXION', MENSAJES.SIN_CONEXION)
+  if (r.estado === 401) throw new AuthError('SESION_EXPIRADA', 'Tu sesión expiró. Cierra sesión y vuelve a entrar.')
+  if (r.estado < 200 || r.estado >= 300) {
+    throw new AuthError(r.datos?.codigo ?? 'ERROR', r.datos?.mensaje ?? 'No se pudo completar la operación. Inténtalo nuevamente.')
+  }
 }
 
 export function guardarSesion({ token, usuario }) {
@@ -65,7 +67,7 @@ export function leerSesion() {
   try {
     const token = localStorage.getItem(KEY_TOKEN)
     const usuario = JSON.parse(localStorage.getItem(KEY_USUARIO) ?? 'null')
-    if (!token || !usuario || tokenExpirado(token)) {
+    if (!token || !usuario || !tokenVigente(token)) {
       cerrarSesion()
       return null
     }
@@ -79,14 +81,4 @@ export function cerrarSesion() {
   localStorage.removeItem(KEY_TOKEN)
   localStorage.removeItem(KEY_USUARIO)
   window.google?.accounts?.id?.disableAutoSelect?.()
-}
-
-function tokenExpirado(token) {
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const { exp } = JSON.parse(atob(base64))
-    return typeof exp === 'number' && exp * 1000 <= Date.now()
-  } catch {
-    return true
-  }
 }
