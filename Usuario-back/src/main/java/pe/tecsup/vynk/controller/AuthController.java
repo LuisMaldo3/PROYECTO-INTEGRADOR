@@ -1,12 +1,18 @@
 package pe.tecsup.vynk.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pe.tecsup.vynk.dto.LoginPasswordRequest;
 import pe.tecsup.vynk.dto.LoginRequest;
 import pe.tecsup.vynk.dto.LoginResponse;
+import pe.tecsup.vynk.dto.PasswordRequest;
 import pe.tecsup.vynk.service.AuthService;
 
 @RestController
@@ -22,5 +28,18 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return auth.login(request.idToken());
+    }
+
+    @PostMapping("/login-password")
+    public LoginResponse loginPassword(@Valid @RequestBody LoginPasswordRequest request) {
+        return auth.loginConPassword(request.correo(), request.password());
+    }
+
+    /** Requiere el JWT de VYNK (Authorization: Bearer ...). */
+    @PutMapping("/password")
+    public ResponseEntity<Void> definirPassword(@AuthenticationPrincipal Jwt jwt,
+                                                @Valid @RequestBody PasswordRequest request) {
+        auth.definirPassword(jwt.getSubject(), request.password());
+        return ResponseEntity.noContent().build();
     }
 }
