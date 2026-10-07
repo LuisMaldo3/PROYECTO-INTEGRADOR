@@ -63,21 +63,33 @@ Entrar en la carpeta:
 cd Usuario-back
 ```
 
-Si existe `mvnw.cmd` en Windows, ejecutar:
+**Paso obligatorio: crear el archivo `.env`.** Está en `.gitignore`, así que *no viene en el repositorio*; sin él el backend no arranca (falta `JWT_SECRET`).
 
 ```powershell
-.\mvnw.cmd clean install
+Copy-Item .env.example .env      # Windows (PowerShell)
+```
+```bash
+cp .env.example .env             # Mac / Linux
+```
+
+Abrir `.env` y revisar `MONGODB_URI`:
+
+* **MongoDB local:** debe estar instalado y corriendo (valor por defecto del ejemplo).
+* **MongoDB Atlas:** pedir usuario/clave al dueño del cluster y, en Atlas > Network Access, agregar tu IP. Si no, el backend no puede conectarse.
+
+Ejecutar (requiere JDK 17 o superior):
+
+```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Si no existe el wrapper, pero Maven está instalado:
+Si no hay wrapper pero Maven está instalado: `mvn spring-boot:run`.
+
+El backend queda en **http://localhost:8081**. Comprobación rápida (debe responder 401 o 403, no "connection refused"):
 
 ```bash
-mvn clean install
-mvn spring-boot:run
+curl -i -X POST http://localhost:8081/auth/login-password -H "Content-Type: application/json" -d "{\"correo\":\"a@tecsup.edu.pe\",\"password\":\"x\"}"
 ```
-
-El backend se ejecutará en el puerto configurado en el proyecto.
 
 ## 6. Configurar y ejecutar el frontend
 
@@ -141,14 +153,28 @@ No subir:
 
 El archivo `.env.example` debe contener únicamente nombres de variables y valores ficticios, nunca credenciales reales.
 
-## 10. Solución de problemas
+## 10. App Android (carpeta `App`)
 
-**Error de Java:** verificar que la versión del JDK sea compatible con el proyecto.
+1. Abrir `App` con Android Studio y esperar el *Gradle sync*. Hace falta el **Android SDK 37** (Studio ofrece instalarlo).
+2. **Dirección del backend.** Por defecto la app usa `http://10.0.2.2:8081`, que solo sirve en el **emulador**. Para que funcione igual en emulador y celular, agregar en `App/local.properties` (local, no se sube a Git):
 
-**Error de Maven:** revisar que Maven esté instalado o utilizar `mvnw.cmd`, si existe.
+   ```properties
+   backend.url=http://localhost:8081
+   ```
+
+   Después de un *Sync*, y con el emulador abierto o el celular conectado por USB, ejecutar `App/conectar-backend.bat` (hace `adb reverse tcp:8081 tcp:8081`). Repetirlo al reiniciar el emulador o reconectar el cable.
+3. **Login con Google.** Google solo acepta la app si el **SHA-1 de tu llave de depuración** está registrado. Cada integrante tiene un SHA-1 distinto: obtenerlo con `Gradle > app > Tasks > android > signingReport` (o `gradlew signingReport`) y agregarlo en Firebase Console > proyecto `vynk-e8ac4` > app `com.tecsup.tcweek` > *Add fingerprint*. Si la pantalla de consentimiento de Google está en modo "Testing", agregar también tu correo como usuario de prueba.
+
+## 11. Solución de problemas
+
+**El backend no arranca con `Could not resolve placeholder 'JWT_SECRET'`:** falta el archivo `.env` (ver sección 5).
+
+**El backend tarda y termina con error de MongoDB:** MongoDB local apagado, o tu IP no está permitida en Atlas.
+
+**Error de Java:** verificar que el JDK sea 17 o superior.
+
+**La app dice "No se pudo conectar con el servidor":** el backend no está corriendo, o la dirección es incorrecta (ver punto 2 de la sección 10).
+
+**La app dice "No se pudo abrir el acceso con Google":** casi siempre es el SHA-1 no registrado (punto 3 de la sección 10). Ver el detalle con Logcat filtrando por `LoginViewModel`.
 
 **Error del frontend:** ejecutar `npm install` dentro de `Usuario-fron`.
-
-**Error de conexión:** comprobar que el backend esté iniciado, que la base de datos esté disponible y que la dirección configurada en el frontend sea correcta.
-
-**Variables faltantes:** revisar `.env.example` y la configuración del backend.

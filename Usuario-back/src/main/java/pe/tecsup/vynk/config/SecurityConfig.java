@@ -68,6 +68,12 @@ public class SecurityConfig {
     }
 
     private SecretKey llave(String secreto) {
-        return new SecretKeySpec(secreto.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        byte[] bytes = secreto.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 32) {
+            // HS256 exige 256 bits; si no, el login fallaria con error 500 recien al emitir el token.
+            throw new IllegalStateException(
+                    "JWT_SECRET debe tener al menos 32 caracteres (tiene " + bytes.length + "). Revisa tu archivo .env.");
+        }
+        return new SecretKeySpec(bytes, "HmacSHA256");
     }
-}
+}

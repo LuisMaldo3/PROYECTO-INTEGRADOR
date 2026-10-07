@@ -1,87 +1,92 @@
 package com.tecsup.tcweek.data
 
+import android.content.Context
+import android.util.Base64
+import android.util.Patterns
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 
-class AccessException(message: String) : Exception(message)
+/**
+ * [denied] = true cuando la cuenta NO tiene permiso (correo que no es @tecsup.edu.pe):
+ * la UI muestra la pantalla "Acceso denegado".
+ */
+class AccessException(
+    message: String,
+    val denied: Boolean = false
+) : Exception(message)
 
-class AuthRepository(
-    private val sesion: SesionGuardada
-) {
+class AuthRepository(context: Context) {
 
-    suspend fun entrar(idToken: String): Result<Unit> = withContext(Dispatchers.IO) {
-        val conexion = (URL("${Servidor.DIRECCION}/auth/login").openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            setRequestProperty("Accept", "application/json")
-            doOutput = true
-            connectTimeout = 15000
-            readTimeout = 15000
+    private val sesion = SesionGuardada(context.applicationContext)
+
+    companion object {
+        fun isInstitutional(email: String): Boolean {
+            val mail = email.trim()
+
+            return Patterns.EMAIL_ADDRESS.matcher(mail).matches() &&
+                    mail.substringAfterLast("@")
+                        .equals("tecsup.edu.pe", ignoreCase = true)
         }
 
-        try {
-            val cuerpo = JSONObject().put("idToken", idToken).toString()
-            conexion.outputStream.use { salida ->
-                salida.write(cuerpo.toByteArray(Charsets.UTF_8))
-            }
-
-            val codigo = conexion.responseCode
-            val texto = leer(conexion, codigo)
-
-            if (codigo !in 200..299) {
-                return@withContext Result.failure(AccessException(mensajeDe(codigo, texto)))
-            }
-
-            val json = JSONObject(texto)
-            val llave = json.optString("token")
-            if (llave.isBlank()) {
-                return@withContext Result.failure(
-                    AccessException("No se pudo iniciar sesión. Intenta nuevamente.")
-                )
-            }
-
-            val usuario = json.optJSONObject("usuario")
-            sesion.guardar(
-                DatosDeEntrada(
-                    llave = llave,
-                    nombre = usuario?.optString("nombre").orEmpty(),
-                    correo = usuario?.optString("correo").orEmpty(),
-                    rol = usuario?.optString("rol").orEmpty().ifBlank { "usuario" }
-                )
+        /** El token de VYNK es un JWT: se revisa su fecha de vencimiento (exp). */
+        private fun vencido(token: String): Boolean = try {
+            val payload = token.split(".")[1]
+            val bytes = Base64.decode(
+                payload,
+                Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
             )
+            JSONObject(String(bytes)).getLong("exp") * 1000 <= System.currentTimeMillis()
+        } catch (e: Exception) {
+            true
+        }
+    }
+
+    private suspend fun authenticate(
+        operation: suspend () -> DatosDeEntrada
+    ): Result<Unit> {
+        return try {
+            val datos = operation()
+
+            if (!isInstitutional(datos.correo)) {
+                throw AccessException("El correo no pertenece a Tecsup.", denied = true)
+            }
+
+            sesion.guardar(datos)
             Result.success(Unit)
         } catch (e: CancellationException) {
+            sesion.borrar()
             throw e
-        } catch (_: IOException) {
-            Result.failure(
-                AccessException("No se pudo conectar. Revisa tu conexión a Internet.")
-            )
-        } catch (_: Exception) {
-            Result.failure(
-                AccessException("No se pudo iniciar sesión. Intenta nuevamente.")
-            )
-        } finally {
-            conexion.disconnect()
+        } catch (e: Exception) {
+            sesion.borrar()
+            Result.failure(e)
         }
     }
 
-    private fun leer(conexion: HttpURLConnection, codigo: Int): String {
-        val entrada = if (codigo in 200..299) conexion.inputStream else conexion.errorStream
-        return entrada?.bufferedReader()?.use { it.readText() }.orEmpty()
+    suspend fun login(email: String, password: String): Result<Unit> = authenticate {
+        val mail = email.trim()
+
+        if (!isInstitutional(mail)) {
+            throw AccessException("Usa tu correo @tecsup.edu.pe.")
+        }
+
+        BackendApi.loginPassword(mail, password)
     }
 
-    private fun mensajeDe(codigo: Int, texto: String): String {
-        val delServidor = runCatching { JSONObject(texto).optString("mensaje") }.getOrNull()
-        if (!delServidor.isNullOrBlank()) return delServidor
-        return when (codigo) {
-            401 -> "No se pudo verificar tu cuenta"
-            403 -> "Usa tu correo @tecsup.edu.pe"
-            else -> "No se pudo iniciar sesión. Intenta nuevamente."
-        }
+    suspend fun loginWithGoogle(idToken: String): Result<Unit> = authenticate {
+        BackendApi.loginGoogle(idToken)
     }
+
+    /** Hay sesión guardada, institucional y con token todavía vigente. */
+    fun restoreSession(): Boolean {
+        val datos = sesion.leer() ?: return false
+
+        val valida = isInstitutional(datos.correo) && !vencido(datos.llave)
+        if (!valida) sesion.borrar()
+        return valida
+    }
+
+    fun currentSession(): DatosDeEntrada? =
+        sesion.leer()?.takeIf { isInstitutional(it.correo) && !vencido(it.llave) }
+
+    fun logout() = sesion.borrar()
 }

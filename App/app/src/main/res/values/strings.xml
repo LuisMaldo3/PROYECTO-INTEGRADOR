@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">VYNK</string>
-    <string name="default_web_client_id">451390492028-nrsbd0i4nbftbfjoe2htguebvk0mdi1r.apps.googleusercontent.com</string>
+    <!-- Mismo Client ID (web) que OAUTH_CLIENT_ID del backend; no es un secreto -->
+    <string name="google_server_client_id">451390492028-nrsbd0i4nbftbfjoe2htguebvk0mdi1r.apps.googleusercontent.com</string>
 </resources>

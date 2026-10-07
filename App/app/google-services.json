@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "451390492028",
+    "project_id": "vynk-e8ac4",
+    "storage_bucket": "vynk-e8ac4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:451390492028:android:7841802ea8b394c06f68f9",
+        "android_client_info": {
+          "package_name": "com.tecsup.tcweek"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "451390492028-qm8fj63obaim2arhvom3aai0i24i5vkq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tecsup.tcweek",
+            "certificate_hash": "8aa7f81c7b91a95477bb0d0957d1d2e75baab1b3"
+          }
+        },
+        {
+          "client_id": "451390492028-nrsbd0i4nbftbfjoe2htguebvk0mdi1r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCP5ZZMF6FMmgB6gS6jOBRVf0uxpPkmpGA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "451390492028-nrsbd0i4nbftbfjoe2htguebvk0mdi1r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

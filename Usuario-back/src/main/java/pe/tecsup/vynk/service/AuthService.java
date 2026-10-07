@@ -53,6 +53,11 @@ public class AuthService {
             throw new CredencialInvalidaException();
         }
 
+        // Google debe haber verificado el correo; si no, cualquiera podria declarar uno ajeno.
+        if (!Boolean.TRUE.equals(credencial.getClaimAsBoolean("email_verified"))) {
+            throw new CredencialInvalidaException();
+        }
+
         // US-02 (Mishel): leer correo del token y revisar dominio Tecsup
         String correoFinal = exigirCorreoInstitucional(credencial.getClaimAsString("email"));
 
@@ -62,6 +67,11 @@ public class AuthService {
             nuevo.setNombre(credencial.getClaimAsString("name"));
             return repo.save(nuevo);
         });
+
+        // Igual que en el login con contrasena: una cuenta desactivada no entra.
+        if (!usuario.isActivo()) {
+            throw new CredencialInvalidaException();
+        }
 
         return emitir(usuario);
     }
@@ -113,4 +123,4 @@ public class AuthService {
         return new LoginResponse(token, new UsuarioDto(
                 usuario.getId(), usuario.getNombre(), usuario.getCorreo(), usuario.getRol()));
     }
-}
+}

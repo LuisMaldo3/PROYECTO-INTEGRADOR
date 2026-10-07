@@ -1,6 +1,8 @@
 package pe.tecsup.vynk.controller;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,9 +37,24 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> datosInvalidos() {
+    public ResponseEntity<Map<String, String>> datosInvalidos(MethodArgumentNotValidException ex) {
+        FieldError error = ex.getBindingResult().getFieldError();
+        String campo = error != null ? error.getField() : "";
+        String mensaje = switch (campo) {
+            case "password" -> "La contraseña debe tener entre 8 y 64 caracteres.";
+            case "correo" -> "Escribe un correo válido.";
+            default -> "Revisa los datos enviados.";
+        };
         return ResponseEntity.badRequest().body(Map.of(
                 "codigo", "DATOS_INVALIDOS",
-                "mensaje", "Revisa los datos enviados (la contraseña debe tener entre 8 y 64 caracteres)."));
+                "mensaje", mensaje));
+    }
+
+    /** MongoDB caido o inalcanzable: responde claro en vez de un 500 generico. */
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, String>> baseDeDatos(DataAccessException ex) {
+        return ResponseEntity.status(503).body(Map.of(
+                "codigo", "BASE_DE_DATOS_NO_DISPONIBLE",
+                "mensaje", "El servidor no pudo conectarse a la base de datos. Intenta de nuevo en unos minutos."));
     }
 }
