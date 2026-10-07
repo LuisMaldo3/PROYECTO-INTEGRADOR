@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { DOMINIO_PERMITIDO, GOOGLE_CLIENT_ID } from '../config'
 import { useGoogleButton } from '../hooks/useGoogleButton'
 import { guardarSesion, loginConGoogle, loginConPassword } from '../services/authService'
+import { borrarMotivo, guardarMotivo, leerMotivo } from '../services/motivoRechazo'
 import { Fondo } from './Fondo'
 
 const iconoProps = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
@@ -10,13 +11,21 @@ export function Login({ onSesion }) {
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
   const [verPassword, setVerPassword] = useState(false)
-  const [error, setError] = useState('')
+  // El motivo del último rechazo se recupera si la persona recarga la página.
+  const [error, setError] = useState(() => leerMotivo()?.mensaje ?? '')
   const [via, setVia] = useState(null) // null | 'google' | 'password'
   const googleRef = useRef(null)
   const verificando = via !== null
 
+  // Se muestra el motivo del rechazo y se guarda (código, mensaje y fecha; nunca el correo).
+  const rechazar = useCallback((codigo, mensaje) => {
+    setError(mensaje)
+    guardarMotivo({ codigo, mensaje })
+  }, [])
+
   const terminar = useCallback(
     (sesion) => {
+      borrarMotivo()
       guardarSesion(sesion)
       onSesion(sesion)
     },
@@ -26,30 +35,32 @@ export function Login({ onSesion }) {
   const manejarGoogle = useCallback(
     async (idToken) => {
       setError('')
+      borrarMotivo()
       setVia('google')
       try {
         terminar(await loginConGoogle(idToken))
       } catch (e) {
-        setError(e.message)
+        rechazar(e.codigo, e.message)
         setVia(null)
       }
     },
-    [terminar],
+    [terminar, rechazar],
   )
 
   const manejarPassword = async (e) => {
     e.preventDefault()
     setError('')
+    borrarMotivo()
     const correoLimpio = correo.trim().toLowerCase()
     if (!correoLimpio.endsWith(DOMINIO_PERMITIDO)) {
-      setError(`Solo se permite el ingreso con cuentas ${DOMINIO_PERMITIDO}`)
+      rechazar('DOMINIO_NO_PERMITIDO', `Solo se permite el ingreso con cuentas ${DOMINIO_PERMITIDO}`)
       return
     }
     setVia('password')
     try {
       terminar(await loginConPassword(correoLimpio, password))
     } catch (err) {
-      setError(err.message)
+      rechazar(err.codigo, err.message)
       setVia(null)
     }
   }
