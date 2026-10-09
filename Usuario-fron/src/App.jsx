@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
-import { Fondo } from './components/Fondo'
+import { Agenda } from './components/Agenda'
+import { Asistente } from './components/Asistente'
+import { Catalogo } from './components/Catalogo'
 import { Inicio } from './components/Inicio'
 import { Login } from './components/Login'
-import { Menu } from './components/Menu'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
-import { PantallaPendiente } from './components/PantallaPendiente'
+import { PantallaVacia } from './components/PantallaVacia'
+import { Perfil } from './components/Perfil'
+import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
 import { cerrarSesion, guardarSesion, leerSesion, quienSoy } from './services/authService'
 import { normalizarRol, resolverRuta } from './services/permisos'
+
+// Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
+const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)
@@ -54,13 +60,25 @@ function App() {
   let contenido
   if (estado !== 'permitida') {
     contenido = <PantallaBloqueada estado={estado} pantalla={pantalla} rol={rol} />
-  } else if (ruta === 'inicio') {
-    contenido = <Inicio usuario={sesion.usuario} rol={rol} token={sesion.token} onSalir={salir} />
+  } else if (ruta === 'perfil') {
+    contenido = <Perfil usuario={sesion.usuario} rol={rol} token={sesion.token} onSalir={salir} />
   } else {
-    contenido = <PantallaPendiente pantalla={pantalla} rol={rol} />
+    const Seccion = SECCIONES[ruta]
+    contenido = Seccion ? <Seccion /> : <PantallaVacia />
   }
 
-  return <Fondo menu={<Menu rol={rol} rutaActual={ruta} />}>{contenido}</Fondo>
+  const permitida = estado === 'permitida'
+
+  return (
+    <Shell
+      rol={rol}
+      rutaActual={ruta}
+      titulo={permitida ? pantalla.titulo : undefined}
+      descripcion={permitida ? pantalla.descripcion : undefined}
+    >
+      {contenido}
+    </Shell>
+  )
 }
 
 export default App

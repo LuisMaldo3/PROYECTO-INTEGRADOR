@@ -4,12 +4,20 @@ import {
   normalizarRol,
   normalizarUsuario,
   pantallasDelMenu,
+  PANTALLAS,
   puedeVer,
   resolverRuta,
   rutaDeHash,
 } from './permisos.js'
 
-const rutas = (rol) => pantallasDelMenu(rol).map((p) => p.ruta)
+const rutas = (rol, lista) => pantallasDelMenu(rol, lista).map((p) => p.ruta)
+const TODAS = ['inicio', 'catalogo', 'agenda', 'asistente', 'perfil']
+
+// Lista de prueba con una pantalla solo del organizador (las reales se agregarán más adelante)
+const CON_ORGANIZADOR = [
+  ...PANTALLAS,
+  { ruta: 'mis-actividades', titulo: 'Mis actividades', tituloMenu: 'Mis actividades', roles: ['organizador'] },
+]
 
 test('ROL: se guarda en minúsculas y lo desconocido cuenta como "usuario"', () => {
   assert.equal(normalizarRol('Organizador'), 'organizador')
@@ -29,65 +37,58 @@ test('ROL: normalizarUsuario no pierde los demás datos ni modifica el original'
   assert.equal(normalizarUsuario(null), null)
 })
 
-test('MENÚ: cada rol ve solo sus pantallas', () => {
-  assert.deepEqual(rutas('usuario'), ['inicio'])
-  assert.deepEqual(rutas('organizador'), ['inicio', 'organizador'])
-  assert.deepEqual(rutas('administrador'), ['inicio', 'organizador', 'usuarios'])
+test('MENÚ: el usuario ve las cinco pantallas, en orden', () => {
+  assert.deepEqual(rutas('usuario'), TODAS)
 })
 
-test('MENÚ: un rol raro se trata como usuario', () => {
-  assert.deepEqual(rutas('hacker'), ['inicio'])
-  assert.deepEqual(rutas(undefined), ['inicio'])
+test('MENÚ: por ahora todos los roles ven las pantallas del usuario', () => {
+  assert.deepEqual(rutas('organizador'), TODAS)
+  assert.deepEqual(rutas('administrador'), TODAS)
+  assert.deepEqual(rutas('hacker'), TODAS)
+  assert.deepEqual(rutas(undefined), TODAS)
 })
 
-test('PERMISOS: quién puede ver qué', () => {
-  assert.equal(puedeVer('usuario', 'organizador'), false)
-  assert.equal(puedeVer('usuario', 'usuarios'), false)
-  assert.equal(puedeVer('organizador', 'organizador'), true)
-  assert.equal(puedeVer('organizador', 'usuarios'), false)
-  assert.equal(puedeVer('administrador', 'usuarios'), true)
-  assert.equal(puedeVer('administrador', 'organizador'), true)
-})
-
-test('PERMISOS: una pantalla que no existe no la ve nadie', () => {
-  assert.equal(puedeVer('administrador', 'secreta'), false)
-  assert.equal(puedeVer('administrador', 'constructor'), false)
+test('MENÚ: Perfil está siempre, porque ahí se cierra la sesión', () => {
+  assert.ok(rutas('usuario').includes('perfil'))
 })
 
 test('RUTA: se lee de la dirección (#/...) y sin nada es inicio', () => {
   assert.equal(rutaDeHash(''), 'inicio')
   assert.equal(rutaDeHash('#'), 'inicio')
   assert.equal(rutaDeHash('#/'), 'inicio')
-  assert.equal(rutaDeHash('#/Usuarios'), 'usuarios')
-  assert.equal(rutaDeHash('#/usuarios/5?x=1'), 'usuarios')
+  assert.equal(rutaDeHash('#/Agenda'), 'agenda')
+  assert.equal(rutaDeHash('#/agenda/5?x=1'), 'agenda')
   assert.equal(rutaDeHash(undefined), 'inicio')
 })
 
-test('BLOQUEO: entrar por la dirección a una pantalla de otro rol queda bloqueado', () => {
-  const r = resolverRuta('#/usuarios', 'usuario')
-  assert.equal(r.estado, 'bloqueada')
-  assert.equal(r.ruta, 'usuarios')
-  assert.equal(r.pantalla.titulo, 'Gestión de usuarios')
-})
-
-test('BLOQUEO: el organizador no entra a la gestión de usuarios', () => {
-  assert.equal(resolverRuta('#/usuarios', 'organizador').estado, 'bloqueada')
-  assert.equal(resolverRuta('#/organizador', 'organizador').estado, 'permitida')
-})
-
-test('BLOQUEO: el administrador entra a todo', () => {
-  for (const hash of ['', '#/inicio', '#/organizador', '#/usuarios']) {
-    assert.equal(resolverRuta(hash, 'administrador').estado, 'permitida', hash)
+test('RUTA: las pantallas del usuario están permitidas', () => {
+  for (const hash of ['', '#/inicio', '#/catalogo', '#/agenda', '#/asistente', '#/perfil']) {
+    assert.equal(resolverRuta(hash, 'usuario').estado, 'permitida', hash)
   }
 })
 
-test('BLOQUEO: pantalla que no existe', () => {
-  const r = resolverRuta('#/nada', 'administrador')
-  assert.equal(r.estado, 'inexistente')
-  assert.equal(r.pantalla, null)
+test('RUTA: una pantalla que no existe (como #/usuarios o #/organizador) es inexistente', () => {
+  for (const hash of ['#/usuarios', '#/organizador', '#/nada']) {
+    const r = resolverRuta(hash, 'usuario')
+    assert.equal(r.estado, 'inexistente', hash)
+    assert.equal(r.pantalla, null)
+  }
+  assert.equal(puedeVer('administrador', 'constructor'), false)
+})
+
+test('BLOQUEO: una pantalla de organizador queda bloqueada para el usuario', () => {
+  const r = resolverRuta('#/mis-actividades', 'usuario', CON_ORGANIZADOR)
+  assert.equal(r.estado, 'bloqueada')
+  assert.equal(r.pantalla.titulo, 'Mis actividades')
+})
+
+test('BLOQUEO: el organizador sí entra a su pantalla y ve su menú', () => {
+  assert.equal(resolverRuta('#/mis-actividades', 'organizador', CON_ORGANIZADOR).estado, 'permitida')
+  assert.deepEqual(rutas('organizador', CON_ORGANIZADOR), [...TODAS, 'mis-actividades'])
+  assert.deepEqual(rutas('usuario', CON_ORGANIZADOR), TODAS)
 })
 
 test('BLOQUEO: si el rol cambia, la misma dirección pasa de permitida a bloqueada', () => {
-  assert.equal(resolverRuta('#/organizador', 'organizador').estado, 'permitida')
-  assert.equal(resolverRuta('#/organizador', 'usuario').estado, 'bloqueada')
+  assert.equal(resolverRuta('#/mis-actividades', 'organizador', CON_ORGANIZADOR).estado, 'permitida')
+  assert.equal(resolverRuta('#/mis-actividades', 'usuario', CON_ORGANIZADOR).estado, 'bloqueada')
 })

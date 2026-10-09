@@ -24,24 +24,27 @@ Login con Google (cuentas `@tecsup.edu.pe`) conectado al backend `Usuario-back`.
 | 401 / 403 (correo que no es de Tecsup, contraseña incorrecta, token inválido) | **Bloquea**: sin sesión, se muestra el mensaje del backend. |
 | 5xx, servidor apagado o 200 incompleto | **Bloquea** con un mensaje genérico. |
 
-Todas las cuentas `@tecsup.edu.pe` entran; el rol no bloquea el ingreso, solo cambia lo que se ve después (ver «Pantallas y menú según el rol»). El rol de organizador solo lo asigna el administrador.
+Todas las cuentas `@tecsup.edu.pe` entran; el rol no bloquea el ingreso, solo puede cambiar lo que se ve después (ver «Menú y pantallas»). El rol de organizador solo lo asigna el administrador.
 Pruebas automáticas: `npm test`.
 
-## Pantallas y menú según el rol
+## Menú y pantallas
 
-La lista de pantallas y qué rol puede verlas está en un solo lugar: `PANTALLAS` en `src/services/permisos.js`.
+Después de iniciar sesión, la web ocupa **toda la pantalla**: una columna lateral izquierda con el logo y el menú (como en Canvas), y a la derecha la cabecera con el título de la sección y el contenido. En celular el menú pasa a una barra fija abajo, con íconos. Los datos de la persona y «Cerrar sesión» están dentro de Perfil. El login mantiene su diseño con la foto de Tecsup.
 
-| Pantalla | Dirección | Usuario | Organizador | Administrador |
-|---|---|:-:|:-:|:-:|
-| Inicio | `#/inicio` | ✔ | ✔ | ✔ |
-| Panel del organizador | `#/organizador` | | ✔ | ✔ |
-| Gestión de usuarios | `#/usuarios` | | | ✔ |
+Las pantallas son las del usuario (estudiante). La lista está en un solo lugar: `PANTALLAS` en `src/services/permisos.js` (ruta, título, descripción y roles); la estructura está en `src/components/Shell.jsx` y `Shell.css`.
 
-- **Guardar el rol:** el rol viaja en `usuario.rol` y se guarda en `localStorage` junto con la sesión, siempre en minúsculas. Un rol que no se reconoce (o que falta) se guarda como `usuario`, el de menos permisos.
-- **Menú:** cada persona ve solo las pestañas de su rol, y el inicio muestra accesos rápidos a esas mismas pantallas. La etiqueta del rol cambia de color según el rol.
-- **Bloqueo:** si alguien escribe a mano la dirección de una pantalla que no le toca (por ejemplo `#/usuarios` siendo usuario), no se muestra su contenido: aparece «Acceso no autorizado». Una dirección que no existe muestra «Pantalla no encontrada». Si el rol cambia mientras la persona está en una pantalla, el bloqueo se aplica solo.
-- **Agregar una pantalla nueva:** súmala a `PANTALLAS` (ruta, título y roles) y muéstrala desde `App.jsx`; el menú, los accesos y el bloqueo salen de esa lista.
-- Las pantallas «Panel del organizador» y «Gestión de usuarios» son por ahora **vacías** («estará disponible pronto»): sirven para probar el menú y el bloqueo hasta que exista su contenido real.
+| Pantalla | Dirección | Estado |
+|---|---|---|
+| Inicio | `#/inicio` | vacía (US-04, US-19) |
+| Catálogo | `#/catalogo` | vacía (US-08, US-14) |
+| Agenda | `#/agenda` | vacía (US-07, US-09) |
+| Asistente | `#/asistente` | vacía (US-12) |
+| Perfil | `#/perfil` | datos, contraseña opcional y **Cerrar sesión** |
+
+- Cada pantalla vacía tiene su propio archivo en `src/components/` (`Inicio.jsx`, `Catalogo.jsx`, `Agenda.jsx`, `Asistente.jsx`): se llena cuando toque su historia.
+- **Guardar el rol:** el rol viaja en `usuario.rol` y se guarda en `localStorage` con la sesión, siempre en minúsculas. Un rol que no se reconoce (o que falta) se guarda como `usuario`.
+- **Bloqueo:** una pantalla puede limitarse a ciertos roles con `roles: [...]`. Si alguien abre la dirección de una pantalla que no le toca, aparece «Acceso no autorizado»; si la dirección no existe, «Pantalla no encontrada».
+- **Por ahora solo hay pantallas de usuario**, y las ven todos los roles. Las pantallas del organizador se agregan después a `PANTALLAS` con `roles: ['organizador']` y aparecen solas en el menú de quien tenga ese rol. El administrador usa su propia web (React + Django).
 
 > **Esto no es seguridad.** Ocultar o bloquear pantallas en la web solo mejora lo que ve la persona: cualquiera puede alterar el navegador. La protección de verdad está en el backend, que ya convierte el rol del token en `ROLE_*` para exigirlo en cada endpoint (`hasRole`).
 

@@ -1,22 +1,49 @@
 import { pantallasDelMenu } from '../services/permisos'
-import { RolBadge } from './RolBadge'
 
-/** Menú principal: cada rol ve solo las pantallas que le tocan. */
+const iconoProps = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+
+const ICONOS = {
+  inicio: (
+    <>
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5 10v10h5v-6h4v6h5V10" />
+    </>
+  ),
+  catalogo: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </>
+  ),
+  agenda: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </>
+  ),
+  asistente: <path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1.2-4.2A8 8 0 1 1 21 12z" />,
+  perfil: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </>
+  ),
+}
+
+/** Menú principal: arriba en pantallas grandes y abajo en celular (con íconos). La pantalla actual va resaltada. */
 export function Menu({ rol, rutaActual }) {
   return (
-    <div className="vynk-menu">
-      <nav aria-label="Menú principal">
-        <ul>
-          {pantallasDelMenu(rol).map((p) => (
-            <li key={p.ruta}>
-              <a href={`#/${p.ruta}`} aria-current={p.ruta === rutaActual ? 'page' : undefined}>
-                {p.tituloMenu}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <RolBadge rol={rol} />
-    </div>
+    <nav className="shell-menu" aria-label="Menú principal">
+      <ul>
+        {pantallasDelMenu(rol).map((p) => (
+          <li key={p.ruta}>
+            <a href={`#/${p.ruta}`} aria-current={p.ruta === rutaActual ? 'page' : undefined}>
+              <svg {...iconoProps}>{ICONOS[p.ruta]}</svg>
+              <span>{p.tituloMenu}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   )
 }

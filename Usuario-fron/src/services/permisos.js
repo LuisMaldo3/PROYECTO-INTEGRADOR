@@ -22,39 +22,20 @@ export const ETIQUETAS_ROL = {
   administrador: 'Administrador',
 }
 
-export const DESCRIPCION_ROL = {
-  usuario: 'Puedes ver y participar en las actividades de la T&C Week.',
-  organizador: 'Puedes organizar actividades de la T&C Week.',
-  administrador: 'Gestionas los usuarios y los roles de VYNK.',
-}
-
 /**
  * Pantallas de la web y qué roles pueden verlas.
- * Para sumar una pantalla nueva basta con agregarla aquí: el menú, los accesos del
- * inicio y el bloqueo salen de esta lista.
+ *
+ * Por ahora solo existen las del usuario (estudiante) y todas las ven todos los roles.
+ * Las pantallas del organizador se agregan aquí más adelante, con `roles: [ROLES.ORGANIZADOR]`;
+ * el menú, el bloqueo y «Acceso no autorizado» ya funcionan con esa lista.
+ * (El administrador usa su propia web, aparte.)
  */
 export const PANTALLAS = [
-  {
-    ruta: 'inicio',
-    titulo: 'Inicio',
-    tituloMenu: 'Inicio',
-    descripcion: 'Tu perfil y tus accesos.',
-    roles: [ROLES.USUARIO, ROLES.ORGANIZADOR, ROLES.ADMINISTRADOR],
-  },
-  {
-    ruta: 'organizador',
-    titulo: 'Panel del organizador',
-    tituloMenu: 'Organizar',
-    descripcion: 'Crea y gestiona las actividades de la T&C Week.',
-    roles: [ROLES.ORGANIZADOR, ROLES.ADMINISTRADOR],
-  },
-  {
-    ruta: 'usuarios',
-    titulo: 'Gestión de usuarios',
-    tituloMenu: 'Usuarios',
-    descripcion: 'Consulta a los usuarios y asigna roles.',
-    roles: [ROLES.ADMINISTRADOR],
-  },
+  { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Resumen de tu participación en la T&C Week.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
+  { ruta: 'catalogo', titulo: 'Catálogo de actividades', descripcion: 'Actividades disponibles durante la T&C Week.', tituloMenu: 'Catálogo', roles: ROLES_VALIDOS },
+  { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
+  { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
+  { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
 ]
 
 /** Devuelve un rol válido: lo que no se reconoce (o falta) cuenta como "usuario" (el de menos permisos). */
@@ -68,21 +49,21 @@ export function normalizarUsuario(usuario) {
   return usuario && typeof usuario === 'object' ? { ...usuario, rol: normalizarRol(usuario.rol) } : usuario
 }
 
-export function pantallaDe(ruta) {
-  return PANTALLAS.find((p) => p.ruta === ruta) ?? null
+export function pantallaDe(ruta, lista = PANTALLAS) {
+  return lista.find((p) => p.ruta === ruta) ?? null
 }
 
 /** true si ese rol puede ver esa pantalla. Una pantalla que no existe no la ve nadie. */
-export function puedeVer(rol, ruta) {
-  return pantallaDe(ruta)?.roles.includes(normalizarRol(rol)) ?? false
+export function puedeVer(rol, ruta, lista = PANTALLAS) {
+  return pantallaDe(ruta, lista)?.roles.includes(normalizarRol(rol)) ?? false
 }
 
 /** Pantallas que le tocan a ese rol: las del menú. */
-export function pantallasDelMenu(rol) {
-  return PANTALLAS.filter((p) => puedeVer(rol, p.ruta))
+export function pantallasDelMenu(rol, lista = PANTALLAS) {
+  return lista.filter((p) => puedeVer(rol, p.ruta, lista))
 }
 
-/** "#/usuarios" -> "usuarios". Sin nada (o "#/") es "inicio". */
+/** "#/agenda" -> "agenda". Sin nada (o "#/") es "inicio". */
 export function rutaDeHash(hash = '') {
   const ruta = String(hash).replace(/^#\/?/, '').split(/[?/]/)[0].trim().toLowerCase()
   return ruta || 'inicio'
@@ -92,9 +73,9 @@ export function rutaDeHash(hash = '') {
  * Decide qué hacer con la dirección actual según el rol.
  * @returns {{ ruta: string, pantalla: object|null, estado: 'permitida'|'bloqueada'|'inexistente' }}
  */
-export function resolverRuta(hash, rol) {
+export function resolverRuta(hash, rol, lista = PANTALLAS) {
   const ruta = rutaDeHash(hash)
-  const pantalla = pantallaDe(ruta)
+  const pantalla = pantallaDe(ruta, lista)
   if (!pantalla) return { ruta, pantalla: null, estado: 'inexistente' }
-  return { ruta, pantalla, estado: puedeVer(rol, ruta) ? 'permitida' : 'bloqueada' }
+  return { ruta, pantalla, estado: puedeVer(rol, ruta, lista) ? 'permitida' : 'bloqueada' }
 }

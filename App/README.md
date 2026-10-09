@@ -27,3 +27,14 @@ Cada integrante tiene uno distinto:
 3. Si la pantalla de consentimiento de Google está en modo "Testing", agregar tu correo como usuario de prueba.
 
 Si falla, el detalle real aparece en Logcat filtrando por `LoginViewModel`.
+
+## Menú inferior
+
+Después de iniciar sesión, la app muestra un menú inferior (Material 3) con las pantallas del estudiante. La app móvil es solo para el usuario (estudiante), así que el menú es el mismo para todos:
+
+**Inicio · Catálogo · Agenda · Asistente · Perfil**
+
+- Las pantallas se definen en el enum `Destino` de `ui/main/Destinos.kt` y se registran en `MainScreen.kt`.
+- Inicio, Catálogo, Agenda y Asistente están **vacías**: cada una tiene su archivo en `ui/main/` (`InicioScreen.kt`, `CatalogoScreen.kt`, `AgendaScreen.kt`, `AsistenteScreen.kt`) para llenarlo cuando toque su historia.
+- **Perfil** muestra los datos de la persona y el botón «Cerrar sesión».
+- La lógica del menú se prueba con `ui/main/DestinosTest.kt` (`./gradlew testDebugUnitTest`).
