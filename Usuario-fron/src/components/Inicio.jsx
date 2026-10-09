@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { definirPassword } from '../services/authService'
-import { Fondo } from './Fondo'
+import { DESCRIPCION_ROL, pantallasDelMenu } from '../services/permisos'
+import { RolBadge } from './RolBadge'
 
-/** Pantalla a la que se llega después de iniciar sesión. */
-export function Inicio({ usuario, token, onSalir }) {
+/** Pantalla a la que se llega después de iniciar sesión. Los accesos dependen del rol. */
+export function Inicio({ usuario, rol, token, onSalir }) {
+  const accesos = pantallasDelMenu(rol).filter((p) => p.ruta !== 'inicio')
   const [nueva, setNueva] = useState('')
   const [mensaje, setMensaje] = useState(null) // { tipo: 'ok' | 'error', texto }
   const [guardando, setGuardando] = useState(false)
@@ -24,9 +26,20 @@ export function Inicio({ usuario, token, onSalir }) {
   }
 
   return (
-    <Fondo>
+    <>
       <h2 className="card-title">¡Hola, {usuario.nombre?.split(' ')[0] || 'bienvenido'}!</h2>
-      <p className="card-subtitle">Ya iniciaste sesión.</p>
+      <p className="card-subtitle">{DESCRIPCION_ROL[rol]}</p>
+
+      {accesos.length > 0 && (
+        <nav className="accesos" aria-label="Accesos rápidos">
+          {accesos.map((p) => (
+            <a key={p.ruta} className="acceso" href={`#/${p.ruta}`}>
+              <span className="acceso-titulo">{p.titulo}</span>
+              <span className="acceso-desc">{p.descripcion}</span>
+            </a>
+          ))}
+        </nav>
+      )}
 
       <dl className="perfil-datos">
         <div>
@@ -39,7 +52,7 @@ export function Inicio({ usuario, token, onSalir }) {
         </div>
         <div>
           <dt>Rol</dt>
-          <dd><span className="rol-badge">{usuario.rol}</span></dd>
+          <dd><RolBadge rol={rol} /></dd>
         </div>
       </dl>
 
@@ -77,6 +90,6 @@ export function Inicio({ usuario, token, onSalir }) {
       <button type="button" className="btn-secundario" onClick={onSalir}>
         Cerrar sesión
       </button>
-    </Fondo>
+    </>
   )
 }

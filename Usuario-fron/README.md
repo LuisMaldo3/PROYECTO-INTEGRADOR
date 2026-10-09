@@ -24,8 +24,26 @@ Login con Google (cuentas `@tecsup.edu.pe`) conectado al backend `Usuario-back`.
 | 401 / 403 (correo que no es de Tecsup, contraseña incorrecta, token inválido) | **Bloquea**: sin sesión, se muestra el mensaje del backend. |
 | 5xx, servidor apagado o 200 incompleto | **Bloquea** con un mensaje genérico. |
 
-El rol no interviene: todas las cuentas entran como "usuario"; el rol de organizador solo lo asigna el administrador.
+Todas las cuentas `@tecsup.edu.pe` entran; el rol no bloquea el ingreso, solo cambia lo que se ve después (ver «Pantallas y menú según el rol»). El rol de organizador solo lo asigna el administrador.
 Pruebas automáticas: `npm test`.
+
+## Pantallas y menú según el rol
+
+La lista de pantallas y qué rol puede verlas está en un solo lugar: `PANTALLAS` en `src/services/permisos.js`.
+
+| Pantalla | Dirección | Usuario | Organizador | Administrador |
+|---|---|:-:|:-:|:-:|
+| Inicio | `#/inicio` | ✔ | ✔ | ✔ |
+| Panel del organizador | `#/organizador` | | ✔ | ✔ |
+| Gestión de usuarios | `#/usuarios` | | | ✔ |
+
+- **Guardar el rol:** el rol viaja en `usuario.rol` y se guarda en `localStorage` junto con la sesión, siempre en minúsculas. Un rol que no se reconoce (o que falta) se guarda como `usuario`, el de menos permisos.
+- **Menú:** cada persona ve solo las pestañas de su rol, y el inicio muestra accesos rápidos a esas mismas pantallas. La etiqueta del rol cambia de color según el rol.
+- **Bloqueo:** si alguien escribe a mano la dirección de una pantalla que no le toca (por ejemplo `#/usuarios` siendo usuario), no se muestra su contenido: aparece «Acceso no autorizado». Una dirección que no existe muestra «Pantalla no encontrada». Si el rol cambia mientras la persona está en una pantalla, el bloqueo se aplica solo.
+- **Agregar una pantalla nueva:** súmala a `PANTALLAS` (ruta, título y roles) y muéstrala desde `App.jsx`; el menú, los accesos y el bloqueo salen de esa lista.
+- Las pantallas «Panel del organizador» y «Gestión de usuarios» son por ahora **vacías** («estará disponible pronto»): sirven para probar el menú y el bloqueo hasta que exista su contenido real.
+
+> **Esto no es seguridad.** Ocultar o bloquear pantallas en la web solo mejora lo que ve la persona: cualquiera puede alterar el navegador. La protección de verdad está en el backend, que ya convierte el rol del token en `ROLE_*` para exigirlo en cada endpoint (`hasRole`).
 
 ## Rol y «quién soy»
 

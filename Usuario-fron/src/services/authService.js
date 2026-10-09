@@ -1,5 +1,6 @@
 import { API_URL } from '../config'
 import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso'
+import { normalizarUsuario } from './permisos'
 
 const KEY_TOKEN = 'vynk.token'
 const KEY_USUARIO = 'vynk.usuario'
@@ -81,7 +82,7 @@ export function leerSesion() {
       cerrarSesion()
       return null
     }
-    return { token, usuario }
+    return { token, usuario: normalizarUsuario(usuario) }
   } catch {
     return null
   }

@@ -69,6 +69,14 @@ test('tokenVigente: vence en el futuro -> sí; ya venció -> no; basura -> no', 
   assert.equal(tokenVigente(undefined, ahora), false)
 })
 
+test('ROL guardado: se normaliza al entrar (mayúsculas, rol desconocido o ausente)', () => {
+  const entra = (rol) => decidirAcceso({ estado: 200, datos: { token: 'jwt', usuario: { ...usuario, rol } } }).sesion.usuario.rol
+  assert.equal(entra('Organizador'), 'organizador')
+  assert.equal(entra('superadmin'), 'usuario')
+  assert.equal(entra(undefined), 'usuario')
+  assert.equal(decidirQuienSoy({ estado: 200, datos: { ...usuario, rol: 'ADMINISTRADOR' } }).usuario.rol, 'administrador')
+})
+
 test('QUIÉN SOY: 200 con el usuario devuelve el usuario con su rol actual', () => {
   const organizador = { ...usuario, rol: 'organizador' }
   const r = decidirQuienSoy({ estado: 200, datos: organizador })

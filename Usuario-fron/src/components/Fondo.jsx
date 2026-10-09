@@ -9,13 +9,14 @@ const ANIO = new Date().getFullYear()
  * de altura completa con la foto de la comunidad + nombre de la app arriba y,
  * debajo, todo lo de iniciar sesión.
  */
-export function Fondo({ children }) {
+export function Fondo({ children, menu = null }) {
   return (
     <div className="vynk-page" style={{ '--vynk-campus': `url(${campus})` }}>
       <div className="vynk-campus" aria-hidden="true" />
 
       <aside className="vynk-panel">
         <Portada />
+        {menu}
 
         <main className="vynk-sheet-body">{children}</main>
 

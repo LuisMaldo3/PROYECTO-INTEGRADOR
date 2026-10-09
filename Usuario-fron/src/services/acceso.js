@@ -2,9 +2,11 @@
  * Tarea 4 (web): decide si se PERMITE o se BLOQUEA el acceso según la respuesta del backend.
  *
  * Es una función pura (no usa red ni pantallas), así se puede probar fácil con `npm test`.
- * No mira el rol: todas las cuentas entran como "usuario"; el rol de organizador
- * solo lo asigna el administrador más adelante.
+ * No bloquea por rol: todas las cuentas @tecsup.edu.pe entran. El rol solo cambia lo que
+ * se muestra después (ver permisos.js); aquí se guarda ya normalizado.
  */
+
+import { normalizarUsuario } from './permisos.js'
 
 export const MENSAJES = {
   SIN_CONEXION: 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.',
@@ -29,7 +31,7 @@ export function decidirAcceso({ estado, datos = null, errorDeRed = false }) {
   if (estado === 200) {
     const sesionCompleta = datos && typeof datos.token === 'string' && datos.token && datos.usuario?.correo
     return sesionCompleta
-      ? { permitido: true, sesion: { token: datos.token, usuario: datos.usuario } }
+      ? { permitido: true, sesion: { token: datos.token, usuario: normalizarUsuario(datos.usuario) } }
       : bloquear('RESPUESTA_INVALIDA', MENSAJES.RESPUESTA_INVALIDA)
   }
 
@@ -50,7 +52,7 @@ export function decidirQuienSoy({ estado, datos = null, errorDeRed = false }) {
 
   if (errorDeRed) return rechazo('SIN_CONEXION', MENSAJES.SIN_CONEXION)
   if (estado === 200) {
-    return datos?.correo ? { valido: true, usuario: datos } : rechazo('RESPUESTA_INVALIDA', MENSAJES.RESPUESTA_INVALIDA)
+    return datos?.correo ? { valido: true, usuario: normalizarUsuario(datos) } : rechazo('RESPUESTA_INVALIDA', MENSAJES.RESPUESTA_INVALIDA)
   }
   if (estado === 401) return rechazo('SESION_EXPIRADA', MENSAJES.SESION_EXPIRADA)
   return estado >= 500
