@@ -11,6 +11,7 @@ export const MENSAJES = {
   RESPUESTA_INVALIDA: 'El servidor respondió de forma inesperada. Inténtalo nuevamente.',
   ERROR_SERVIDOR: 'El servidor tuvo un problema. Inténtalo en unos minutos.',
   ERROR: 'No se pudo iniciar sesión. Inténtalo nuevamente.',
+  SESION_EXPIRADA: 'Tu sesión expiró. Vuelve a iniciar sesión.',
 }
 
 function bloquear(codigo, mensaje) {
@@ -35,6 +36,26 @@ export function decidirAcceso({ estado, datos = null, errorDeRed = false }) {
   // 400, 401, 403, 5xx... : se bloquea y se muestra el mensaje que mandó el backend (si lo hay).
   const generico = estado >= 500 ? MENSAJES.ERROR_SERVIDOR : MENSAJES.ERROR
   return bloquear(datos?.codigo ?? (estado >= 500 ? 'ERROR_SERVIDOR' : 'ERROR'), datos?.mensaje ?? generico)
+}
+
+/**
+ * Interpreta la respuesta de GET /auth/me («quién soy»).
+ * Solo 401 significa "esta sesión ya no sirve" (token vencido, cuenta borrada o desactivada).
+ * Un error de red o un 5xx NO invalidan la sesión: la persona sigue con lo que ya tenía guardado.
+ *
+ * @returns {{ valido: true, usuario: object } | { valido: false, codigo: string, mensaje: string }}
+ */
+export function decidirQuienSoy({ estado, datos = null, errorDeRed = false }) {
+  const rechazo = (codigo, mensaje) => ({ valido: false, codigo, mensaje })
+
+  if (errorDeRed) return rechazo('SIN_CONEXION', MENSAJES.SIN_CONEXION)
+  if (estado === 200) {
+    return datos?.correo ? { valido: true, usuario: datos } : rechazo('RESPUESTA_INVALIDA', MENSAJES.RESPUESTA_INVALIDA)
+  }
+  if (estado === 401) return rechazo('SESION_EXPIRADA', MENSAJES.SESION_EXPIRADA)
+  return estado >= 500
+    ? rechazo(datos?.codigo ?? 'ERROR_SERVIDOR', datos?.mensaje ?? MENSAJES.ERROR_SERVIDOR)
+    : rechazo(datos?.codigo ?? 'ERROR', datos?.mensaje ?? MENSAJES.ERROR)
 }
 
 /** true si el JWT se puede leer y todavía no venció. */

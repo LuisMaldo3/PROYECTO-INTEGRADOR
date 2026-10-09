@@ -1,5 +1,5 @@
 import { API_URL } from '../config'
-import { decidirAcceso, MENSAJES, tokenVigente } from './acceso'
+import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso'
 
 const KEY_TOKEN = 'vynk.token'
 const KEY_USUARIO = 'vynk.usuario'
@@ -55,6 +55,16 @@ export async function definirPassword(token, password) {
   if (r.estado < 200 || r.estado >= 300) {
     throw new AuthError(r.datos?.codigo ?? 'ERROR', r.datos?.mensaje ?? 'No se pudo completar la operación. Inténtalo nuevamente.')
   }
+}
+
+/**
+ * «Quién soy» (GET /auth/me): datos actuales del usuario, con su rol al día.
+ * Devuelve el usuario o lanza AuthError (código SESION_EXPIRADA si el token ya no sirve).
+ */
+export async function quienSoy(token) {
+  const decision = decidirQuienSoy(await enviar('/auth/me', { metodo: 'GET', token }))
+  if (!decision.valido) throw new AuthError(decision.codigo, decision.mensaje)
+  return decision.usuario
 }
 
 export function guardarSesion({ token, usuario }) {

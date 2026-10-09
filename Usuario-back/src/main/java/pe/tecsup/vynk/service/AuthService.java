@@ -99,6 +99,23 @@ public class AuthService {
         return correo;
     }
 
+    /**
+     * «Quién soy»: datos ACTUALES del usuario del token, leídos de la base de datos.
+     * El rol del token puede estar desactualizado (dura {@code vynk.jwt.horas} horas);
+     * aquí siempre se devuelve el de la base. Si la cuenta ya no existe o fue
+     * desactivada, el token deja de servir (401).
+     */
+    public UsuarioDto quienSoy(String usuarioId) {
+        Usuario usuario = repo.findById(usuarioId)
+                .filter(Usuario::isActivo)
+                .orElseThrow(CredencialInvalidaException::new);
+        return aDto(usuario);
+    }
+
+    private UsuarioDto aDto(Usuario usuario) {
+        return new UsuarioDto(usuario.getId(), usuario.getNombre(), usuario.getCorreo(), usuario.getRol());
+    }
+
     /** Crea o cambia la contraseña del usuario autenticado. */
     public void definirPassword(String usuarioId, String password) {
         Usuario usuario = repo.findById(usuarioId).orElseThrow(CredencialInvalidaException::new);
@@ -120,7 +137,6 @@ public class AuthService {
                 JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims)
         ).getTokenValue();
 
-        return new LoginResponse(token, new UsuarioDto(
-                usuario.getId(), usuario.getNombre(), usuario.getCorreo(), usuario.getRol()));
+        return new LoginResponse(token, aDto(usuario));
     }
 }

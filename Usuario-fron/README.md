@@ -27,6 +27,10 @@ Login con Google (cuentas `@tecsup.edu.pe`) conectado al backend `Usuario-back`.
 El rol no interviene: todas las cuentas entran como "usuario"; el rol de organizador solo lo asigna el administrador.
 Pruebas automáticas: `npm test`.
 
+## Rol y «quién soy»
+
+Al abrir la web con una sesión guardada, `App.jsx` llama a `GET /auth/me` (función `quienSoy` en `authService.js`) y actualiza el usuario guardado, así el **rol mostrado es el actual**. Si el backend responde 401 (token vencido o cuenta desactivada) se cierra la sesión; si no hay conexión o el servidor falla, se mantiene lo guardado. La decisión está en `decidirQuienSoy` (`acceso.js`) y se prueba con `npm test`.
+
 ## Configuración
 
 1. **Google Cloud Console** → APIs y servicios → Credenciales → *Crear ID de cliente de OAuth* → tipo **Aplicación web**.

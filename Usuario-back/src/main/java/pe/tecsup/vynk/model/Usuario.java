@@ -14,7 +14,7 @@ public class Usuario {
     private String correo;
 
     private String nombre;
-    private String rol = "usuario";
+    private String rol = Roles.USUARIO;
     private boolean activo = true;
     private String passwordHash; // null si el usuario solo entra con Google
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { decidirAcceso, MENSAJES, tokenVigente } from './acceso.js'
+import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso.js'
 
 const usuario = { id: '1', nombre: 'Ana Torres', correo: 'ana@tecsup.edu.pe', rol: 'usuario' }
 
@@ -67,4 +67,29 @@ test('tokenVigente: vence en el futuro -> sí; ya venció -> no; basura -> no', 
   assert.equal(tokenVigente(jwtCon({ sub: '1' }), ahora), false) // sin exp
   assert.equal(tokenVigente('esto-no-es-un-jwt', ahora), false)
   assert.equal(tokenVigente(undefined, ahora), false)
+})
+
+test('QUIÉN SOY: 200 con el usuario devuelve el usuario con su rol actual', () => {
+  const organizador = { ...usuario, rol: 'organizador' }
+  const r = decidirQuienSoy({ estado: 200, datos: organizador })
+  assert.equal(r.valido, true)
+  assert.equal(r.usuario.rol, 'organizador')
+})
+
+test('QUIÉN SOY: 401 significa sesión expirada', () => {
+  const r = decidirQuienSoy({ estado: 401, datos: { codigo: 'CREDENCIAL_INVALIDA', mensaje: 'No se pudo verificar tu cuenta' } })
+  assert.equal(r.valido, false)
+  assert.equal(r.codigo, 'SESION_EXPIRADA')
+  assert.equal(r.mensaje, MENSAJES.SESION_EXPIRADA)
+})
+
+test('QUIÉN SOY: sin conexión o error del servidor NO es sesión expirada', () => {
+  assert.equal(decidirQuienSoy({ errorDeRed: true }).codigo, 'SIN_CONEXION')
+  assert.equal(decidirQuienSoy({ estado: 500, datos: null }).codigo, 'ERROR_SERVIDOR')
+  assert.equal(decidirQuienSoy({ estado: 503, datos: { codigo: 'BASE_DE_DATOS_NO_DISPONIBLE', mensaje: 'x' } }).codigo, 'BASE_DE_DATOS_NO_DISPONIBLE')
+})
+
+test('QUIÉN SOY: 200 sin correo es una respuesta inválida', () => {
+  assert.equal(decidirQuienSoy({ estado: 200, datos: {} }).codigo, 'RESPUESTA_INVALIDA')
+  assert.equal(decidirQuienSoy({ estado: 200, datos: null }).codigo, 'RESPUESTA_INVALIDA')
 })

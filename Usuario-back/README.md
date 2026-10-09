@@ -140,6 +140,33 @@ Los correos que no cumplan con el dominio `@tecsup.edu.pe` deben ser rechazados 
 
 La validación del backend es obligatoria y no debe depender únicamente de la interfaz.
 
+## 8.1 Roles y servicio «quién soy»
+
+**Roles.** Existen tres: `usuario`, `organizador` y `administrador`. Al arrancar, el backend crea la colección `roles` en MongoDB (solo agrega los que faltan, es seguro repetirlo). Todo usuario nuevo entra como `usuario`; el rol se guarda en `usuarios.rol`.
+
+Para cambiar el rol de alguien (por ahora a mano, en Compass o `mongosh`):
+
+```javascript
+use vynk
+db.usuarios.updateOne({ correo: "ana@tecsup.edu.pe" }, { $set: { rol: "organizador" } })
+```
+
+**El rol en la sesión.** El JWT lleva el claim `rol` y la respuesta de login incluye `usuario.rol`. Además, Spring Security lo convierte en autoridad (`organizador` → `ROLE_ORGANIZADOR`), así que un endpoint puede exigirlo con `.hasRole("ORGANIZADOR")` o `@PreAuthorize("hasRole('ADMINISTRADOR')")`.
+
+**«Quién soy».** `GET /auth/me` con `Authorization: Bearer <token>` devuelve los datos *actuales* del usuario, leídos de la base de datos:
+
+```json
+{ "id": "...", "nombre": "Ana Torres", "correo": "ana@tecsup.edu.pe", "rol": "organizador" }
+```
+
+| Caso | Respuesta |
+|---|---|
+| Token válido y cuenta activa | 200 con el usuario |
+| Sin token, token vencido o inválido | 401 |
+| La cuenta ya no existe o está desactivada | 401 `CREDENCIAL_INVALIDA` |
+
+Importante: el rol que viaja dentro del token queda fijo hasta que venza (8 horas). Si un administrador cambia un rol, `/auth/me` ya devuelve el nuevo, y el token anterior sigue con el viejo hasta que la persona vuelva a iniciar sesión.
+
 ## 9. Archivos que no deben subirse a Git
 
 No subir:

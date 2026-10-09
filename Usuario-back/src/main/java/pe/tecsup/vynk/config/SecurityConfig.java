@@ -8,12 +8,15 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,6 +27,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @Configuration
 @EnableWebSecurity
@@ -37,8 +41,26 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/auth/login", "/auth/login-password", "/error").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(convertidorDeJwt())));
         return http.build();
+    }
+
+    /**
+     * Convierte el claim "rol" del JWT en una autoridad de Spring Security:
+     * "organizador" -> ROLE_ORGANIZADOR. Asi un endpoint puede exigir
+     * .hasRole("ORGANIZADOR") o @PreAuthorize("hasRole('ADMINISTRADOR')").
+     */
+    private JwtAuthenticationConverter convertidorDeJwt() {
+        JwtAuthenticationConverter convertidor = new JwtAuthenticationConverter();
+        convertidor.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String rol = jwt.getClaimAsString("rol");
+            if (rol == null || rol.isBlank()) {
+                return List.<GrantedAuthority>of();
+            }
+            return List.<GrantedAuthority>of(
+                    new SimpleGrantedAuthority("ROLE_" + rol.trim().toUpperCase(Locale.ROOT)));
+        });
+        return convertidor;
     }
 
     @Bean
