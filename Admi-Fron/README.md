@@ -27,12 +27,3 @@ npm test           # pruebas
 ```
 
 Antes: en `Usuario-back/.env` agrega `http://localhost:5174` a `CORS_ORIGINS` (separado por coma) y reinicia el backend.
-
----
-
-## Parte de este zip — Jordi: tareas 3 (carga de la lista) y 4 (pantalla de la lista)
-
-- **Tuyo:** src/services/usuariosService.js (listarUsuarios), src/components/ListaUsuarios.jsx
-- **Placeholder (es de tu compañero/a, no lo edites):** src/components/DetalleUsuario.jsx, src/components/MenuAdmin.jsx (y obtenerUsuario en usuariosService.js)
-- Al integrar, cada quien entrega solo sus archivos. `usuariosService.js` lo comparten: Jordi aporta `listarUsuarios`, Mishel `obtenerUsuario`.
-- `.env.local` no se incluye: `Copy-Item .env.example .env.local`.

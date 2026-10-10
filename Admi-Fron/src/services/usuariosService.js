@@ -31,7 +31,7 @@ export async function listarUsuarios(token) {
   return datos?.usuarios ?? []
 }
 
-// [Mishel] obtenerUsuario(token, id) es de la tarea 5: se agrega al integrar (usa `pedir`).
-export function obtenerUsuario() {
-  return Promise.reject(new ApiError(0, 'Pendiente: tarea 5 (Mishel).'))
+/** GET /api/usuarios/<id>/ → { id, nombre, correo, rol, activo }. */
+export function obtenerUsuario(token, id) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/`, token)
 }
