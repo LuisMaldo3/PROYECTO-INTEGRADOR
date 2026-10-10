@@ -38,3 +38,16 @@ Después de iniciar sesión, la app muestra un menú inferior (Material 3) con l
 - Inicio, Catálogo, Agenda y Asistente están **vacías**: cada una tiene su archivo en `ui/main/` (`InicioScreen.kt`, `CatalogoScreen.kt`, `AgendaScreen.kt`, `AsistenteScreen.kt`) para llenarlo cuando toque su historia.
 - **Perfil** muestra los datos de la persona y el botón «Cerrar sesión».
 - La lógica del menú se prueba con `ui/main/DestinosTest.kt` (`./gradlew testDebugUnitTest`).
+
+## Cerrar sesión (app)
+
+La opción «Cerrar sesión» está en **Perfil**, abajo, como botón de ancho completo. Al pulsarla, en este orden:
+
+1. **Borra los datos de la sesión** del celular (token, nombre, correo y rol; archivo `vynk_sesion`). Se borra con `commit()` para que quede escrito en el disco al instante.
+2. **Olvida la cuenta de Google** elegida (Credential Manager). Si esto falla no pasa nada: no impide continuar.
+3. **Lleva al inicio de sesión**, sin posibilidad de volver atrás a las pantallas de la sesión.
+
+La sesión **no se incluye en los respaldos** de Android (`res/xml/backup_rules.xml` y `data_extraction_rules.xml`): así no puede restaurarse en otro celular, ni por respaldo en la nube ni al transferir datos.
+
+Por ahora la app no avisa al servidor al cerrar sesión; solo la web lo hace.
+

@@ -88,5 +88,6 @@ class AuthRepository(context: Context) {
     fun currentSession(): DatosDeEntrada? =
         sesion.leer()?.takeIf { isInstitutional(it.correo) && !vencido(it.llave) }
 
+    /** Cierra la sesión en el celular: borra todos los datos guardados (token, nombre, correo y rol). */
     fun logout() = sesion.borrar()
 }

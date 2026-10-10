@@ -34,8 +34,12 @@ class SesionGuardada(context: Context) {
         )
     }
 
+    /**
+     * Borra todos los datos de la sesión. Usa commit() (y no apply()) para que el borrado quede
+     * escrito en el disco antes de seguir, aunque el sistema cierre la app justo después.
+     */
     fun borrar() {
-        prefs.edit().clear().apply()
+        prefs.edit().clear().commit()
     }
 
     private companion object {
