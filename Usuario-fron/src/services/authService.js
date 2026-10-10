@@ -1,6 +1,7 @@
 import { API_URL } from '../config'
 import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso'
 import { normalizarUsuario } from './permisos'
+import { borrarDatosDeSesion, sinTokenGuardado } from './sesionLocal'
 
 const KEY_TOKEN = 'vynk.token'
 const KEY_USUARIO = 'vynk.usuario'
@@ -96,8 +97,30 @@ export async function cerrarSesionEnServidor(token) {
   await enviar('/auth/logout', { token })
 }
 
+/** true si otra pestaña cerró la sesión (ya no hay token). Solo lee: no borra nada. */
+export function sesionCerradaEnOtraPestana() {
+  try {
+    return sinTokenGuardado(globalThis.localStorage, KEY_TOKEN)
+  } catch {
+    return false
+  }
+}
+
+/** Almacenes del navegador (algunos bloquean el acceso: se omiten). */
+function almacenesDelNavegador() {
+  const lista = []
+  for (const nombre of ['localStorage', 'sessionStorage']) {
+    try {
+      lista.push(globalThis[nombre])
+    } catch {
+      // bloqueado por el navegador
+    }
+  }
+  return lista
+}
+
+/** Borra TODO lo guardado de VYNK en el navegador (token, usuario y lo que se agregue después). */
 export function cerrarSesion() {
-  localStorage.removeItem(KEY_TOKEN)
-  localStorage.removeItem(KEY_USUARIO)
+  borrarDatosDeSesion(almacenesDelNavegador())
   window.google?.accounts?.id?.disableAutoSelect?.()
 }

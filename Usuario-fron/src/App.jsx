@@ -9,7 +9,7 @@ import { PantallaVacia } from './components/PantallaVacia'
 import { Perfil } from './components/Perfil'
 import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
-import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy } from './services/authService'
+import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
 import { normalizarRol, resolverRuta } from './services/permisos'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
@@ -44,6 +44,21 @@ function App() {
       cancelado = true
     }
   }, [token])
+
+  // Si se cierra la sesión en otra pestaña, esta también vuelve al inicio de sesión
+  // (el navegador avisa con el evento "storage" cuando otra pestaña borra los datos).
+  useEffect(() => {
+    const alCambiarElAlmacenamiento = () => {
+      // Solo se mira si falta el token; no se usa leerSesion() porque borra datos y podría
+      // destruir un inicio de sesión que otra pestaña está guardando en ese momento.
+      if (sesionCerradaEnOtraPestana()) {
+        window.location.hash = ''
+        setSesion(null)
+      }
+    }
+    window.addEventListener('storage', alCambiarElAlmacenamiento)
+    return () => window.removeEventListener('storage', alCambiarElAlmacenamiento)
+  }, [])
 
   const salir = () => {
     if (token) cerrarSesionEnServidor(token) // sin esperar la respuesta: la pantalla cambia al instante

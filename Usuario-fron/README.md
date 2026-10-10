@@ -52,6 +52,14 @@ Las pantallas son las del usuario (estudiante). La lista está en un solo lugar:
 
 Al abrir la web con una sesión guardada, `App.jsx` llama a `GET /auth/me` (función `quienSoy` en `authService.js`) y actualiza el usuario guardado, así el **rol mostrado es el actual**. Si el backend responde 401 (token vencido o cuenta desactivada) se cierra la sesión; si no hay conexión o el servidor falla, se mantiene lo guardado. La decisión está en `decidirQuienSoy` (`acceso.js`) y se prueba con `npm test`.
 
+## Cerrar sesión (web)
+
+El botón «Cerrar sesión» está en **Perfil**. Al pulsarlo, en este orden:
+
+1. **Avisa al servidor** (`POST /auth/logout`) para que el token deje de servir. No espera la respuesta: si el servidor falla o tarda, igual se cierra la sesión aquí.
+2. **Borra los datos de la sesión** (tarea 3): todo lo que VYNK guardó en el navegador, es decir, toda clave que empiece con `vynk.` en `localStorage` y `sessionStorage` (token, usuario y lo que se agregue después, como la conversación del asistente). Lo que no es de VYNK no se toca. Está en `src/services/sesionLocal.js`.
+3. **Lleva al inicio de sesión** (tarea 4): vuelve al login con la dirección limpia. Si hay **otras pestañas abiertas**, también vuelven al login solas.
+
 ## Configuración
 
 1. **Google Cloud Console** → APIs y servicios → Credenciales → *Crear ID de cliente de OAuth* → tipo **Aplicación web**.
