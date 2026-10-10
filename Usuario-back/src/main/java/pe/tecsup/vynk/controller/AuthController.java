@@ -43,6 +43,13 @@ public class AuthController {
         return auth.quienSoy(jwt.getSubject());
     }
 
+    /** Cierra la sesión: el token usado deja de servir. Requiere Authorization: Bearer ... */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> cerrarSesion(@AuthenticationPrincipal Jwt jwt) {
+        auth.cerrarSesion(jwt);
+        return ResponseEntity.noContent().build();
+    }
+
     /** Requiere el JWT de VYNK (Authorization: Bearer ...). */
     @PutMapping("/password")
     public ResponseEntity<Void> definirPassword(@AuthenticationPrincipal Jwt jwt,

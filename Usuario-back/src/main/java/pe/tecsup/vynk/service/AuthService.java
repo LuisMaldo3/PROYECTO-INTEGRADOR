@@ -17,6 +17,7 @@ import pe.tecsup.vynk.repository.UsuarioRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -26,6 +27,7 @@ public class AuthService {
     private final UsuarioRepository repo;
     private final JwtEncoder encoder;
     private final PasswordEncoder passwordEncoder;
+    private final RevocacionTokens revocacion;
     private final long horas;
     private final String hashFalso;
 
@@ -34,12 +36,14 @@ public class AuthService {
                        UsuarioRepository repo,
                        JwtEncoder encoder,
                        PasswordEncoder passwordEncoder,
+                       RevocacionTokens revocacion,
                        @Value("${vynk.jwt.horas}") long horas) {
         this.verificador = verificador;
         this.validadorCorreo = validadorCorreo;
         this.repo = repo;
         this.encoder = encoder;
         this.passwordEncoder = passwordEncoder;
+        this.revocacion = revocacion;
         this.horas = horas;
         this.hashFalso = passwordEncoder.encode("vynk-hash-falso");
     }
@@ -116,6 +120,14 @@ public class AuthService {
         return new UsuarioDto(usuario.getId(), usuario.getNombre(), usuario.getCorreo(), usuario.getRol());
     }
 
+    /**
+     * Cierra la sesión en el servidor: el token usado deja de servir aunque no haya vencido
+     * (cualquier petición posterior con él recibe 401).
+     */
+    public void cerrarSesion(Jwt jwt) {
+        revocacion.revocar(jwt.getId(), jwt.getExpiresAt());
+    }
+
     /** Crea o cambia la contraseña del usuario autenticado. */
     public void definirPassword(String usuarioId, String password) {
         Usuario usuario = repo.findById(usuarioId).orElseThrow(CredencialInvalidaException::new);
@@ -126,6 +138,7 @@ public class AuthService {
     private LoginResponse emitir(Usuario usuario) {
         Instant ahora = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                .id(UUID.randomUUID().toString()) // identifica este token para poder revocarlo al cerrar sesión
                 .subject(usuario.getId())
                 .claim("correo", usuario.getCorreo())
                 .claim("rol", usuario.getRol())

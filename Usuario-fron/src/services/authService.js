@@ -88,6 +88,14 @@ export function leerSesion() {
   }
 }
 
+/**
+ * Avisa al servidor que se cierra la sesión (POST /auth/logout): el token deja de servir
+ * aunque no haya vencido. Si no hay conexión o falla, no pasa nada: la sesión igual se cierra aquí.
+ */
+export async function cerrarSesionEnServidor(token) {
+  await enviar('/auth/logout', { token })
+}
+
 export function cerrarSesion() {
   localStorage.removeItem(KEY_TOKEN)
   localStorage.removeItem(KEY_USUARIO)

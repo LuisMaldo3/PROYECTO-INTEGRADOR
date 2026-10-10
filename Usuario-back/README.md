@@ -167,6 +167,26 @@ db.usuarios.updateOne({ correo: "ana@tecsup.edu.pe" }, { $set: { rol: "organizad
 
 Importante: el rol que viaja dentro del token queda fijo hasta que venza (8 horas). Si un administrador cambia un rol, `/auth/me` ya devuelve el nuevo, y el token anterior sigue con el viejo hasta que la persona vuelva a iniciar sesión.
 
+## 8.2 Cerrar sesión en el servidor (US-06)
+
+`POST /auth/logout` con `Authorization: Bearer <token>` responde **204** y revoca ese token: desde ese momento cualquier petición con él recibe **401**, aunque todavía no haya vencido (las sesiones duran 8 horas).
+
+- Cada token lleva un identificador único (claim `jti`). Al cerrar sesión, ese identificador se guarda en la colección `tokens_revocados` de MongoDB, con la fecha en que el token vencería.
+- El backend consulta esa lista en cada petición autenticada (`ValidadorTokenRevocado`, conectado en `SecurityConfig`).
+- Al cerrar sesión también se borran de la lista los tokens que ya vencieron, así no crece sin límite.
+- Los tokens emitidos **antes** de esta función no traen `jti`: no se pueden revocar y simplemente vencen a su hora.
+- La web llama a este endpoint al pulsar «Cerrar sesión»; si no hay conexión, igual cierra la sesión en el navegador. La app móvil por ahora solo borra su sesión local.
+
+Para probarlo a mano (en PowerShell, el 401 aparece como error):
+
+```powershell
+$r = Invoke-RestMethod -Method Post -Uri http://localhost:8081/auth/login-password -ContentType "application/json" -Body '{"correo":"TU_CORREO@tecsup.edu.pe","password":"TU_CLAVE"}'
+$h = @{ Authorization = "Bearer $($r.token)" }
+Invoke-RestMethod -Uri http://localhost:8081/auth/me -Headers $h                        # funciona
+Invoke-RestMethod -Method Post -Uri http://localhost:8081/auth/logout -Headers $h       # 204, sesión cerrada
+Invoke-RestMethod -Uri http://localhost:8081/auth/me -Headers $h                        # ahora da 401
+```
+
 ## 9. Archivos que no deben subirse a Git
 
 No subir:

@@ -12,8 +12,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -21,6 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import pe.tecsup.vynk.service.RevocacionTokens;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -69,8 +73,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtDecoder jwtDecoder(@Value("${vynk.jwt.secret}") String secret) {
-        return NimbusJwtDecoder.withSecretKey(llave(secret)).build();
+    JwtDecoder jwtDecoder(@Value("${vynk.jwt.secret}") String secret, RevocacionTokens revocacion) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(llave(secret)).build();
+        // Además de firma y vencimiento, se rechaza el token de una sesión ya cerrada (POST /auth/logout).
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<Jwt>(
+                JwtValidators.createDefault(),
+                new ValidadorTokenRevocado(revocacion::estaRevocado)));
+        return decoder;
     }
 
     @Bean

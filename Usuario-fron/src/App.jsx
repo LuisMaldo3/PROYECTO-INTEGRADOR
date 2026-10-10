@@ -9,7 +9,7 @@ import { PantallaVacia } from './components/PantallaVacia'
 import { Perfil } from './components/Perfil'
 import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
-import { cerrarSesion, guardarSesion, leerSesion, quienSoy } from './services/authService'
+import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy } from './services/authService'
 import { normalizarRol, resolverRuta } from './services/permisos'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
@@ -46,6 +46,7 @@ function App() {
   }, [token])
 
   const salir = () => {
+    if (token) cerrarSesionEnServidor(token) // sin esperar la respuesta: la pantalla cambia al instante
     cerrarSesion()
     window.location.hash = '' // la próxima persona no debe caer en la pantalla de la anterior
     setSesion(null)
