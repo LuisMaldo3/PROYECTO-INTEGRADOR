@@ -94,7 +94,8 @@ class PrepararTests(SimpleTestCase):
         categorias, actividades = Coleccion(), Coleccion()
         salida = StringIO()
         with mock.patch("actividades.mongo.categorias", return_value=categorias), \
-                mock.patch("actividades.mongo.actividades", return_value=actividades):
+                mock.patch("actividades.mongo.actividades", return_value=actividades), \
+                mock.patch("actividades.mongo.ubicaciones", return_value=Coleccion()):
             call_command("preparar_actividades", stdout=salida)
         self.assertEqual(len(categorias.docs), len(CATEGORIAS_INICIALES))
         self.assertIn(f"Categorías nuevas: {len(CATEGORIAS_INICIALES)}", salida.getvalue())

@@ -22,7 +22,7 @@ def _texto(valor):
 
 
 def validar(datos):
-    """Devuelve (nombre, descripcion, categoria, horario) limpios o lanza DatosInvalidos con todos los errores."""
+    """Devuelve (nombre, descripcion, categoria, ubicacion, horario) limpios o lanza DatosInvalidos con todos los errores."""
     datos = datos if isinstance(datos, dict) else {}
     nombre = _texto(datos.get("nombre"))
     descripcion = _texto(datos.get("descripcion"))
@@ -51,12 +51,21 @@ def validar(datos):
         if not categoria:
             errores["categoriaId"] = "Elige una categoría válida."
 
+    ubicacion = None
+    ubicacion_id = _texto(datos.get("ubicacionId"))
+    if not ubicacion_id:
+        errores["ubicacionId"] = "Elige una ubicación."
+    else:
+        ubicacion = mongo.ubicaciones().find_one({"_id": ubicacion_id})
+        if not ubicacion:
+            errores["ubicacionId"] = "Elige una ubicación válida."
+
     horario, errores_horario = validar_horario(datos)
     errores.update(errores_horario)
 
     if errores:
         raise DatosInvalidos(errores)
-    return nombre, descripcion, categoria, horario
+    return nombre, descripcion, categoria, ubicacion, horario
 
 
 def _iso(fecha):
@@ -66,13 +75,17 @@ def _iso(fecha):
     return fecha.isoformat()
 
 
-def a_json(doc, nombres_categoria):
+def a_json(doc, nombres_categoria, nombres_ubicacion=None):
     categoria_id = doc.get("categoriaId")
+    ubicacion_id = doc.get("ubicacionId")
+    nombres_ubicacion = nombres_ubicacion or {}
     return {
         "id": str(doc["_id"]),
         "nombre": doc.get("nombre"),
         "descripcion": doc.get("descripcion"),
         "categoria": {"id": categoria_id, "nombre": nombres_categoria.get(categoria_id, "Sin categoría")},
+        # Las actividades viejas, creadas antes de las ubicaciones, no la tienen: ubicacion = None.
+        "ubicacion": {"id": ubicacion_id, "nombre": nombres_ubicacion.get(ubicacion_id, "Sin ubicación")} if ubicacion_id else None,
         "fecha": doc.get("fecha"),  # las actividades viejas, creadas antes del horario, no la tienen
         "horaInicio": doc.get("horaInicio"),
         "horaFin": doc.get("horaFin"),
@@ -83,28 +96,36 @@ def a_json(doc, nombres_categoria):
 
 def crear_actividad(datos, admin_id):
     """Valida y guarda una actividad nueva. Devuelve la actividad creada lista para JSON."""
-    nombre, descripcion, categoria, horario = validar(datos)
+    nombre, descripcion, categoria, ubicacion, horario = validar(datos)
     doc = {
         "nombre": nombre,
         "descripcion": descripcion,
         "categoriaId": categoria["_id"],
+        "ubicacionId": ubicacion["_id"],
         **horario,
         "creadaPor": str(admin_id),
         "creadaEn": datetime.now(timezone.utc),
     }
     doc["_id"] = mongo.actividades().insert_one(doc).inserted_id
-    return a_json(doc, {categoria["_id"]: categoria["nombre"]})
+    return a_json(doc, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
 
 
 def listar_actividades():
     """Todas las actividades por fecha y hora de inicio; las que no tienen fecha (las viejas) van al final."""
     nombres = {c["_id"]: c["nombre"] for c in mongo.categorias().find({})}
+    nombres_ubicacion = {u["_id"]: u["nombre"] for u in mongo.ubicaciones().find({})}
     docs = list(mongo.actividades().find({}))
     docs.sort(key=lambda d: (d.get("fecha") is None, d.get("fecha") or "", d.get("horaInicio") or "", d.get("nombre") or ""))
-    return [a_json(d, nombres) for d in docs]
+    return [a_json(d, nombres, nombres_ubicacion) for d in docs]
 
 
 def listar_categorias():
     """Categorías disponibles para el formulario, por nombre."""
     docs = mongo.categorias().find({}).sort("nombre", 1)
     return [{"id": c["_id"], "nombre": c["nombre"]} for c in docs]
+
+
+def listar_ubicaciones():
+    """Ubicaciones disponibles para el formulario, por nombre."""
+    docs = mongo.ubicaciones().find({}).sort("nombre", 1)
+    return [{"id": u["_id"], "nombre": u["nombre"]} for u in docs]

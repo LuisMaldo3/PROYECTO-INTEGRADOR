@@ -32,3 +32,10 @@ def actividades(request):
 def categorias(request):
     """Categorías para el desplegable del formulario."""
     return JsonResponse({"categorias": servicio.listar_categorias()})
+
+
+@require_GET
+@exigir_admin
+def ubicaciones(request):
+    """Ubicaciones para el desplegable del formulario."""
+    return JsonResponse({"ubicaciones": servicio.listar_ubicaciones()})

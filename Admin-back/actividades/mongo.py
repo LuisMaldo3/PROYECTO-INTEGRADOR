@@ -8,3 +8,7 @@ def actividades():
 
 def categorias():
     return base.db()["categorias"]
+
+
+def ubicaciones():
+    return base.db()["ubicaciones"]

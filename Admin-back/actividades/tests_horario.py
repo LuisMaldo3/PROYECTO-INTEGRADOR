@@ -57,13 +57,14 @@ class ValidarHorarioTests(SimpleTestCase):
 
 @override_settings(JWT_SECRET=base.SECRETO)
 class EndpointHorarioTests(SimpleTestCase):
-    VALIDA = {"nombre": "Feria Global Day", "descripcion": "Conferencias y stands en el patio.", "categoriaId": "actividad-cultural", **OK}
+    VALIDA = {"nombre": "Feria Global Day", "descripcion": "Conferencias y stands en el patio.", "categoriaId": "actividad-cultural", "ubicacionId": "auditorio", **OK}
 
     def setUp(self):
         self.actividades = tablas.Coleccion()
         parches = {
             "actividades.servicio.mongo.categorias": tablas.Coleccion([{"_id": "actividad-cultural", "nombre": "Actividad cultural"}]),
             "actividades.servicio.mongo.actividades": self.actividades,
+            "actividades.servicio.mongo.ubicaciones": tablas.Coleccion([{"_id": "auditorio", "nombre": "Auditorio"}]),
             "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS),
             "usuarios.auth.mongo.tokens_revocados": base.ColeccionFalsa([]),
         }

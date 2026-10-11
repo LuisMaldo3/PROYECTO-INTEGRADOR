@@ -69,12 +69,13 @@ python manage.py preparar_actividades
 | Metodo | Ruta | Para qué |
 |---|---|---|
 | GET | `/api/categorias/` | categorías del formulario (`{ categorias: [{ id, nombre }] }`) |
+| GET | `/api/ubicaciones/` | ubicaciones del formulario (`{ ubicaciones: [{ id, nombre }] }`) |
 | GET | `/api/actividades/` | lista de actividades por fecha y hora de inicio |
-| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId", "fecha", "horaInicio", "horaFin" }` |
+| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId", "ubicacionId", "fecha", "horaInicio", "horaFin" }` |
 
 Todos exigen token de administrador. `POST` responde `201` con la actividad creada
-(`id, nombre, descripcion, categoria {id, nombre}, fecha, horaInicio, horaFin, creadaPor, creadaEn`). Si algo no pasa la revisión responde
-`400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`, `fecha`, `horaInicio`, `horaFin`);
+(`id, nombre, descripcion, categoria {id, nombre}, ubicacion {id, nombre}, fecha, horaInicio, horaFin, creadaPor, creadaEn`). Si algo no pasa la revisión responde
+`400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`, `ubicacionId`, `fecha`, `horaInicio`, `horaFin`);
 límites: nombre 3–80, descripción 10–500 caracteres y categoría existente. Los mismos límites están en la web (`validacionActividad.js`).
 
 ### Fecha y horario (US-26)
@@ -82,3 +83,10 @@ límites: nombre 3–80, descripción 10–500 caracteres y categoría existente
 `fecha` va como `AAAA-MM-DD` (un día real del calendario) y es obligatoria; `horaInicio` como `HH:MM` en 24 h y es
 obligatoria; `horaFin` también `HH:MM`, es opcional y, si viene, debe ser **después** de la de inicio. La lista sale
 ordenada por fecha y hora; las actividades creadas antes de esta versión (sin fecha) quedan al final.
+
+### Ubicación (US-27)
+
+Cada actividad nueva lleva una `ubicacionId` que debe existir en la colección `ubicaciones` (Auditorio, Patio central y
+Polideportivo vienen de `python manage.py preparar_actividades`). En las respuestas sale como `ubicacion: { id, nombre }`;
+las actividades creadas antes de esta versión devuelven `ubicacion: null`. Para agregar más lugares, súmalos a
+`UBICACIONES_INICIALES` en `actividades/ubicaciones.py` y vuelve a correr el comando.

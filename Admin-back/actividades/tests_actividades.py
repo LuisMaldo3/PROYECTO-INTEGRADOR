@@ -15,10 +15,15 @@ CATEGORIAS = [
     {"_id": "deportes", "nombre": "Deportes"},
     {"_id": "cultura", "nombre": "Cultura"},
 ]
+UBICACIONES = [
+    {"_id": "polideportivo", "nombre": "Polideportivo"},
+    {"_id": "auditorio", "nombre": "Auditorio"},
+]
 VALIDA = {
     "nombre": "Torneo de fútbol",
     "descripcion": "Campeonato abierto para todos los ciclos.",
     "categoriaId": "deportes",
+    "ubicacionId": "polideportivo",
     "fecha": "2026-10-19",
     "horaInicio": "15:00",
     "horaFin": "16:30",
@@ -33,6 +38,7 @@ class ActividadesTests(SimpleTestCase):
         parches = {
             "actividades.servicio.mongo.categorias": self.categorias,
             "actividades.servicio.mongo.actividades": self.actividades,
+            "actividades.servicio.mongo.ubicaciones": tablas.Coleccion(UBICACIONES),
             "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS),
             "usuarios.auth.mongo.tokens_revocados": base.ColeccionFalsa([]),
         }
@@ -89,7 +95,7 @@ class ActividadesTests(SimpleTestCase):
     # --- revisiones ------------------------------------------------------
     def test_todo_vacio_marca_los_campos_obligatorios(self):
         errores = self._errores(self._post({}))
-        self.assertEqual(sorted(errores), ["categoriaId", "descripcion", "fecha", "horaInicio", "nombre"])
+        self.assertEqual(sorted(errores), ["categoriaId", "descripcion", "fecha", "horaInicio", "nombre", "ubicacionId"])
         self.assertEqual(self.actividades.docs, [])
 
     def test_solo_espacios_cuenta_como_vacio(self):
