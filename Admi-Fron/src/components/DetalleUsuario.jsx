@@ -1,14 +1,30 @@
 import { useEffect, useState } from 'react'
+import ConfirmarRol from './ConfirmarRol'
+import SelectorRol from './SelectorRol'
+import { useCambioRol } from '../hooks/useCambioRol'
 import { obtenerUsuario } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol } from '../services/usuarios'
 
 /** Tarea 5 · Panel con el detalle del usuario elegido en la lista. */
-export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExpirada }) {
+export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExpirada, onRolCambiado }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', usuario: null })
+  const [aviso, setAviso] = useState('')
+
+  const cambio = useCambioRol({
+    token,
+    usuarioId,
+    onSesionExpirada,
+    onCambiado: (actualizado) => {
+      setEstado({ cargando: false, error: '', usuario: actualizado })
+      setAviso('Rol actualizado.')
+      onRolCambiado?.()
+    },
+  })
 
   useEffect(() => {
     let cancelado = false
     setEstado({ cargando: true, error: '', usuario: null })
+    setAviso('')
     obtenerUsuario(token, usuarioId)
       .then((usuario) => {
         if (!cancelado) setEstado({ cargando: false, error: '', usuario })
@@ -63,6 +79,20 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
             <dt>Identificador</dt>
             <dd className="mono">{usuario.id}</dd>
           </dl>
+
+          <SelectorRol rolActual={usuario.rol} deshabilitado={cambio.enviando} onElegir={cambio.pedir} />
+          {aviso && <p className="aviso aviso--ok" role="status">{aviso}</p>}
+
+          {cambio.pendiente && (
+            <ConfirmarRol
+              usuario={usuario}
+              rolNuevo={cambio.pendiente}
+              enviando={cambio.enviando}
+              error={cambio.error}
+              onConfirmar={cambio.confirmar}
+              onCancelar={cambio.cancelar}
+            />
+          )}
         </>
       )}
     </aside>

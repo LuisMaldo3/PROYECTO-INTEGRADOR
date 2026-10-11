@@ -10,10 +10,13 @@ export class ApiError extends Error {
   }
 }
 
-async function pedir(ruta, token) {
+async function pedir(ruta, token, opciones = {}) {
   let respuesta
   try {
-    respuesta = await fetch(`${ADMIN_URL}${ruta}`, { headers: { Authorization: `Bearer ${token}` } })
+    respuesta = await fetch(`${ADMIN_URL}${ruta}`, {
+      ...opciones,
+      headers: { Authorization: `Bearer ${token}`, ...opciones.headers },
+    })
   } catch {
     throw new ApiError(0, 'No hay conexión con el servidor. Revisa que Admin-back esté encendido.')
   }
@@ -34,4 +37,13 @@ export async function listarUsuarios(token) {
 /** GET /api/usuarios/<id>/ → { id, nombre, correo, rol, activo }. */
 export function obtenerUsuario(token, id) {
   return pedir(`/api/usuarios/${encodeURIComponent(id)}/`, token)
+}
+
+/** US-24 · Tarea 3 · PATCH /api/usuarios/<id>/rol/ → usuario actualizado { id, nombre, correo, rol, activo }. */
+export function cambiarRol(token, id, rol) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/rol/`, token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rol }),
+  })
 }

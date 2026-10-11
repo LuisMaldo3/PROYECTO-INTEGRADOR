@@ -3,7 +3,7 @@ import { listarUsuarios } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol, filtrarUsuarios } from '../services/usuarios'
 
 /** Tarea 4 · Pantalla con la lista de usuarios (la carga de datos es la tarea 3, en usuariosService). */
-export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, onSesionExpirada }) {
+export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, onSesionExpirada, version = 0 }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', usuarios: [] })
   const [texto, setTexto] = useState('')
   const [rol, setRol] = useState('')
@@ -24,7 +24,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
     return () => {
       cancelado = true
     }
-  }, [token, recarga, onSesionExpirada])
+  }, [token, recarga, version, onSesionExpirada])
 
   const visibles = useMemo(() => filtrarUsuarios(estado.usuarios, texto, rol), [estado.usuarios, texto, rol])
 

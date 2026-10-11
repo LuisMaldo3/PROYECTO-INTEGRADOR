@@ -10,6 +10,7 @@ export default function App() {
   const [vista, setVista] = useState('usuarios')
   const [seleccionadoId, setSeleccionadoId] = useState(null)
   const [aviso, setAviso] = useState('')
+  const [versionLista, setVersionLista] = useState(0) // sube cuando cambia un rol: la lista se vuelve a pedir
 
   const salir = useCallback(async () => {
     await cerrarSesion(sesion?.token)
@@ -62,12 +63,14 @@ export default function App() {
               seleccionadoId={seleccionadoId}
               onSeleccionar={setSeleccionadoId}
               onSesionExpirada={sesionExpirada}
+              version={versionLista}
             />
             {seleccionadoId && (
               <DetalleUsuario
                 token={sesion.token}
                 usuarioId={seleccionadoId}
                 onCerrar={() => setSeleccionadoId(null)}
+                onRolCambiado={() => setVersionLista((n) => n + 1)}
                 onSesionExpirada={sesionExpirada}
               />
             )}
