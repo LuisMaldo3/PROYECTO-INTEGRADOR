@@ -10,7 +10,7 @@ from bson import ObjectId
 from django.core.management import call_command
 from django.test import SimpleTestCase
 
-from .preparacion import CATEGORIAS_INICIALES, preparar
+from .preparacion import CATEGORIAS_ANTIGUAS, CATEGORIAS_INICIALES, preparar, retirar_antiguas
 
 
 class Cursor:
@@ -46,6 +46,16 @@ class Coleccion:
         self.docs.append(dict(doc))
         return SimpleNamespace(inserted_id=doc["_id"])
 
+    def count_documents(self, filtro):
+        return len(self._filtrar(filtro))
+
+    def delete_one(self, filtro):
+        for d in self.docs:
+            if all(d.get(k) == v for k, v in (filtro or {}).items()):
+                self.docs.remove(d)
+                return SimpleNamespace(deleted_count=1)
+        return SimpleNamespace(deleted_count=0)
+
     def create_index(self, claves, **opciones):
         self.indices.append((claves, opciones))
 
@@ -55,7 +65,8 @@ class PrepararTests(SimpleTestCase):
         categorias = Coleccion()
         self.assertEqual(preparar(categorias, Coleccion()), len(CATEGORIAS_INICIALES))
         self.assertEqual({d["_id"] for d in categorias.docs}, {i for i, _ in CATEGORIAS_INICIALES})
-        self.assertIn({"_id": "tecnologia", "nombre": "Tecnología"}, categorias.docs)
+        self.assertIn({"_id": "cultural", "nombre": "Actividad cultural"}, categorias.docs)
+        self.assertIn({"_id": "concurso", "nombre": "Concurso T&C Week"}, categorias.docs)
 
     def test_los_ids_y_nombres_no_se_repiten(self):
         ids = [i for i, _ in CATEGORIAS_INICIALES]
@@ -64,11 +75,11 @@ class PrepararTests(SimpleTestCase):
         self.assertEqual(len(set(nombres)), len(nombres))
 
     def test_repetirlo_no_duplica_ni_pisa_nada(self):
-        categorias = Coleccion([{"_id": "deportes", "nombre": "Deportes y salud"}])
+        categorias = Coleccion([{"_id": "cultural", "nombre": "Cultural (editada)"}])
         preparar(categorias, Coleccion())
         self.assertEqual(preparar(categorias, Coleccion()), 0)
         self.assertEqual(len(categorias.docs), len(CATEGORIAS_INICIALES))
-        self.assertEqual(categorias.find_one({"_id": "deportes"})["nombre"], "Deportes y salud")
+        self.assertEqual(categorias.find_one({"_id": "cultural"})["nombre"], "Cultural (editada)")
 
     def test_crea_los_indices(self):
         categorias, actividades = Coleccion(), Coleccion()
@@ -76,6 +87,23 @@ class PrepararTests(SimpleTestCase):
         self.assertEqual(categorias.indices, [("nombre", {"unique": True})])
         self.assertIn(([("creadaEn", -1)], {}), actividades.indices)
         self.assertIn(("categoriaId", {}), actividades.indices)
+
+    def test_retira_las_categorias_antiguas_que_nadie_usa(self):
+        categorias = Coleccion([{"_id": i, "nombre": i} for i in CATEGORIAS_ANTIGUAS])
+        self.assertEqual(retirar_antiguas(categorias, Coleccion()), len(CATEGORIAS_ANTIGUAS))
+        self.assertEqual(categorias.docs, [])
+
+    def test_no_retira_una_categoria_antigua_que_una_actividad_usa(self):
+        categorias = Coleccion([{"_id": "deportes", "nombre": "Deportes"}, {"_id": "social", "nombre": "Social"}])
+        actividades = Coleccion([{"_id": ObjectId(), "nombre": "Torneo", "categoriaId": "deportes"}])
+        self.assertEqual(retirar_antiguas(categorias, actividades), 1)
+        self.assertEqual([c["_id"] for c in categorias.docs], ["deportes"])
+
+    def test_retirar_no_toca_las_categorias_nuevas_y_se_puede_repetir(self):
+        categorias = Coleccion([{"_id": "cultural", "nombre": "Actividad cultural"}, {"_id": "social", "nombre": "Social"}])
+        self.assertEqual(retirar_antiguas(categorias, Coleccion()), 1)
+        self.assertEqual(retirar_antiguas(categorias, Coleccion()), 0)
+        self.assertEqual([c["_id"] for c in categorias.docs], ["cultural"])
 
     def test_el_comando_funciona_y_avisa(self):
         categorias, actividades = Coleccion(), Coleccion()
@@ -85,3 +113,4 @@ class PrepararTests(SimpleTestCase):
             call_command("preparar_actividades", stdout=salida)
         self.assertEqual(len(categorias.docs), len(CATEGORIAS_INICIALES))
         self.assertIn(f"Categorías nuevas: {len(CATEGORIAS_INICIALES)}", salida.getvalue())
+        self.assertIn("Categorías antiguas retiradas: 0", salida.getvalue())

@@ -1,5 +1,9 @@
-"""US-25 · Tarea 2: lógica de las actividades (sin HTTP). Aquí se valida y se guarda en MongoDB."""
-from datetime import datetime, timezone
+"""US-25 · Tarea 2: lógica de las actividades (sin HTTP). Aquí se valida y se guarda en MongoDB.
+
+Cada actividad tiene un horario: `fecha` ("AAAA-MM-DD"), `horaInicio` y `horaFin` ("HH:MM", 24 horas).
+"""
+import re
+from datetime import date, datetime, timezone
 
 from . import mongo
 
@@ -20,12 +24,29 @@ def _texto(valor):
     return valor.strip() if isinstance(valor, str) else ""
 
 
+_HORA = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+def _fecha_valida(texto):
+    """True si es una fecha real con formato AAAA-MM-DD (rechaza 2026-02-30 o 19/10/2026)."""
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", texto):
+        return False
+    try:
+        date.fromisoformat(texto)
+    except ValueError:
+        return False
+    return True
+
+
 def validar(datos):
-    """Devuelve (nombre, descripcion, categoria) limpios o lanza DatosInvalidos con todos los errores."""
+    """Devuelve los datos limpios (dict) o lanza DatosInvalidos con todos los errores."""
     datos = datos if isinstance(datos, dict) else {}
     nombre = _texto(datos.get("nombre"))
     descripcion = _texto(datos.get("descripcion"))
     categoria_id = _texto(datos.get("categoriaId"))
+    fecha = _texto(datos.get("fecha"))
+    hora_inicio = _texto(datos.get("horaInicio"))
+    hora_fin = _texto(datos.get("horaFin"))
     errores = {}
 
     if not nombre:
@@ -50,9 +71,37 @@ def validar(datos):
         if not categoria:
             errores["categoriaId"] = "Elige una categoría válida."
 
+    # Tarea 1: fecha y horas son obligatorias y deben tener el formato correcto.
+    if not fecha:
+        errores["fecha"] = "Elige la fecha de la actividad."
+    elif not _fecha_valida(fecha):
+        errores["fecha"] = "La fecha no es válida."
+
+    if not hora_inicio:
+        errores["horaInicio"] = "Elige la hora de inicio."
+    elif not _HORA.match(hora_inicio):
+        errores["horaInicio"] = "La hora de inicio no es válida."
+
+    if not hora_fin:
+        errores["horaFin"] = "Elige la hora de fin."
+    elif not _HORA.match(hora_fin):
+        errores["horaFin"] = "La hora de fin no es válida."
+
+    # Tarea 2: la actividad termina después de empezar (solo si las dos horas ya son válidas).
+    # "HH:MM" con ceros a la izquierda se ordena bien como texto: "09:30" < "14:00".
+    if "horaInicio" not in errores and "horaFin" not in errores and hora_fin <= hora_inicio:
+        errores["horaFin"] = "La hora de fin debe ser después de la hora de inicio."
+
     if errores:
         raise DatosInvalidos(errores)
-    return nombre, descripcion, categoria
+    return {
+        "nombre": nombre,
+        "descripcion": descripcion,
+        "categoria": categoria,
+        "fecha": fecha,
+        "horaInicio": hora_inicio,
+        "horaFin": hora_fin,
+    }
 
 
 def _iso(fecha):
@@ -69,6 +118,10 @@ def a_json(doc, nombres_categoria):
         "nombre": doc.get("nombre"),
         "descripcion": doc.get("descripcion"),
         "categoria": {"id": categoria_id, "nombre": nombres_categoria.get(categoria_id, "Sin categoría")},
+        # Las actividades creadas antes de tener horario no traen estos campos: salen como null.
+        "fecha": doc.get("fecha"),
+        "horaInicio": doc.get("horaInicio"),
+        "horaFin": doc.get("horaFin"),
         "creadaPor": doc.get("creadaPor"),
         "creadaEn": _iso(doc["creadaEn"]),
     }
@@ -76,11 +129,15 @@ def a_json(doc, nombres_categoria):
 
 def crear_actividad(datos, admin_id):
     """Valida y guarda una actividad nueva. Devuelve la actividad creada lista para JSON."""
-    nombre, descripcion, categoria = validar(datos)
+    limpios = validar(datos)
+    categoria = limpios["categoria"]
     doc = {
-        "nombre": nombre,
-        "descripcion": descripcion,
+        "nombre": limpios["nombre"],
+        "descripcion": limpios["descripcion"],
         "categoriaId": categoria["_id"],
+        "fecha": limpios["fecha"],
+        "horaInicio": limpios["horaInicio"],
+        "horaFin": limpios["horaFin"],
         "creadaPor": str(admin_id),
         "creadaEn": datetime.now(timezone.utc),
     }

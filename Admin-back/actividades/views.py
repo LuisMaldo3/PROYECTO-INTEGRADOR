@@ -11,7 +11,7 @@ from . import servicio
 @require_http_methods(["GET", "POST"])
 @exigir_admin
 def actividades(request):
-    """GET: lista de actividades. POST: crea una ({nombre, descripcion, categoriaId})."""
+    """GET: lista de actividades. POST: crea una ({nombre, descripcion, categoriaId, fecha, horaInicio, horaFin})."""
     if request.method == "GET":
         lista = servicio.listar_actividades()
         return JsonResponse({"total": len(lista), "actividades": lista})

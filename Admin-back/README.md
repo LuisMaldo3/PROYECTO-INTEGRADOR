@@ -66,13 +66,26 @@ Primero, una sola vez (y se puede repetir sin problema), crea las colecciones y 
 python manage.py preparar_actividades
 ```
 
+Las categorías son las de la **T&C Week 2026**: `cultural` («Actividad cultural») y `concurso` («Concurso T&C Week»).
+El comando también retira las categorías de la primera versión (Académico, Cultura, Deportes, Social, Tecnología,
+Voluntariado) **solo si ninguna actividad las usa**; si alguna actividad todavía usa una, esa categoría se queda.
+
 | Metodo | Ruta | Para qué |
 |---|---|---|
 | GET | `/api/categorias/` | categorías del formulario (`{ categorias: [{ id, nombre }] }`) |
 | GET | `/api/actividades/` | lista de actividades, de la más nueva a la más antigua |
-| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId" }` |
+| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId", "fecha", "horaInicio", "horaFin" }` |
 
 Todos exigen token de administrador. `POST` responde `201` con la actividad creada
-(`id, nombre, descripcion, categoria {id, nombre}, creadaPor, creadaEn`). Si algo no pasa la revisión responde
-`400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`); límites: nombre 3–80,
-descripción 10–500 caracteres y categoría existente. Los mismos límites están en la web (`validacionActividad.js`).
+(`id, nombre, descripcion, categoria {id, nombre}, fecha, horaInicio, horaFin, creadaPor, creadaEn`). Si algo no pasa la
+revisión responde `400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`, `fecha`,
+`horaInicio`, `horaFin`); límites: nombre 3–80, descripción 10–500 caracteres y categoría existente.
+Los mismos límites están en la web (`validacionActividad.js`).
+
+### Fecha y horario (US-26)
+
+- `fecha` con formato `AAAA-MM-DD` (debe existir: `2026-02-30` se rechaza).
+- `horaInicio` y `horaFin` con formato `HH:MM` de 24 horas (`00:00` a `23:59`).
+- Las tres son obligatorias, y `horaFin` debe ser **después** de `horaInicio` (iguales tampoco vale).
+- Las actividades creadas antes de esta versión no tienen horario: la API las devuelve con `fecha`, `horaInicio` y
+  `horaFin` en `null`.
