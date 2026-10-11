@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Icono from './Iconos'
 import ConfirmarRol from './ConfirmarRol'
 import SelectorRol from './SelectorRol'
 import { useCambioRol } from '../hooks/useCambioRol'
@@ -46,7 +47,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
       <header className="detalle__cabecera">
         <h2>Detalle del usuario</h2>
         <button type="button" className="detalle__cerrar" onClick={onCerrar} aria-label="Cerrar detalle">
-          ✕
+          <Icono nombre="cerrar" tam={18} />
         </button>
       </header>
 
@@ -81,7 +82,11 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
           </dl>
 
           <SelectorRol rolActual={usuario.rol} deshabilitado={cambio.enviando} onElegir={cambio.pedir} />
-          {aviso && <p className="aviso aviso--ok" role="status">{aviso}</p>}
+          {aviso && (
+            <p className="aviso aviso--ok" role="status">
+              <Icono nombre="check" tam={18} /> {aviso}
+            </p>
+          )}
 
           {cambio.pendiente && (
             <ConfirmarRol

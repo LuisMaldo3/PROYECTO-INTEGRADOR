@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Icono from './Iconos'
 import { listarUsuarios } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol, filtrarUsuarios } from '../services/usuarios'
 
@@ -32,24 +33,27 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
     <section className="lista">
       <header className="lista__cabecera">
         <div>
-          <h1>Usuarios registrados</h1>
+          <h1>Usuarios</h1>
           <p className="suave">
             {estado.cargando ? 'Cargando…' : `${visibles.length} de ${estado.usuarios.length} usuarios`}
           </p>
         </div>
         <button type="button" className="boton boton--claro" onClick={() => setRecarga((n) => n + 1)}>
-          Actualizar
+          <Icono nombre="actualizar" tam={18} /> Actualizar
         </button>
       </header>
 
       <div className="filtros">
-        <input
-          type="search"
-          placeholder="Buscar por nombre o correo"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          aria-label="Buscar usuarios"
-        />
+        <span className="buscador">
+          <Icono nombre="buscar" tam={18} />
+          <input
+            type="search"
+            placeholder="Buscar por nombre o correo"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            aria-label="Buscar usuarios"
+          />
+        </span>
         <select value={rol} onChange={(e) => setRol(e.target.value)} aria-label="Filtrar por rol">
           <option value="">Todos los roles</option>
           <option value="usuario">Usuario</option>
@@ -60,12 +64,15 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
 
       {estado.error && (
         <p className="aviso aviso--error" role="alert">
-          {estado.error}
+          <Icono nombre="alerta" tam={18} /> {estado.error}
         </p>
       )}
 
       {!estado.cargando && !estado.error && visibles.length === 0 && (
-        <p className="vacio">No hay usuarios que coincidan.</p>
+        <div className="vacio">
+          <Icono nombre="usuarios" tam={40} />
+          <p>No hay usuarios que coincidan.</p>
+        </div>
       )}
 
       {visibles.length > 0 && (
@@ -88,7 +95,14 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSeleccionar(u.id)}
                   tabIndex={0}
                 >
-                  <td>{u.nombre ?? '—'}</td>
+                  <td>
+                    <span className="persona">
+                      <span className="avatar avatar--mini" aria-hidden="true">
+                        {(u.nombre ?? u.correo ?? '?').trim().charAt(0).toUpperCase()}
+                      </span>
+                      {u.nombre ?? '—'}
+                    </span>
+                  </td>
                   <td>{u.correo}</td>
                   <td>
                     <span className={`etiqueta etiqueta--${etiquetaRol(u.rol).toLowerCase()}`}>{etiquetaRol(u.rol)}</span>

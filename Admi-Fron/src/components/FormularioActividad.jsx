@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import Icono from './Iconos'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
 import { crearActividad } from '../services/actividadesService'
 
-/** Tarea 4 · Formulario «Nueva actividad» (ventana). Las revisiones salen del hook (tarea 3). */
+/** Formulario «Nueva actividad» (ventana): datos, categoría, fecha y horario. Las revisiones salen del hook. */
 export default function FormularioActividad({ token, categorias, onCreada, onCancelar, onSesionExpirada }) {
   const f = useFormularioActividad()
   const [enviando, setEnviando] = useState(false)
@@ -82,9 +83,27 @@ export default function FormularioActividad({ token, categorias, onCreada, onCan
           {errores.categoriaId && <span className="campo__error" role="alert">{errores.categoriaId}</span>}
         </label>
 
+        <div className="campo-fila">
+          <label className="campo">
+            Fecha
+            <input type="date" value={valores.fecha ?? ''} onChange={(e) => f.cambiar('fecha', e.target.value)} {...campo('fecha')} />
+            {errores.fecha && <span className="campo__error" role="alert">{errores.fecha}</span>}
+          </label>
+          <label className="campo">
+            Hora de inicio
+            <input type="time" value={valores.horaInicio ?? ''} onChange={(e) => f.cambiar('horaInicio', e.target.value)} {...campo('horaInicio')} />
+            {errores.horaInicio && <span className="campo__error" role="alert">{errores.horaInicio}</span>}
+          </label>
+          <label className="campo">
+            <span className="campo__titulo">Hora de fin <small>opcional</small></span>
+            <input type="time" value={valores.horaFin ?? ''} onChange={(e) => f.cambiar('horaFin', e.target.value)} {...campo('horaFin')} />
+            {errores.horaFin && <span className="campo__error" role="alert">{errores.horaFin}</span>}
+          </label>
+        </div>
+
         {error && (
           <p className="aviso aviso--error" role="alert">
-            {error}
+            <Icono nombre="alerta" tam={18} /> {error}
           </p>
         )}
 
@@ -93,7 +112,7 @@ export default function FormularioActividad({ token, categorias, onCreada, onCan
             Cancelar
           </button>
           <button type="submit" className="boton" disabled={enviando}>
-            {enviando ? 'Guardando…' : 'Crear actividad'}
+            <Icono nombre="check" tam={18} /> {enviando ? 'Guardando…' : 'Crear actividad'}
           </button>
         </div>
       </form>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import Icono from './Iconos'
 import { listarActividades } from '../services/actividadesService'
-import { formatearFecha, resumen } from '../services/formatoActividad'
+import { formatearFechaActividad, formatearHorario, resumen } from '../services/formatoActividad'
 
-/** Tarea 5 · Lista de actividades del administrador (la más nueva primero). `version` sube para pedirla de nuevo. */
+/** Lista de actividades del administrador, por fecha y hora. `version` sube para pedirla de nuevo. */
 export default function ListaActividades({ token, version = 0, onNueva, nuevaDeshabilitada = false, onSesionExpirada }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', actividades: [] })
   const [recarga, setRecarga] = useState(0)
@@ -30,7 +31,7 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
       <header className="lista__cabecera">
         <div>
           <h1>Actividades</h1>
-          <p className="suave">{cargando ? 'Cargando…' : `${actividades.length} actividades`}</p>
+          <p className="suave">{cargando ? 'Cargando…' : `${actividades.length} ${actividades.length === 1 ? 'actividad' : 'actividades'}`}</p>
         </div>
         <div className="lista__acciones">
           <button
@@ -41,42 +42,60 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
               setRecarga((n) => n + 1)
             }}
           >
-            Actualizar
+            <Icono nombre="actualizar" tam={18} /> Actualizar
           </button>
           <button type="button" className="boton" onClick={onNueva} disabled={nuevaDeshabilitada}>
-            Nueva actividad
+            <Icono nombre="mas" tam={18} /> Nueva actividad
           </button>
         </div>
       </header>
 
       {error && (
         <p className="aviso aviso--error" role="alert">
-          {error}
+          <Icono nombre="alerta" tam={18} /> {error}
         </p>
       )}
 
-      {!cargando && !error && actividades.length === 0 && <p className="vacio">Todavía no hay actividades. Crea la primera.</p>}
+      {!cargando && !error && actividades.length === 0 && (
+        <div className="vacio">
+          <Icono nombre="calendario" tam={40} />
+          <p>Todavía no hay actividades. Crea la primera.</p>
+        </div>
+      )}
 
       {actividades.length > 0 && (
         <div className="tabla-envoltura">
           <table className="tabla">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>Actividad</th>
                 <th>Categoría</th>
-                <th>Descripción</th>
-                <th>Creada</th>
+                <th>Fecha</th>
+                <th>Horario</th>
               </tr>
             </thead>
             <tbody>
               {actividades.map((a) => (
                 <tr key={a.id}>
-                  <td>{a.nombre}</td>
                   <td>
-                    <span className="etiqueta">{a.categoria?.nombre ?? '—'}</span>
+                    <div className="celda-principal" title={a.descripcion}>
+                      <strong>{a.nombre}</strong>
+                      <span>{resumen(a.descripcion, 70)}</span>
+                    </div>
                   </td>
-                  <td title={a.descripcion}>{resumen(a.descripcion)}</td>
-                  <td>{formatearFecha(a.creadaEn)}</td>
+                  <td>
+                    <span className={`etiqueta etiqueta--${a.categoria?.id ?? 'sin'}`}>{a.categoria?.nombre ?? '—'}</span>
+                  </td>
+                  <td className={a.fecha ? undefined : 'sin-dato'}>{formatearFechaActividad(a.fecha)}</td>
+                  <td>
+                    {a.horaInicio ? (
+                      <span className="hora">
+                        <Icono nombre="reloj" tam={16} /> {formatearHorario(a.horaInicio, a.horaFin)}
+                      </span>
+                    ) : (
+                      <span className="sin-dato">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

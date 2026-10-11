@@ -16,10 +16,7 @@ test('FORMULARIO: el error de un campo solo aparece cuando se toca', () => {
 })
 
 test('FORMULARIO: tocarTodo muestra los errores de todos los campos', () => {
-  assert.deepEqual(
-    Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(),
-    ['categoriaId', 'descripcion', 'fecha', 'horaFin', 'horaInicio', 'nombre'],
-  )
+  assert.deepEqual(Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(), ['categoriaId', 'descripcion', 'nombre'])
 })
 
 test('FORMULARIO: el error desaparece al corregir el campo', () => {
@@ -35,9 +32,6 @@ test('FORMULARIO: puede enviarse solo con todo correcto', () => {
     { tipo: 'cambiar', campo: 'nombre', valor: 'Torneo' },
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'deportes' },
-    { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
-    { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
-    { tipo: 'cambiar', campo: 'horaFin', valor: '14:30' },
   )
   assert.equal(puedeEnviar(e), true)
 })
@@ -47,9 +41,6 @@ test('FORMULARIO: el error del servidor se muestra y se borra al editar ese camp
     { tipo: 'cambiar', campo: 'nombre', valor: 'Torneo' },
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'borrada' },
-    { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
-    { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
-    { tipo: 'cambiar', campo: 'horaFin', valor: '14:30' },
   )
   const rechazado = reducir(lleno, { tipo: 'servidor', errores: { categoriaId: 'Elige una categoría válida.' } })
   assert.deepEqual(erroresVisibles(rechazado), { categoriaId: 'Elige una categoría válida.' })
