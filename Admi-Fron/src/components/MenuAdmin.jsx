@@ -1,5 +1,8 @@
 /** Tarea 6 · Menú lateral del panel. Para agregar una pantalla nueva, súmala a OPCIONES. */
-export const OPCIONES = [{ id: 'usuarios', titulo: 'Usuarios', icono: '👥' }]
+export const OPCIONES = [
+  { id: 'usuarios', titulo: 'Usuarios', icono: '👥' },
+  { id: 'actividades', titulo: 'Actividades', icono: '📅' },
+]
 
 export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion }) {
   return (

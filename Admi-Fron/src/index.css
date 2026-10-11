@@ -106,3 +106,13 @@ button, input, select { font: inherit; }
 .modal__ventana { width: min(420px, 100%); background: #fff; border-radius: 16px; padding: 1.5rem; display: grid; gap: 1rem; }
 .modal__ventana h2 { font-size: 1.1rem; }
 .modal__acciones { display: flex; justify-content: flex-end; gap: .6rem; }
+
+/* ---------- actividades (formulario y lista) ---------- */
+.pantalla { flex: 1; min-width: 0; display: grid; gap: 1rem; }
+.lista__acciones { display: flex; gap: .6rem; flex-wrap: wrap; }
+.modal__ventana--ancha { width: min(520px, 100%); max-height: 100%; overflow-y: auto; }
+.campo textarea, .campo select { border: 1px solid #cbd5e1; border-radius: 10px; padding: .6rem .75rem; background: #fff; font-weight: 400; resize: vertical; }
+.campo textarea:focus, .campo select:focus { outline: 2px solid #38bdf8; border-color: transparent; }
+.campo input[aria-invalid="true"], .campo textarea[aria-invalid="true"], .campo select[aria-invalid="true"] { border-color: #dc2626; }
+.campo__error { color: #b91c1c; font-size: .8rem; font-weight: 400; }
+.campo__contador { color: #64748b; font-size: .75rem; font-weight: 400; text-align: right; }

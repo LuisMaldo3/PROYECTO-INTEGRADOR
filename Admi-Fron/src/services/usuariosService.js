@@ -3,14 +3,15 @@ import { mensajeDeEstado } from './usuarios'
 
 /** Error al hablar con Admin-back. `estado` es el código HTTP (0 si no hubo conexión). */
 export class ApiError extends Error {
-  constructor(estado, mensaje, detalle = '') {
+  constructor(estado, mensaje, detalle = '', errores = {}) {
     super(mensaje)
     this.estado = estado
     this.detalle = detalle // lo que dijo el servidor: "CODIGO: mensaje"
+    this.errores = errores // { campo: mensaje } cuando el servidor rechaza datos de un formulario
   }
 }
 
-async function pedir(ruta, token, opciones = {}) {
+export async function pedir(ruta, token, opciones = {}) {
   let respuesta
   try {
     respuesta = await fetch(`${ADMIN_URL}${ruta}`, {
@@ -23,7 +24,7 @@ async function pedir(ruta, token, opciones = {}) {
   const datos = await respuesta.json().catch(() => null)
   if (!respuesta.ok) {
     const detalle = datos?.codigo ? `${datos.codigo}: ${datos.mensaje ?? ''}`.trim() : ''
-    throw new ApiError(respuesta.status, mensajeDeEstado(respuesta.status, datos?.mensaje), detalle)
+    throw new ApiError(respuesta.status, mensajeDeEstado(respuesta.status, datos?.mensaje), detalle, datos?.errores)
   }
   return datos
 }
