@@ -1,13 +1,20 @@
-/** PLACEHOLDER · Tarea 4 es de Mishel. Se reemplaza por su archivo al integrar. */
+import { ROLES, hayCambio } from '../services/roles'
+
+/** Tarea 4 · Lista para elegir el nuevo rol. No guarda nada: avisa con onElegir(rol) y el padre pide confirmación. */
 export default function SelectorRol({ rolActual, deshabilitado = false, onElegir }) {
-  const actual = rolActual?.trim().toLowerCase() ?? ''
   return (
-    <label className="campo">
+    <label className="campo selector-rol">
       Cambiar rol
-      <select value={actual} disabled={deshabilitado} onChange={(e) => e.target.value !== actual && onElegir(e.target.value)}>
-        <option value="usuario">Usuario</option>
-        <option value="organizador">Organizador</option>
-        <option value="administrador">Administrador</option>
+      <select
+        value={rolActual?.trim().toLowerCase() ?? ''}
+        disabled={deshabilitado}
+        onChange={(e) => hayCambio(rolActual, e.target.value) && onElegir(e.target.value)}
+      >
+        {ROLES.map((r) => (
+          <option key={r.valor} value={r.valor}>
+            {r.etiqueta}
+          </option>
+        ))}
       </select>
     </label>
   )
