@@ -3,7 +3,7 @@ import { ESTADO_INICIAL, erroresVisibles, puedeEnviar, reducir } from '../servic
 import { LIMITES } from '../services/validacionActividad'
 
 /**
- * Tarea 3 · Revisiones del formulario «Nueva actividad».
+ * Tarea 3 · Revisiones del formulario «Nueva actividad» (nombre, descripción, categoría, fecha y horario).
  * valores / errores · cambiar(campo, valor) · tocar(campo) (al salir del campo)
  * revisar() marca todo como tocado y dice si se puede enviar · errorDelServidor({campo: mensaje}) · reiniciar()
  */
