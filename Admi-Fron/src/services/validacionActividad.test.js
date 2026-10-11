@@ -2,15 +2,23 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { validarActividad } from './validacionActividad.js'
 
-const OK = { nombre: 'Torneo de fútbol', descripcion: 'Campeonato abierto para todos.', categoriaId: 'deportes' }
+const OK = {
+  nombre: 'Torneo de fútbol',
+  descripcion: 'Campeonato abierto para todos.',
+  categoriaId: 'deportes',
+  fecha: '2026-10-19',
+  horaInicio: '11:00',
+  horaFin: '14:30',
+}
 
 test('REVISIÓN: datos correctos no dan errores', () => {
   assert.deepEqual(validarActividad(OK), {})
 })
 
-test('REVISIÓN: todo vacío marca los tres campos', () => {
-  assert.deepEqual(Object.keys(validarActividad({})).sort(), ['categoriaId', 'descripcion', 'nombre'])
-  assert.deepEqual(Object.keys(validarActividad()).sort(), ['categoriaId', 'descripcion', 'nombre'])
+test('REVISIÓN: todo vacío marca los campos obligatorios (la hora de fin no lo es)', () => {
+  const obligatorios = ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'nombre']
+  assert.deepEqual(Object.keys(validarActividad({})).sort(), obligatorios)
+  assert.deepEqual(Object.keys(validarActividad()).sort(), obligatorios)
 })
 
 test('REVISIÓN: solo espacios cuenta como vacío', () => {
@@ -35,5 +43,45 @@ test('REVISIÓN: límites de la descripción (10 a 500)', () => {
 })
 
 test('REVISIÓN: valores que no son texto no rompen nada', () => {
-  assert.equal(Object.keys(validarActividad({ nombre: 5, descripcion: ['x'], categoriaId: null })).length, 3)
+  assert.equal(Object.keys(validarActividad({ nombre: 5, descripcion: ['x'], categoriaId: null, fecha: 7, horaInicio: {}, horaFin: [] })).length, 5)
+})
+
+test('FECHA: obligatoria y un día real del calendario', () => {
+  assert.equal(validarActividad({ ...OK, fecha: '' }).fecha, 'Elige la fecha de la actividad.')
+  for (const mala of ['2026-02-30', '2026-13-01', '2026-00-10', '19/10/2026', '2026-1-5', 'mañana']) {
+    assert.equal(validarActividad({ ...OK, fecha: mala }).fecha, 'La fecha no es válida.', mala)
+  }
+  assert.equal(validarActividad({ ...OK, fecha: '2028-02-29' }).fecha, undefined) // año bisiesto
+  assert.equal(validarActividad({ ...OK, fecha: '2026-02-29' }).fecha, 'La fecha no es válida.') // no bisiesto
+})
+
+test('HORA DE INICIO: obligatoria y en formato HH:MM de 24 horas', () => {
+  assert.equal(validarActividad({ ...OK, horaInicio: '' }).horaInicio, 'Elige la hora de inicio.')
+  for (const mala of ['25:00', '9:00', '10:60', 'abc', '11:00 a. m.']) {
+    assert.equal(validarActividad({ ...OK, horaInicio: mala, horaFin: '' }).horaInicio, 'La hora de inicio no es válida.', mala)
+  }
+  for (const buena of ['00:00', '09:05', '23:59']) {
+    assert.equal(validarActividad({ ...OK, horaInicio: buena, horaFin: '' }).horaInicio, undefined, buena)
+  }
+})
+
+test('HORA DE FIN: es opcional', () => {
+  assert.equal(validarActividad({ ...OK, horaFin: '' }).horaFin, undefined)
+  assert.equal(validarActividad({ ...OK, horaFin: '   ' }).horaFin, undefined)
+  assert.equal(validarActividad({ fecha: OK.fecha, horaInicio: '15:30', nombre: OK.nombre, descripcion: OK.descripcion, categoriaId: 'x' }).horaFin, undefined)
+})
+
+test('HORA DE FIN: debe ser después de la de inicio', () => {
+  const dice = 'La hora de fin debe ser después de la de inicio.'
+  assert.equal(validarActividad({ ...OK, horaInicio: '14:30', horaFin: '14:30' }).horaFin, dice) // igual
+  assert.equal(validarActividad({ ...OK, horaInicio: '14:30', horaFin: '11:00' }).horaFin, dice) // antes
+  assert.equal(validarActividad({ ...OK, horaInicio: '14:30', horaFin: '14:31' }).horaFin, undefined) // un minuto después
+  assert.equal(validarActividad({ ...OK, horaInicio: '09:00', horaFin: '10:00' }).horaFin, undefined) // el 09:00 < 10:00 también como texto
+})
+
+test('HORA DE FIN: con formato malo dice eso y no que es anterior; sin inicio válido no se compara', () => {
+  assert.equal(validarActividad({ ...OK, horaFin: '99:99' }).horaFin, 'La hora de fin no es válida.')
+  const sinInicio = validarActividad({ ...OK, horaInicio: '', horaFin: '10:00' })
+  assert.equal(sinInicio.horaInicio, 'Elige la hora de inicio.')
+  assert.equal(sinInicio.horaFin, undefined)
 })

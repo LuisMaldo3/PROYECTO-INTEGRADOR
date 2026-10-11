@@ -70,6 +70,7 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
               <tr>
                 <th>Actividad</th>
                 <th>Categoría</th>
+                <th>Lugar</th>
                 <th>Fecha</th>
                 <th>Horario</th>
               </tr>
@@ -86,7 +87,18 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
                   <td>
                     <span className={`etiqueta etiqueta--${a.categoria?.id ?? 'sin'}`}>{a.categoria?.nombre ?? '—'}</span>
                   </td>
-                  <td className={a.fecha ? undefined : 'sin-dato'}>{formatearFechaActividad(a.fecha)}</td>
+                  <td>
+                    {a.ubicacion ? (
+                      <span className="hora">
+                        <Icono nombre="ubicacion" tam={16} /> {a.ubicacion.nombre}
+                      </span>
+                    ) : (
+                      <span className="sin-dato">Sin ubicación</span>
+                    )}
+                  </td>
+                  <td className={a.fecha ? undefined : 'sin-dato'}>
+                    <span className="hora">{formatearFechaActividad(a.fecha)}</span>
+                  </td>
                   <td>
                     {a.horaInicio ? (
                       <span className="hora">

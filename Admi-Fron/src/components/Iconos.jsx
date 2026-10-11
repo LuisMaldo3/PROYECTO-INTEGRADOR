@@ -48,6 +48,12 @@ const DIBUJOS = {
       <path d="M12 8v4M12 16h.01" />
     </>
   ),
+  ubicacion: (
+    <>
+      <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  ),
   correo: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2" />

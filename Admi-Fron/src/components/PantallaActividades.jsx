@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react'
-import { listarCategorias } from '../services/actividadesService'
+import { listarCategorias, listarUbicaciones } from '../services/actividadesService'
 import FormularioActividad from './FormularioActividad'
 import ListaActividades from './ListaActividades'
 
-/** Pantalla «Actividades» del menú: la lista (tarea 5) y el formulario «Nueva actividad» (tarea 4). */
+/** Pantalla «Actividades» del menú: la lista y el formulario «Nueva actividad». */
 export default function PantallaActividades({ token, onSesionExpirada }) {
-  const [categorias, setCategorias] = useState({ cargando: true, error: '', lista: [] })
+  // Lo que el formulario necesita para sus listas desplegables: categorías y ubicaciones.
+  const [catalogos, setCatalogos] = useState({ cargando: true, error: '', categorias: [], ubicaciones: [] })
   const [formularioAbierto, setFormularioAbierto] = useState(false)
   const [version, setVersion] = useState(0)
   const [aviso, setAviso] = useState('')
 
   useEffect(() => {
     let cancelado = false
-    listarCategorias(token)
-      .then((lista) => {
-        if (!cancelado) setCategorias({ cargando: false, error: '', lista })
+    Promise.all([listarCategorias(token), listarUbicaciones(token)])
+      .then(([categorias, ubicaciones]) => {
+        if (!cancelado) setCatalogos({ cargando: false, error: '', categorias, ubicaciones })
       })
       .catch((e) => {
         if (cancelado) return
         if (e.estado === 401) return onSesionExpirada(e.detalle)
-        setCategorias({ cargando: false, error: e.message, lista: [] })
+        setCatalogos({ cargando: false, error: e.message, categorias: [], ubicaciones: [] })
       })
     return () => {
       cancelado = true
@@ -33,16 +34,16 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
           {aviso}
         </p>
       )}
-      {categorias.error && (
+      {catalogos.error && (
         <p className="aviso aviso--error" role="alert">
-          No se pudieron cargar las categorías: {categorias.error}
+          No se pudieron cargar las categorías y ubicaciones: {catalogos.error}
         </p>
       )}
 
       <ListaActividades
         token={token}
         version={version}
-        nuevaDeshabilitada={categorias.cargando || Boolean(categorias.error)}
+        nuevaDeshabilitada={catalogos.cargando || Boolean(catalogos.error)}
         onNueva={() => {
           setAviso('')
           setFormularioAbierto(true)
@@ -53,7 +54,8 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
       {formularioAbierto && (
         <FormularioActividad
           token={token}
-          categorias={categorias.lista}
+          categorias={catalogos.categorias}
+          ubicaciones={catalogos.ubicaciones}
           onSesionExpirada={onSesionExpirada}
           onCancelar={() => setFormularioAbierto(false)}
           onCreada={(actividad) => {
