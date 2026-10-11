@@ -16,7 +16,7 @@ test('FORMULARIO: el error de un campo solo aparece cuando se toca', () => {
 })
 
 test('FORMULARIO: tocarTodo muestra los errores de todos los campos', () => {
-  assert.deepEqual(Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(), ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'nombre'])
+  assert.deepEqual(Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(), ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'nombre', 'ubicacionId'])
 })
 
 test('FORMULARIO: el error desaparece al corregir el campo', () => {
@@ -32,6 +32,7 @@ test('FORMULARIO: puede enviarse solo con todo correcto', () => {
     { tipo: 'cambiar', campo: 'nombre', valor: 'Torneo' },
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'deportes' },
+    { tipo: 'cambiar', campo: 'ubicacionId', valor: 'auditorio' },
     { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
     { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
   )
@@ -43,6 +44,7 @@ test('FORMULARIO: el error del servidor se muestra y se borra al editar ese camp
     { tipo: 'cambiar', campo: 'nombre', valor: 'Torneo' },
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'borrada' },
+    { tipo: 'cambiar', campo: 'ubicacionId', valor: 'auditorio' },
     { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
     { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
   )
@@ -70,4 +72,12 @@ test('FORMULARIO: el error de la hora de fin sale al tocarla y se va al corregir
 test('FORMULARIO: un error del servidor en la fecha se muestra tal cual', () => {
   const e = reducir(ESTADO_INICIAL, { tipo: 'servidor', errores: { fecha: 'La fecha no es válida.' } })
   assert.equal(erroresVisibles(e).fecha, 'La fecha no es válida.')
+})
+
+test('FORMULARIO: la ubicación no se regaña antes de tocarla y su error del servidor se muestra', () => {
+  assert.equal(erroresVisibles(ESTADO_INICIAL).ubicacionId, undefined)
+  assert.equal(erroresVisibles(reducir(ESTADO_INICIAL, { tipo: 'tocar', campo: 'ubicacionId' })).ubicacionId, 'Elige una ubicación.')
+  const rechazado = reducir(ESTADO_INICIAL, { tipo: 'servidor', errores: { ubicacionId: 'Elige una ubicación válida.' } })
+  assert.equal(erroresVisibles(rechazado).ubicacionId, 'Elige una ubicación válida.')
+  assert.equal(erroresVisibles(reducir(rechazado, { tipo: 'cambiar', campo: 'ubicacionId', valor: 'auditorio' })).ubicacionId, undefined)
 })

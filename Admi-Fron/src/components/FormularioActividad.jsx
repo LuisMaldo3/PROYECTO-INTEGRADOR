@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos'
+import SelectorUbicacion from './SelectorUbicacion'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
 import { crearActividad } from '../services/actividadesService'
 
-/** Formulario «Nueva actividad» (ventana): datos, categoría, fecha y horario. Las revisiones salen del hook. */
-export default function FormularioActividad({ token, categorias, onCreada, onCancelar, onSesionExpirada }) {
+/** Formulario «Nueva actividad» (ventana): datos, categoría, ubicación, fecha y horario. Las revisiones salen del hook. */
+export default function FormularioActividad({ token, categorias, ubicaciones = [], onCreada, onCancelar, onSesionExpirada }) {
   const f = useFormularioActividad()
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
@@ -70,18 +71,28 @@ export default function FormularioActividad({ token, categorias, onCreada, onCan
           {errores.descripcion && <span className="campo__error" role="alert">{errores.descripcion}</span>}
         </label>
 
-        <label className="campo">
-          Categoría
-          <select value={valores.categoriaId} onChange={(e) => f.cambiar('categoriaId', e.target.value)} {...campo('categoriaId')}>
-            <option value="">Elige una categoría</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
-          {errores.categoriaId && <span className="campo__error" role="alert">{errores.categoriaId}</span>}
-        </label>
+        <div className="campo-fila campo-fila--dos">
+          <label className="campo">
+            Categoría
+            <select value={valores.categoriaId} onChange={(e) => f.cambiar('categoriaId', e.target.value)} {...campo('categoriaId')}>
+              <option value="">Elige una categoría</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
+            {errores.categoriaId && <span className="campo__error" role="alert">{errores.categoriaId}</span>}
+          </label>
+          <SelectorUbicacion
+            valor={valores.ubicacionId ?? ''}
+            ubicaciones={ubicaciones}
+            error={errores.ubicacionId}
+            deshabilitado={enviando}
+            onCambiar={(id) => f.cambiar('ubicacionId', id)}
+            onSalir={() => f.tocar('ubicacionId')}
+          />
+        </div>
 
         <div className="campo-fila">
           <label className="campo">

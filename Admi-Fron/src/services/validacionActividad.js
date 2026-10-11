@@ -1,4 +1,4 @@
-/** Revisiones del formulario «Nueva actividad»: datos, fecha y horario (sin React ni red, para probarlas con `npm test`). */
+/** Revisiones del formulario «Nueva actividad»: datos, categoría, ubicación, fecha y horario (sin React ni red, para probarlas con `npm test`). */
 
 // Mismos límites y mensajes que Admin-back (actividades/servicio.py): si cambian allá, cambian aquí.
 export const LIMITES = { nombreMin: 3, nombreMax: 80, descripcionMin: 10, descripcionMax: 500 }
@@ -18,7 +18,7 @@ function esFechaReal(valor) {
 }
 
 /** Devuelve { campo: mensaje } solo con los campos que tienen error; {} si todo está bien. */
-export function validarActividad({ nombre, descripcion, categoriaId, fecha, horaInicio, horaFin } = {}) {
+export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId, fecha, horaInicio, horaFin } = {}) {
   const errores = {}
   const n = texto(nombre)
   const d = texto(descripcion)
@@ -34,6 +34,7 @@ export function validarActividad({ nombre, descripcion, categoriaId, fecha, hora
     errores.descripcion = `La descripción no puede pasar de ${LIMITES.descripcionMax} caracteres.`
 
   if (!texto(categoriaId)) errores.categoriaId = 'Elige una categoría.'
+  if (!texto(ubicacionId)) errores.ubicacionId = 'Elige una ubicación.'
 
   // Fecha y horario (mismos mensajes que Admin-back: actividades/horario.py)
   const f = texto(fecha)
