@@ -9,8 +9,9 @@ Backend del administrador. Lee la **misma MongoDB** que `Usuario-back` y valida 
 |---|---|---|
 | GET | `/api/usuarios/` | 1 · lista de usuarios |
 | GET | `/api/usuarios/<id>/` | 2 · detalle de un usuario |
+| PATCH | `/api/usuarios/<id>/rol/` | US-24 · cambiar el rol (cuerpo `{"rol": "organizador"}`) |
 
-Ambos exigen `Authorization: Bearer <token>` de un usuario **activo con rol `administrador`**.
+Todos exigen `Authorization: Bearer <token>` de un usuario **activo con rol `administrador`**.
 Solo devuelven `id, nombre, correo, rol, activo` (nunca `passwordHash`).
 
 ## Ejecutar (PowerShell)
@@ -48,3 +49,11 @@ No necesitan MongoDB (usan colecciones falsas). Cubren: sin token (401), token c
 sesión cerrada (401), usuario normal (403), admin desactivado (401), lista sin `passwordHash`, detalle (200 y 404).
 
 Los errores usan el mismo formato que Usuario-back: `{ "codigo": "...", "mensaje": "..." }`.
+
+## Cambio de rol (US-24)
+
+`PATCH /api/usuarios/<id>/rol/` con `{"rol": "usuario" | "organizador" | "administrador"}`.
+Responde `200` con el usuario actualizado (`id, nombre, correo, rol, activo`). Errores:
+`400 JSON_INVALIDO`, `400 ROL_INVALIDO` (rol vacío o fuera de la lista), `401`, `403 SOLO_ADMIN`,
+`404 USUARIO_NO_ENCONTRADO`. Los roles válidos están en `usuarios/roles.py` y deben coincidir con
+`Roles.java` de Usuario-back.
