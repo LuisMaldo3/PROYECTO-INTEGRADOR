@@ -43,7 +43,7 @@ python manage.py runserver 8000
 ## Pruebas automáticas
 
 ```powershell
-python manage.py test usuarios
+python manage.py test
 ```
 No necesitan MongoDB (usan colecciones falsas). Cubren: sin token (401), token con otro secreto o vencido (401),
 sesión cerrada (401), usuario normal (403), admin desactivado (401), lista sin `passwordHash`, detalle (200 y 404).
@@ -57,3 +57,22 @@ Responde `200` con el usuario actualizado (`id, nombre, correo, rol, activo`). E
 `400 JSON_INVALIDO`, `400 ROL_INVALIDO` (rol vacío o fuera de la lista), `401`, `403 SOLO_ADMIN`,
 `404 USUARIO_NO_ENCONTRADO`. Los roles válidos están en `usuarios/roles.py` y deben coincidir con
 `Roles.java` de Usuario-back.
+
+## Actividades (US-25)
+
+Primero, una sola vez (y se puede repetir sin problema), crea las colecciones y las categorías iniciales:
+
+```powershell
+python manage.py preparar_actividades
+```
+
+| Metodo | Ruta | Para qué |
+|---|---|---|
+| GET | `/api/categorias/` | categorías del formulario (`{ categorias: [{ id, nombre }] }`) |
+| GET | `/api/actividades/` | lista de actividades, de la más nueva a la más antigua |
+| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId" }` |
+
+Todos exigen token de administrador. `POST` responde `201` con la actividad creada
+(`id, nombre, descripcion, categoria {id, nombre}, creadaPor, creadaEn`). Si algo no pasa la revisión responde
+`400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`); límites: nombre 3–80,
+descripción 10–500 caracteres y categoría existente. Los mismos límites están en la web (`validacionActividad.js`).
