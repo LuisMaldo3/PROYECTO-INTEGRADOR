@@ -34,3 +34,11 @@ export function crearActividad(token, valores) {
     body: JSON.stringify(armarCuerpo(valores)),
   })
 }
+
+/** PUT /api/actividades/:id/ edita una actividad existente. */
+export function modificarActividad(token, id, valores) {
+  return pedir(`/api/actividades/${encodeURIComponent(id)}/`, token, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(armarCuerpo(valores)),
+  })
+}

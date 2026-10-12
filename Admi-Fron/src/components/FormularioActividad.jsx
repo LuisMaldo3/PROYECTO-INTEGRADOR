@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos'
+import { datosEdicionActividad } from '../services/datosEdicionActividad'
 import SelectorUbicacion from './SelectorUbicacion'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
-import { crearActividad } from '../services/actividadesService'
+import { crearActividad, modificarActividad } from '../services/actividadesService'
 
 const organizadorIdVacio = (organizadores) => organizadores.length === 0
 
 /** Formulario «Nueva actividad» (ventana): datos, categoría, ubicación, fecha y horario. Las revisiones salen del hook. */
-export default function FormularioActividad({ token, categorias, ubicaciones = [], organizadores = [], onCreada, onCancelar, onSesionExpirada }) {
-  const f = useFormularioActividad()
+export default function FormularioActividad({ token, categorias, ubicaciones = [], organizadores = [], onCreada, onCancelar, onSesionExpirada, actividad = null }) {
+  const f = useFormularioActividad(actividad ? datosEdicionActividad(actividad) : null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
 
@@ -25,7 +26,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
     if (!f.revisar()) return
     setEnviando(true)
     try {
-      onCreada(await crearActividad(token, f.valores))
+      onCreada(await (actividad ? modificarActividad(token, actividad.id, f.valores) : crearActividad(token, f.valores)))
     } catch (e) {
       if (e.estado === 401) return onSesionExpirada(e.detalle)
       if (e.errores && Object.keys(e.errores).length > 0) f.errorDelServidor(e.errores)
@@ -45,7 +46,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
   return (
     <div className="modal">
       <form className="modal__ventana modal__ventana--ancha" role="dialog" aria-modal="true" aria-labelledby="form-titulo" onSubmit={enviar} noValidate>
-        <h2 id="form-titulo">Nueva actividad</h2>
+        <h2 id="form-titulo">{actividad ? 'Editar actividad' : 'Nueva actividad'}</h2>
 
         <label className="campo">
           Nombre
@@ -145,7 +146,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
             Cancelar
           </button>
           <button type="submit" className="boton" disabled={enviando}>
-            <Icono nombre="check" tam={18} /> {enviando ? 'Guardando…' : 'Crear actividad'}
+            <Icono nombre="check" tam={18} /> {enviando ? 'Guardando…' : (actividad ? 'Guardar cambios' : 'Crear actividad')}
           </button>
         </div>
       </form>

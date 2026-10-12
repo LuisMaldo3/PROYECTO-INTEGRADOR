@@ -8,6 +8,7 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
   // Lo que el formulario necesita para sus listas desplegables: categorías y ubicaciones.
   const [catalogos, setCatalogos] = useState({ cargando: true, error: '', categorias: [], ubicaciones: [], organizadores: [] })
   const [formularioAbierto, setFormularioAbierto] = useState(false)
+  const [actividadEditando, setActividadEditando] = useState(null)
   const [version, setVersion] = useState(0)
   const [aviso, setAviso] = useState('')
 
@@ -46,6 +47,12 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
         nuevaDeshabilitada={catalogos.cargando || Boolean(catalogos.error)}
         onNueva={() => {
           setAviso('')
+          setActividadEditando(null)
+          setFormularioAbierto(true)
+        }}
+        onEditar={(actividad) => {
+          setAviso('')
+          setActividadEditando(actividad)
           setFormularioAbierto(true)
         }}
         onSesionExpirada={onSesionExpirada}
@@ -54,6 +61,7 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
       {formularioAbierto && (
         <FormularioActividad
           token={token}
+          actividad={actividadEditando}
           categorias={catalogos.categorias}
           ubicaciones={catalogos.ubicaciones}
           organizadores={catalogos.organizadores}
@@ -61,7 +69,8 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
           onCancelar={() => setFormularioAbierto(false)}
           onCreada={(actividad) => {
             setFormularioAbierto(false)
-            setAviso(`Actividad «${actividad.nombre}» creada.`)
+            setAviso(`Actividad «${actividad.nombre}» ${actividadEditando ? 'actualizada' : 'creada'}.`)
+            setActividadEditando(null)
             setVersion((n) => n + 1)
           }}
         />

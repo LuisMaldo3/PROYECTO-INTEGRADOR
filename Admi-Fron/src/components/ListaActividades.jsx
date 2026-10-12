@@ -4,7 +4,7 @@ import { listarActividades } from '../services/actividadesService'
 import { formatearFechaActividad, formatearHorario, resumen } from '../services/formatoActividad'
 
 /** Lista de actividades del administrador, por fecha y hora. `version` sube para pedirla de nuevo. */
-export default function ListaActividades({ token, version = 0, onNueva, nuevaDeshabilitada = false, onSesionExpirada }) {
+export default function ListaActividades({ token, version = 0, onNueva, onEditar, nuevaDeshabilitada = false, onSesionExpirada }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', actividades: [] })
   const [recarga, setRecarga] = useState(0)
 
@@ -73,6 +73,7 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
                 <th>Lugar</th>
                 <th>Fecha</th>
                 <th>Horario</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -108,6 +109,7 @@ export default function ListaActividades({ token, version = 0, onNueva, nuevaDes
                       <span className="sin-dato">—</span>
                     )}
                   </td>
+                  <td><button type="button" className="boton boton--claro" onClick={() => onEditar(a)}>Editar</button></td>
                 </tr>
               ))}
             </tbody>
