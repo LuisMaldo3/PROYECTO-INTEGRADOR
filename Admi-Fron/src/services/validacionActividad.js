@@ -18,7 +18,7 @@ function esFechaReal(valor) {
 }
 
 /** Devuelve { campo: mensaje } solo con los campos que tienen error; {} si todo está bien. */
-export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId, fecha, horaInicio, horaFin, maximoParticipantes } = {}) {
+export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId, organizadorId, fecha, horaInicio, horaFin, maximoParticipantes } = {}) {
   const errores = {}
   const n = texto(nombre)
   const d = texto(descripcion)
@@ -35,6 +35,7 @@ export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId
 
   if (!texto(categoriaId)) errores.categoriaId = 'Elige una categoría.'
   if (!texto(ubicacionId)) errores.ubicacionId = 'Elige una ubicación.'
+  if (!texto(organizadorId)) errores.organizadorId = 'Elige un organizador responsable.'
 
   if (!/^[1-9]\d*$/.test(String(maximoParticipantes ?? "")) || !Number.isSafeInteger(Number(maximoParticipantes))) {
     errores.maximoParticipantes = "El máximo de participantes debe ser un entero mayor que cero."

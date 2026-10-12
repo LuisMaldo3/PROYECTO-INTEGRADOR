@@ -4,8 +4,10 @@ import SelectorUbicacion from './SelectorUbicacion'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
 import { crearActividad } from '../services/actividadesService'
 
+const organizadorIdVacio = (organizadores) => organizadores.length === 0
+
 /** Formulario «Nueva actividad» (ventana): datos, categoría, ubicación, fecha y horario. Las revisiones salen del hook. */
-export default function FormularioActividad({ token, categorias, ubicaciones = [], onCreada, onCancelar, onSesionExpirada }) {
+export default function FormularioActividad({ token, categorias, ubicaciones = [], organizadores = [], onCreada, onCancelar, onSesionExpirada }) {
   const f = useFormularioActividad()
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
@@ -93,6 +95,18 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
             onSalir={() => f.tocar('ubicacionId')}
           />
         </div>
+
+        <label className="campo">
+          Organizador responsable
+          <select value={valores.organizadorId ?? ''} onChange={(e) => f.cambiar('organizadorId', e.target.value)} {...campo('organizadorId')}>
+            <option value="">Elige un organizador</option>
+            {organizadores.map((o) => (
+              <option key={o.id} value={o.id}>{o.nombre}{o.correo ? ` (${o.correo})` : ''}</option>
+            ))}
+          </select>
+          {organizadorIdVacio(organizadores) && <span className="campo__ayuda">No hay organizadores activos registrados.</span>}
+          {errores.organizadorId && <span className="campo__error" role="alert">{errores.organizadorId}</span>}
+        </label>
 
         <div className="campo-fila">
           <label className="campo">
