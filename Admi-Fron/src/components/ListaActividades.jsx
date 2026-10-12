@@ -1,12 +1,33 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos'
-import { listarActividades } from '../services/actividadesService'
+import { listarActividades, cancelarActividad } from '../services/actividadesService'
 import { formatearFechaActividad, formatearHorario, resumen } from '../services/formatoActividad'
 
 /** Lista de actividades del administrador, por fecha y hora. `version` sube para pedirla de nuevo. */
 export default function ListaActividades({ token, version = 0, onNueva, onEditar, nuevaDeshabilitada = false, onSesionExpirada }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', actividades: [] })
   const [recarga, setRecarga] = useState(0)
+  const [pendiente, setPendiente] = useState(null)
+  const [procesando, setProcesando] = useState(false)
+  const [errorCancelar, setErrorCancelar] = useState('')
+  const [exitoCancelar, setExitoCancelar] = useState('')
+
+  async function confirmarCancelacion() {
+    if (!pendiente || procesando) return
+    setProcesando(true)
+    setErrorCancelar('')
+    try {
+      await cancelarActividad(token, pendiente.id)
+      setPendiente(null)
+      setExitoCancelar(`La actividad «${pendiente.nombre}» fue cancelada.`)
+      setRecarga((n) => n + 1)
+    } catch (e) {
+      if (e.estado === 401) onSesionExpirada(e.detalle)
+      else setErrorCancelar(e.message)
+    } finally {
+      setProcesando(false)
+    }
+  }
 
   useEffect(() => {
     let cancelado = false
@@ -28,6 +49,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
 
   return (
     <section className="lista">
+      {exitoCancelar && <p className="aviso aviso--ok" role="status">{exitoCancelar}</p>}
       <header className="lista__cabecera">
         <div>
           <h1>Actividades</h1>
@@ -82,6 +104,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
                   <td>
                     <div className="celda-principal" title={a.descripcion}>
                       <strong>{a.nombre}</strong>
+                      {a.estado === 'cancelada' && <span className="estado-cancelada">Cancelada</span>}
                       <span>{resumen(a.descripcion, 70)}</span>
                     </div>
                   </td>
@@ -109,11 +132,30 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
                       <span className="sin-dato">—</span>
                     )}
                   </td>
-                  <td><button type="button" className="boton boton--claro" onClick={() => onEditar(a)}>Editar</button></td>
+                  <td>
+                    <div className="acciones-actividad">
+                      <button type="button" className="boton boton--claro" disabled={a.estado === 'cancelada'} onClick={() => onEditar(a)}>Editar</button>
+                      {a.estado !== 'cancelada' && <button type="button" className="boton boton--peligro-discreto" onClick={() => { setErrorCancelar(''); setPendiente(a) }}>Cancelar</button>}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {pendiente && (
+        <div className="confirmacion-fondo" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !procesando) setPendiente(null) }}>
+          <div className="confirmacion-panel" role="alertdialog" aria-modal="true" aria-labelledby="titulo-cancelacion" aria-describedby="detalle-cancelacion">
+            <div className="confirmacion-icono" aria-hidden="true">!</div>
+            <h2 id="titulo-cancelacion">Cancelar actividad</h2>
+            <p id="detalle-cancelacion">¿Confirmas la cancelación de <strong>{pendiente.nombre}</strong>? La actividad quedará marcada como cancelada y se conservará el historial de inscripciones.</p>
+            {errorCancelar && <p className="aviso aviso--error" role="alert">{errorCancelar}</p>}
+            <div className="confirmacion-acciones">
+              <button type="button" className="boton boton--claro" disabled={procesando} onClick={() => setPendiente(null)}>Volver</button>
+              <button type="button" className="boton boton--peligro" disabled={procesando} onClick={confirmarCancelacion}>{procesando ? 'Cancelando…' : 'Sí, cancelar actividad'}</button>
+            </div>
+          </div>
         </div>
       )}
     </section>
