@@ -140,6 +140,29 @@ def crear_actividad(datos, admin_id):
     return a_json(doc, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
 
 
+def modificar_actividad(actividad_id, datos):
+    """Edita campos permitidos sin modificar inscripciones ni metadatos de creación."""
+    actual = mongo.actividades().find_one({"_id": actividad_id})
+    if actual is None:
+        raise LookupError("Actividad no encontrada.")
+    nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
+    inscritos = actual.get("participantesInscritos", 0)
+    if maximo < inscritos:
+        raise DatosInvalidos({"maximoParticipantes": f"El máximo no puede ser menor que los {inscritos} participantes inscritos."})
+    cambios = {"nombre": nombre, "descripcion": descripcion, "categoriaId": categoria["_id"],
+               "ubicacionId": ubicacion["_id"], "maximoParticipantes": maximo,
+               "organizadorId": str(organizador["_id"]),
+               "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")}, **horario}
+    # La condición evita reducir cupos si se inscribieron más personas durante la edición.
+    filtro = {"_id": actividad_id, "$or": [{"participantesInscritos": {"$lte": maximo}},
+                                            {"participantesInscritos": {"$exists": False}}]}
+    resultado = mongo.actividades().update_one(filtro, {"$set": cambios})
+    if not resultado.matched_count:
+        raise DatosInvalidos({"maximoParticipantes": "Se registraron nuevas inscripciones. Actualiza y vuelve a intentar."})
+    actualizado = mongo.actividades().find_one({"_id": actividad_id})
+    return a_json(actualizado, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
+
+
 def listar_actividades():
     """Todas las actividades por fecha y hora de inicio; las que no tienen fecha (las viejas) van al final."""
     nombres = {c["_id"]: c["nombre"] for c in mongo.categorias().find({})}

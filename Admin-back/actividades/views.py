@@ -46,3 +46,21 @@ def ubicaciones(request):
 def listar_organizadores(request):
     """Organizadores activos para asignar al crear actividades."""
     return JsonResponse({"organizadores": organizadores.listar_organizadores()})
+
+
+@require_http_methods(["PUT", "PATCH"])
+@exigir_admin
+def editar_actividad(request, actividad_id):
+    try:
+        cuerpo = json.loads(request.body or b"{}")
+    except ValueError:
+        return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "El cuerpo debe ser JSON válido."}, status=400)
+    if not isinstance(cuerpo, dict):
+        return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "Se espera un objeto JSON."}, status=400)
+    try:
+        actividad = servicio.modificar_actividad(actividad_id, cuerpo)
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Actividad no encontrada."}, status=404)
+    except servicio.DatosInvalidos as error:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=400)
+    return JsonResponse(actividad)
