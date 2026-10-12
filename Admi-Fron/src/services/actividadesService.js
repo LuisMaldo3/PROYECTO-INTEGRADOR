@@ -42,3 +42,9 @@ export function modificarActividad(token, id, valores) {
     body: JSON.stringify(armarCuerpo(valores)),
   })
 }
+
+
+/** PATCH /api/actividades/:id/cancelar/ */
+export function cancelarActividad(token, id) {
+  return pedir(`/api/actividades/${encodeURIComponent(id)}/cancelar/`, token, { method: 'PATCH' })
+}

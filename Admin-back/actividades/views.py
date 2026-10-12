@@ -64,3 +64,15 @@ def editar_actividad(request, actividad_id):
     except servicio.DatosInvalidos as error:
         return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=400)
     return JsonResponse(actividad)
+
+
+@require_http_methods(["PATCH"])
+@exigir_admin
+def cancelar_actividad(request, actividad_id):
+    try:
+        actividad = servicio.cancelar_actividad(actividad_id)
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Actividad no encontrada."}, status=404)
+    except servicio.DatosInvalidos as error:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=409)
+    return JsonResponse(actividad)

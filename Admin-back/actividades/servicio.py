@@ -147,6 +147,8 @@ def modificar_actividad(actividad_id, datos):
     actual = mongo.actividades().find_one({"_id": actividad_id})
     if actual is None:
         raise LookupError("Actividad no encontrada.")
+    if actual.get("estado", "programada") == "cancelada":
+        raise DatosInvalidos({"estado": "No se puede editar una actividad cancelada."})
     nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
     inscritos = actual.get("participantesInscritos", 0)
     if maximo < inscritos:
@@ -156,7 +158,7 @@ def modificar_actividad(actividad_id, datos):
                "organizadorId": str(organizador["_id"]),
                "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")}, **horario}
     # La condición evita reducir cupos si se inscribieron más personas durante la edición.
-    filtro = {"_id": actividad_id, "$or": [{"participantesInscritos": {"$lte": maximo}},
+    filtro = {"_id": actividad_id, "estado": {"$ne": "cancelada"}, "$or": [{"participantesInscritos": {"$lte": maximo}},
                                             {"participantesInscritos": {"$exists": False}}]}
     resultado = mongo.actividades().update_one(filtro, {"$set": cambios})
     if not resultado.matched_count:
@@ -184,3 +186,23 @@ def listar_ubicaciones():
     """Ubicaciones disponibles para el formulario, por nombre."""
     docs = mongo.ubicaciones().find({}).sort("nombre", 1)
     return [{"id": u["_id"], "nombre": u["nombre"]} for u in docs]
+
+
+def cancelar_actividad(actividad_id):
+    """Cancela sin borrar inscripciones; idempotente y con actualización atómica."""
+    coleccion = mongo.actividades()
+    actual = coleccion.find_one({"_id": actividad_id})
+    if actual is None:
+        raise LookupError("Actividad no encontrada.")
+    if actual.get("estado", "programada") == "cancelada":
+        raise DatosInvalidos({"estado": "La actividad ya está cancelada."})
+    resultado = coleccion.update_one(
+        {"_id": actividad_id, "estado": {"$ne": "cancelada"}},
+        {"$set": {"estado": "cancelada", "canceladaEn": datetime.now(timezone.utc)}}
+    )
+    if not resultado.matched_count:
+        raise DatosInvalidos({"estado": "La actividad ya fue cancelada."})
+    doc = coleccion.find_one({"_id": actividad_id})
+    categorias = {c["_id"]: c["nombre"] for c in mongo.categorias().find({})}
+    ubicaciones = {u["_id"]: u["nombre"] for u in mongo.ubicaciones().find({})}
+    return a_json(doc, categorias, ubicaciones)
