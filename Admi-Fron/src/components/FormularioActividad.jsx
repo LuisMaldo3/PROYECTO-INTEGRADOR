@@ -112,6 +112,14 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </label>
         </div>
 
+        <label className="campo">
+          Máximo de participantes
+          <input type="number" min="1" step="1" value={valores.maximoParticipantes}
+            onChange={(e) => f.cambiar('maximoParticipantes', e.target.value)}
+            placeholder="Ej.: 30" {...campo('maximoParticipantes')} />
+          {errores.maximoParticipantes && <span className="campo__error" role="alert">{errores.maximoParticipantes}</span>}
+        </label>
+
         {error && (
           <p className="aviso aviso--error" role="alert">
             <Icono nombre="alerta" tam={18} /> {error}

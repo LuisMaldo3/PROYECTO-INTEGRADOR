@@ -4,10 +4,10 @@ import { validarActividad } from './validacionActividad.js'
  * Estado puro del formulario: qué escribió la persona, qué campos ya tocó y qué errores devolvió el servidor.
  * Un error solo se muestra cuando el campo ya se tocó (o el servidor lo rechazó), para no regañar antes de tiempo.
  */
-export const CAMPOS = ['nombre', 'descripcion', 'categoriaId', 'ubicacionId', 'fecha', 'horaInicio', 'horaFin']
+export const CAMPOS = ['nombre', 'descripcion', 'categoriaId', 'ubicacionId', 'fecha', 'horaInicio', 'horaFin', 'maximoParticipantes']
 
 export const ESTADO_INICIAL = {
-  valores: { nombre: '', descripcion: '', categoriaId: '', ubicacionId: '', fecha: '', horaInicio: '', horaFin: '' },
+  valores: { nombre: '', descripcion: '', categoriaId: '', ubicacionId: '', fecha: '', horaInicio: '', horaFin: '', maximoParticipantes: '' },
   tocados: {},
   servidor: {},
 }
