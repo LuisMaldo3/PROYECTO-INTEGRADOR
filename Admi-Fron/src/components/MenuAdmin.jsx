@@ -5,6 +5,7 @@ import Logo from './Logo'
 export const OPCIONES = [
   { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },
   { id: 'actividades', titulo: 'Actividades', icono: 'calendario' },
+  { id: 'avisos', titulo: 'Avisos', icono: 'correo' },
 ]
 
 export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion }) {

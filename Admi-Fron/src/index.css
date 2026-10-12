@@ -222,3 +222,33 @@ svg { flex-shrink: 0; }
 .confirmacion-icono{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#fff1f2;color:#be123c;font-size:1.4rem;font-weight:700}
 .confirmacion-acciones{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:.65rem;margin-top:1.5rem}
 @media(max-width:480px){.confirmacion-acciones .boton{flex:1}.confirmacion-panel{padding:1.25rem}}
+
+/* Comunicaciones: diseño editorial sobrio, coherente con el panel. */
+.avisos-pagina{max-width:1380px;margin:0 auto;padding:2rem 2.25rem 4rem}
+.avisos-encabezado{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.7rem}
+.avisos-eyebrow{font-size:.69rem;letter-spacing:.16em;color:#0284c7;font-weight:800;margin-bottom:.55rem}
+.avisos-encabezado h1{font-size:1.9rem;letter-spacing:-.045em;margin-bottom:.35rem;color:#0f172a}
+.avisos-total{white-space:nowrap;border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:.4rem .8rem;font-size:.8rem;font-weight:700}
+.avisos-grid{display:grid;grid-template-columns:minmax(320px,.92fr) minmax(320px,1.08fr);gap:1.3rem;align-items:start}
+.avisos-tarjeta{background:#fff;border:1px solid #e2e8f0;border-radius:15px;box-shadow:0 3px 14px rgba(15,23,42,.035);padding:1.65rem}
+.avisos-tarjeta-cabecera{padding-bottom:1.25rem;margin-bottom:1.4rem;border-bottom:1px solid #edf2f7}
+.avisos-tarjeta-cabecera h2{font-size:1.09rem;letter-spacing:-.025em;margin:0 0 .35rem}
+.avisos-tarjeta-cabecera p{color:#64748b;font-size:.85rem}
+.avisos-formulario{display:grid;gap:1.15rem}
+.avisos-formulario .avisos-tarjeta-cabecera{margin-bottom:0}
+.avisos-formulario textarea{line-height:1.65;min-height:155px}
+.avisos-pie-formulario{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-top:.25rem}
+.avisos-pie-formulario span{font-size:.75rem;color:#64748b}
+.avisos-lista{min-height:350px}
+.avisos-items{display:grid;gap:0}
+.avisos-item{padding:1.15rem 0;border-bottom:1px solid #edf2f7}
+.avisos-item:first-child{padding-top:0}
+.avisos-item:last-child{border-bottom:0;padding-bottom:0}
+.avisos-item-cabecera{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.5rem}
+.avisos-item h3{font-size:.96rem;font-weight:700;color:#0f172a;margin:0}
+.avisos-item time{white-space:nowrap;color:#64748b;font-size:.73rem}
+.avisos-item>p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;color:#475569;font-size:.88rem}
+.avisos-vacio{text-align:center;padding:3.5rem 1rem;color:#64748b;font-size:.9rem}
+.avisos-vacio strong{display:block;color:#334155;margin-bottom:.45rem}
+@media(max-width:980px){.avisos-grid{grid-template-columns:1fr}.avisos-pagina{padding:1.4rem 1rem 3rem}}
+@media(max-width:520px){.avisos-encabezado{align-items:flex-start}.avisos-total{font-size:.7rem}.avisos-tarjeta{padding:1.2rem}.avisos-item-cabecera{display:grid;gap:.3rem}}

@@ -4,6 +4,7 @@ import ListaUsuarios from './components/ListaUsuarios'
 import Login from './components/Login'
 import MenuAdmin from './components/MenuAdmin'
 import PantallaActividades from './components/PantallaActividades'
+import PantallaAvisos from './components/PantallaAvisos'
 import { cerrarSesion, guardarSesion, leerSesion } from './services/authService'
 
 export default function App() {
@@ -78,6 +79,7 @@ export default function App() {
           </>
         )}
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
       </main>
     </div>
   )
