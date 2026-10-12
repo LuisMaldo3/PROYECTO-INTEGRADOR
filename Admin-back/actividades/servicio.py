@@ -60,12 +60,16 @@ def validar(datos):
         if not ubicacion:
             errores["ubicacionId"] = "Elige una ubicación válida."
 
+    maximo = datos.get("maximoParticipantes")
+    if isinstance(maximo, bool) or not isinstance(maximo, int) or maximo <= 0:
+        errores["maximoParticipantes"] = "El máximo de participantes debe ser un entero mayor que cero."
+
     horario, errores_horario = validar_horario(datos)
     errores.update(errores_horario)
 
     if errores:
         raise DatosInvalidos(errores)
-    return nombre, descripcion, categoria, ubicacion, horario
+    return nombre, descripcion, categoria, ubicacion, horario, maximo
 
 
 def _iso(fecha):
@@ -73,6 +77,14 @@ def _iso(fecha):
     if fecha.tzinfo is None:
         fecha = fecha.replace(tzinfo=timezone.utc)
     return fecha.isoformat()
+
+
+def calcular_cupos_disponibles(doc):
+    """Cupos restantes, nunca negativos; None para actividades antiguas sin límite."""
+    maximo = doc.get("maximoParticipantes")
+    if maximo is None:
+        return None
+    return max(0, maximo - doc.get("participantesInscritos", 0))
 
 
 def a_json(doc, nombres_categoria, nombres_ubicacion=None):
@@ -89,6 +101,9 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
         "fecha": doc.get("fecha"),  # las actividades viejas, creadas antes del horario, no la tienen
         "horaInicio": doc.get("horaInicio"),
         "horaFin": doc.get("horaFin"),
+        "maximoParticipantes": doc.get("maximoParticipantes"),
+        "participantesInscritos": doc.get("participantesInscritos", 0),
+        "cuposDisponibles": calcular_cupos_disponibles(doc),
         "creadaPor": doc.get("creadaPor"),
         "creadaEn": _iso(doc["creadaEn"]),
     }
@@ -96,12 +111,14 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
 
 def crear_actividad(datos, admin_id):
     """Valida y guarda una actividad nueva. Devuelve la actividad creada lista para JSON."""
-    nombre, descripcion, categoria, ubicacion, horario = validar(datos)
+    nombre, descripcion, categoria, ubicacion, horario, maximo = validar(datos)
     doc = {
         "nombre": nombre,
         "descripcion": descripcion,
         "categoriaId": categoria["_id"],
         "ubicacionId": ubicacion["_id"],
+        "maximoParticipantes": maximo,
+        "participantesInscritos": 0,
         **horario,
         "creadaPor": str(admin_id),
         "creadaEn": datetime.now(timezone.utc),
