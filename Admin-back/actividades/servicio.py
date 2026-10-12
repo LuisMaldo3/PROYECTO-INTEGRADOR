@@ -103,6 +103,7 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
     return {
         "id": str(doc["_id"]),
         "nombre": doc.get("nombre"),
+        "estado": doc.get("estado", "programada"),
         "descripcion": doc.get("descripcion"),
         "categoria": {"id": categoria_id, "nombre": nombres_categoria.get(categoria_id, "Sin categoría")},
         # Las actividades viejas, creadas antes de las ubicaciones, no la tienen: ubicacion = None.
@@ -125,6 +126,7 @@ def crear_actividad(datos, admin_id):
     nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
     doc = {
         "nombre": nombre,
+        "estado": "programada",
         "descripcion": descripcion,
         "categoriaId": categoria["_id"],
         "ubicacionId": ubicacion["_id"],
