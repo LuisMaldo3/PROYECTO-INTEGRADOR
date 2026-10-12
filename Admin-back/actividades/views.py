@@ -5,7 +5,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from usuarios.auth import exigir_admin
 
-from . import servicio, organizadores
+from . import servicio, organizadores, avisos as servicio_avisos
 
 
 @require_http_methods(["GET", "POST"])
@@ -76,3 +76,25 @@ def cancelar_actividad(request, actividad_id):
     except servicio.DatosInvalidos as error:
         return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=409)
     return JsonResponse(actividad)
+
+
+@require_http_methods(["GET", "POST"])
+@exigir_admin
+def avisos(request):
+    if request.method == "GET":
+        lista = servicio_avisos.listar_avisos()
+        return JsonResponse({"total": len(lista), "avisos": lista})
+    try:
+        cuerpo = json.loads(request.body or b"{}")
+    except ValueError:
+        return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "JSON no válido."}, status=400)
+    try:
+        titulo, mensaje = servicio_avisos.validar_aviso(cuerpo)
+    except servicio_avisos.AvisoInvalido as error:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=400)
+    from datetime import datetime, timezone
+    doc = {"titulo": titulo, "mensaje": mensaje, "autorId": request.admin_id,
+           "creadoEn": datetime.now(timezone.utc)}
+    resultado = servicio_avisos.mongo.avisos().insert_one(doc)
+    doc["_id"] = resultado.inserted_id
+    return JsonResponse(servicio_avisos.a_json(doc), status=201)
