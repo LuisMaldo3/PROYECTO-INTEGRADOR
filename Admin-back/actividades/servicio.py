@@ -191,9 +191,11 @@ def listar_ubicaciones():
 def cancelar_actividad(actividad_id):
     """Cancela sin borrar inscripciones; idempotente y con actualización atómica."""
     coleccion = mongo.actividades()
-    actual = coleccion.find_one({"_id": actividad_id})
+    from usuarios.vistas_util import buscar_por_id
+    actual = buscar_por_id(coleccion, actividad_id)
     if actual is None:
         raise LookupError("Actividad no encontrada.")
+    actividad_id = actual["_id"]
     if actual.get("estado", "programada") == "cancelada":
         raise DatosInvalidos({"estado": "La actividad ya está cancelada."})
     resultado = coleccion.update_one(
