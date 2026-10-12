@@ -22,24 +22,24 @@ import java.time.temporal.ChronoUnit;
 public class AuthService {
 
     private final VerificadorCredencial verificador;
+    private final ValidadorCorreoInstitucional validadorCorreo;
     private final UsuarioRepository repo;
     private final JwtEncoder encoder;
     private final PasswordEncoder passwordEncoder;
-    private final String dominio;
     private final long horas;
     private final String hashFalso; // para que el login con correo inexistente tarde lo mismo
 
     public AuthService(VerificadorCredencial verificador,
+                       ValidadorCorreoInstitucional validadorCorreo,
                        UsuarioRepository repo,
                        JwtEncoder encoder,
                        PasswordEncoder passwordEncoder,
-                       @Value("${vynk.auth.dominio}") String dominio,
                        @Value("${vynk.jwt.horas}") long horas) {
         this.verificador = verificador;
+        this.validadorCorreo = validadorCorreo;
         this.repo = repo;
         this.encoder = encoder;
         this.passwordEncoder = passwordEncoder;
-        this.dominio = dominio;
         this.horas = horas;
         this.hashFalso = passwordEncoder.encode("vynk-hash-falso");
     }
@@ -53,11 +53,8 @@ public class AuthService {
             throw new CredencialInvalidaException();
         }
 
-        String correo = credencial.getClaimAsString("email");
-        if (correo == null || !correo.toLowerCase().endsWith(dominio)) {
-            throw new DominioNoPermitidoException(); // regla de US-02
-        }
-        String correoFinal = correo.toLowerCase();
+        // US-02 (Mishel): leer correo del token y revisar dominio Tecsup
+        String correoFinal = exigirCorreoInstitucional(credencial.getClaimAsString("email"));
 
         Usuario usuario = repo.findByCorreo(correoFinal).orElseGet(() -> {
             Usuario nuevo = new Usuario();
@@ -74,7 +71,10 @@ public class AuthService {
      * entraron con Google y definieron una contraseña (ver definirPassword).
      */
     public LoginResponse loginConPassword(String correo, String password) {
-        Usuario usuario = repo.findByCorreo(correo.trim().toLowerCase()).orElse(null);
+        // US-02 (Mishel): leer correo del request y revisar dominio Tecsup
+        String correoFinal = exigirCorreoInstitucional(correo);
+
+        Usuario usuario = repo.findByCorreo(correoFinal).orElse(null);
         String hash = (usuario != null) ? usuario.getPasswordHash() : null;
 
         boolean coincide = passwordEncoder.matches(password, hash != null ? hash : hashFalso);
@@ -82,6 +82,15 @@ public class AuthService {
             throw new LoginIncorrectoException();
         }
         return emitir(usuario);
+    }
+
+    /** Lee el correo y deja pasar solo cuentas @tecsup.edu.pe. */
+    private String exigirCorreoInstitucional(String correoCrudo) {
+        String correo = validadorCorreo.leerCorreo(correoCrudo);
+        if (!validadorCorreo.esDeTecsup(correo)) {
+            throw new DominioNoPermitidoException(); // rechazo US-02 (Luis)
+        }
+        return correo;
     }
 
     /** Crea o cambia la contraseña del usuario autenticado (id = subject del JWT). */
