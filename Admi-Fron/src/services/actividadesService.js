@@ -14,6 +14,12 @@ export async function listarUbicaciones(token) {
   return listaDe(datos, 'ubicaciones')
 }
 
+/** GET /api/organizadores/ → usuarios activos con rol organizador */
+export async function listarOrganizadores(token) {
+  const datos = await pedir('/api/organizadores/', token)
+  return listaDe(datos, 'organizadores')
+}
+
 /** GET /api/actividades/ → [{ id, nombre, descripcion, categoria, ubicacion, fecha, horaInicio, horaFin, ... }] por fecha y hora; `ubicacion` es null en las actividades viejas */
 export async function listarActividades(token) {
   const datos = await pedir('/api/actividades/', token)
