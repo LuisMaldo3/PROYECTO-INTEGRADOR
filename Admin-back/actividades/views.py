@@ -5,7 +5,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from usuarios.auth import exigir_admin
 
-from . import servicio
+from . import servicio, organizadores
 
 
 @require_http_methods(["GET", "POST"])
@@ -39,3 +39,10 @@ def categorias(request):
 def ubicaciones(request):
     """Ubicaciones para el desplegable del formulario."""
     return JsonResponse({"ubicaciones": servicio.listar_ubicaciones()})
+
+
+@require_GET
+@exigir_admin
+def listar_organizadores(request):
+    """Organizadores activos para asignar al crear actividades."""
+    return JsonResponse({"organizadores": organizadores.listar_organizadores()})

@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 from . import mongo
 from .horario import validar_horario
+from usuarios import mongo as mongo_usuarios
+from usuarios.vistas_util import buscar_por_id
 
 # Mismos límites y mensajes que la web (Admi-Fron/src/services/validacionActividad.js).
 NOMBRE_MIN, NOMBRE_MAX = 3, 80
@@ -60,6 +62,13 @@ def validar(datos):
         if not ubicacion:
             errores["ubicacionId"] = "Elige una ubicación válida."
 
+    organizador_id = _texto(datos.get("organizadorId"))
+    organizador = buscar_por_id(mongo_usuarios.usuarios(), organizador_id) if organizador_id else None
+    if not organizador_id:
+        errores["organizadorId"] = "Elige un organizador responsable."
+    elif not organizador or organizador.get("rol", "usuario") != "organizador" or not organizador.get("activo", True):
+        errores["organizadorId"] = "Elige un organizador activo y válido."
+
     maximo = datos.get("maximoParticipantes")
     if isinstance(maximo, bool) or not isinstance(maximo, int) or maximo <= 0:
         errores["maximoParticipantes"] = "El máximo de participantes debe ser un entero mayor que cero."
@@ -69,7 +78,7 @@ def validar(datos):
 
     if errores:
         raise DatosInvalidos(errores)
-    return nombre, descripcion, categoria, ubicacion, horario, maximo
+    return nombre, descripcion, categoria, ubicacion, horario, maximo, organizador
 
 
 def _iso(fecha):
@@ -104,6 +113,8 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
         "maximoParticipantes": doc.get("maximoParticipantes"),
         "participantesInscritos": doc.get("participantesInscritos", 0),
         "cuposDisponibles": calcular_cupos_disponibles(doc),
+        "organizadorId": doc.get("organizadorId"),
+        "organizador": doc.get("organizador"),
         "creadaPor": doc.get("creadaPor"),
         "creadaEn": _iso(doc["creadaEn"]),
     }
@@ -111,7 +122,7 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
 
 def crear_actividad(datos, admin_id):
     """Valida y guarda una actividad nueva. Devuelve la actividad creada lista para JSON."""
-    nombre, descripcion, categoria, ubicacion, horario, maximo = validar(datos)
+    nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
     doc = {
         "nombre": nombre,
         "descripcion": descripcion,
@@ -119,6 +130,8 @@ def crear_actividad(datos, admin_id):
         "ubicacionId": ubicacion["_id"],
         "maximoParticipantes": maximo,
         "participantesInscritos": 0,
+        "organizadorId": str(organizador["_id"]),
+        "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")},
         **horario,
         "creadaPor": str(admin_id),
         "creadaEn": datetime.now(timezone.utc),
