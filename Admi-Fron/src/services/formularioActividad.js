@@ -27,6 +27,8 @@ export function reducir(estado, accion) {
       return { ...estado, tocados: todosTocados() }
     case 'servidor':
       return { ...estado, servidor: accion.errores ?? {}, tocados: todosTocados() }
+    case 'cargar':
+      return { valores: { ...ESTADO_INICIAL.valores, ...accion.valores }, tocados: {}, servidor: {} }
     case 'reiniciar':
       return ESTADO_INICIAL
     default:

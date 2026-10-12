@@ -7,8 +7,8 @@ import { LIMITES } from '../services/validacionActividad'
  * valores / errores · cambiar(campo, valor) · tocar(campo) (al salir del campo)
  * revisar() marca todo como tocado y dice si se puede enviar · errorDelServidor({campo: mensaje}) · reiniciar()
  */
-export function useFormularioActividad() {
-  const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL)
+export function useFormularioActividad(valoresIniciales = null) {
+  const [estado, despachar] = useReducer(reducir, valoresIniciales ? reducir(ESTADO_INICIAL, { tipo: 'cargar', valores: valoresIniciales }) : ESTADO_INICIAL)
 
   const cambiar = useCallback((campo, valor) => despachar({ tipo: 'cambiar', campo, valor }), [])
   const tocar = useCallback((campo) => despachar({ tipo: 'tocar', campo }), [])
