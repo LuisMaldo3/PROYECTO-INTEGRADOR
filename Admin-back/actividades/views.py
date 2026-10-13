@@ -98,3 +98,10 @@ def avisos(request):
     resultado = servicio_avisos.mongo.avisos().insert_one(doc)
     doc["_id"] = resultado.inserted_id
     return JsonResponse(servicio_avisos.a_json(doc), status=201)
+
+
+@require_GET
+def catalogo_estudiantes(request):
+    """Consulta de solo lectura: solo actividades disponibles, sin credenciales de administrador."""
+    lista = [a for a in servicio.listar_actividades() if a.get("estado") == "programada"]
+    return JsonResponse({"total": len(lista), "actividades": lista})
