@@ -9,4 +9,4 @@ async function leer(url, token, signal) {
 }
 export const obtenerCruces = (token, signal) => leer('/api/agenda/cruces', token, signal)
 export const explicarCruce = (token, id, signal) => leer(`/api/agenda/cruces/${encodeURIComponent(id)}/explicacion`, token, signal)
-export const actividadesEnCruce = (cruces) => new Set(cruces.flatMap(c => [c.actividadAId, c.actividadBId]).filter(Boolean))
+export { actividadesEnCruce } from './cruces.js'

@@ -92,3 +92,15 @@ test('BLOQUEO: si el rol cambia, la misma dirección pasa de permitida a bloquea
   assert.equal(resolverRuta('#/mis-actividades', 'organizador', CON_ORGANIZADOR).estado, 'permitida')
   assert.equal(resolverRuta('#/mis-actividades', 'usuario', CON_ORGANIZADOR).estado, 'bloqueada')
 })
+
+test('INTERESES: es una pantalla permitida, pero no tiene botón en el menú', () => {
+  assert.equal(resolverRuta('#/intereses', 'usuario').estado, 'permitida')
+  assert.equal(rutas('usuario').includes('intereses'), false)
+  assert.deepEqual(rutas('usuario'), TODAS) // el menú sigue con las mismas cinco
+})
+
+test('INTERESES: mientras se está en ella, el menú marca Perfil', () => {
+  const r = resolverRuta('#/intereses', 'usuario')
+  assert.equal(r.pantalla.menuActivo, 'perfil')
+  assert.equal(r.pantalla.titulo, 'Mis intereses')
+})

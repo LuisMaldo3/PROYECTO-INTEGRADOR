@@ -1,0 +1,73 @@
+/* ================= Mis intereses ================= */
+.intereses { display: grid; gap: 20px; }
+.intereses__guia { margin: 0; color: var(--texto-suave); font-size: .95rem; }
+
+.intereses__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+.interes {
+  position: relative; display: flex; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 14px 44px 14px 14px;
+  border: 1.5px solid var(--borde); border-radius: 10px; background: #fff; color: var(--texto); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.interes:hover:not(:disabled) { border-color: var(--azul); }
+.interes:focus-visible { outline: 2px solid var(--celeste); outline-offset: 2px; }
+.interes:disabled { cursor: wait; opacity: .7; }
+.interes__icono { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 10px; background: #eef3fa; color: var(--azul); }
+.interes__texto { display: grid; gap: 2px; min-width: 0; }
+.interes__texto strong { font-size: .95rem; font-weight: 700; }
+.interes__texto small { font-size: .8rem; line-height: 1.4; color: var(--texto-suave); }
+.interes__marca {
+  position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 22px; height: 22px;
+  border: 1.5px solid var(--borde); border-radius: 50%; color: #fff;
+}
+.interes--marcado { border-color: var(--azul); background: #f0f6ff; }
+.interes--marcado .interes__icono { background: var(--azul); color: #fff; }
+.interes--marcado .interes__marca { border-color: var(--azul); background: var(--azul); }
+.interes--esqueleto { min-height: 84px; border-color: #edf1f7; background: #f3f6fb; cursor: default; animation: interes-pulso 1.4s ease-in-out infinite; }
+@keyframes interes-pulso { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* Barra con el contador y los botones: se queda abajo mientras se desplaza la lista */
+.intereses__barra {
+  position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px;
+  padding: 14px 16px; border: 1px solid var(--borde); border-radius: 10px; background: #fff; box-shadow: 0 -6px 18px rgba(7, 26, 62, .08);
+}
+.intereses__estado { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; font-size: .92rem; }
+.intereses__aviso { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; }
+.intereses__aviso--ok { color: #14673b; }
+.intereses__aviso--error { color: #a12525; }
+.intereses__acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Botones de las pantallas con datos */
+.boton-primario, .boton-secundario {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 8px;
+  font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.boton-primario { border: 1px solid var(--azul); background: var(--azul); color: #fff; }
+.boton-primario:hover:not(:disabled) { background: var(--azul-oscuro); border-color: var(--azul-oscuro); }
+.boton-secundario { border: 1px solid var(--borde); background: #fff; color: var(--texto); }
+.boton-secundario:hover:not(:disabled) { background: #f3f6fb; }
+.boton-primario:disabled, .boton-secundario:disabled { opacity: .5; cursor: not-allowed; }
+.boton-primario:focus-visible, .boton-secundario:focus-visible { outline: 2px solid var(--celeste); outline-offset: 2px; }
+
+/* Estado de pantalla (error / vacío) */
+.estado-pantalla { display: grid; justify-items: center; gap: 8px; max-width: 460px; margin: 40px auto; padding: 0 16px; text-align: center; }
+.estado-pantalla h3 { margin: 6px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--marino); }
+.estado-pantalla p { margin: 0; color: var(--texto-suave); font-size: .92rem; }
+.estado-pantalla .boton-secundario { margin-top: 10px; }
+.estado-pantalla__icono { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #eaf3ff; color: var(--azul); }
+.estado-pantalla--error .estado-pantalla__icono { background: #fdecec; color: #a12525; }
+
+@media (max-width: 760px) {
+  .intereses__barra { bottom: 68px; } /* sobre la barra de menú fija de abajo */
+  .intereses__acciones { width: 100%; }
+  .intereses__acciones > * { flex: 1; }
+}
+
+/* Perfil · resumen de intereses */
+.perfil-seccion--ancha { grid-column: 1 / -1; }
+.resumen-intereses { display: grid; justify-items: start; gap: 14px; padding: 16px; border: 1px solid var(--borde); border-radius: 6px; }
+.resumen-intereses__texto { margin: 0; color: var(--texto-suave); font-size: .92rem; }
+.resumen-intereses__lista { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chip-interes { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #eaf3ff; color: #0a4aa8; font-size: .82rem; font-weight: 700; }
+.enlace-boton { padding: 0; border: 0; background: none; color: var(--azul); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+a.boton-secundario { text-decoration: none; }

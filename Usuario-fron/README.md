@@ -90,3 +90,26 @@ El botón «Cerrar sesión» está en **Perfil**. Al pulsarlo, en este orden:
 | Mensaje "No se pudo verificar tu cuenta" (401) | El Client ID del front y el del back (`OAUTH_CLIENT_ID`) no coinciden. |
 | Mensaje "No pudimos conectar con el servidor" | Backend apagado, o `VITE_API_URL` apunta a otro puerto. |
 | Error de CORS en la consola | El front no corre en `http://localhost:5173` (ver `CORS_ORIGINS` en el backend). |
+
+## Mis intereses (web)
+
+El estudiante elige los temas que le gustan para recibir recomendaciones. Backend: `GET /api/intereses`, `GET /api/intereses/mios` y `PUT /api/intereses/mios` (ver el README de Usuario-back).
+
+| Qué | Archivo |
+|---|---|
+| Selección (marcar, descartar, guardar, mínimo uno) | `src/services/intereses.js` (lógica pura) y `src/hooks/useIntereses.js` |
+| Llamadas al backend | `src/services/interesesService.js` |
+| Pantalla `#/intereses` | `src/components/Intereses.jsx`, `Intereses.css` |
+| Resumen y acceso desde Perfil | `src/components/ResumenIntereses.jsx` |
+
+- La pantalla se abre desde **Perfil** («Elegir intereses» / «Editar intereses»). No tiene botón en el menú; mientras se está en ella se marca «Perfil».
+- Se puede guardar solo si hay al menos un interés y algo cambió. Con tres o más las recomendaciones salen mejor (es una sugerencia, no una exigencia).
+- Cada interés tiene su ícono SVG según su id (`iconoDeInteres`); uno nuevo que agregue el backend sale con una estrella.
+
+## Catálogo y agenda
+
+Las dos pantallas siguen el mismo estilo que el resto de la web (colores de la marca, íconos SVG, tarjetas planas, sin emojis).
+
+- **Catálogo:** las actividades agrupadas por día. Cada tarjeta muestra su categoría (azul para las culturales y verde azulado para los concursos, como en el cartel del T&C Week), los cupos (con color si quedan pocos o ninguno), la hora y quién organiza.
+- **Agenda:** las actividades inscritas por día, con el filtro Todas / Próximas. Las actividades que se cruzan quedan marcadas en ámbar y el aviso de cruces explica cada uno (con IA o automáticamente).
+- La lógica de presentación (días, horas, cupos, categorías) está en `src/services/presentacion.js` con sus pruebas. La detección de cruces, en `src/services/cruces.js`.

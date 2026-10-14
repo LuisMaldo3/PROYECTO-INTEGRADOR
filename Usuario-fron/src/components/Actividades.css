@@ -1,0 +1,21 @@
+/* ================= Estilos compartidos por Catálogo y Agenda ================= */
+.lista-barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.lista-barra p { margin: 0; font-size: .95rem; font-weight: 600; color: var(--texto-suave); }
+
+/* Encabezado de cada día */
+.dia { margin-bottom: 28px; }
+.dia__cabecera { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--borde); }
+.dia__cabecera h2 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--marino); }
+.dia__cabecera span { font-size: .8rem; color: var(--texto-suave); }
+
+/* Categoría (colores del cartel del T&C Week) */
+.categoria { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.categoria--cultural { background: #e4efff; color: #0a4aa8; }
+.categoria--concurso { background: #d9f5ee; color: #0b6354; }
+.categoria--otra { background: #eef2f7; color: #33415c; }
+
+.cupos { font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.cupos--ok { color: #14673b; }
+.cupos--poco { color: #9a5b00; }
+.cupos--agotado { color: #a12525; }
+.cupos--neutro { color: var(--texto-suave); font-weight: 600; }

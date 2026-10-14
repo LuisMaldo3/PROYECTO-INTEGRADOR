@@ -3,6 +3,7 @@ import { Agenda } from './components/Agenda'
 import { Asistente } from './components/Asistente'
 import { Catalogo } from './components/Catalogo'
 import { Inicio } from './components/Inicio'
+import { Intereses } from './components/Intereses'
 import { Login } from './components/Login'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
 import { PantallaVacia } from './components/PantallaVacia'
@@ -76,6 +77,8 @@ function App() {
   let contenido
   if (estado !== 'permitida') {
     contenido = <PantallaBloqueada estado={estado} pantalla={pantalla} rol={rol} />
+  } else if (ruta === 'intereses') {
+    contenido = <Intereses token={sesion.token} onSesionExpirada={salir} />
   } else if (ruta === 'perfil') {
     contenido = <Perfil usuario={sesion.usuario} rol={rol} token={sesion.token} onSalir={salir} />
   } else {
@@ -88,7 +91,7 @@ function App() {
   return (
     <Shell
       rol={rol}
-      rutaActual={ruta}
+      rutaActual={pantalla?.menuActivo ?? ruta}
       titulo={permitida ? pantalla.titulo : undefined}
       descripcion={permitida ? pantalla.descripcion : undefined}
     >

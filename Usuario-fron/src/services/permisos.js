@@ -36,6 +36,8 @@ export const PANTALLAS = [
   { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
   { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
   { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
+  // Se abre desde Perfil: no tiene botón propio en el menú y, mientras se está en ella, se marca «Perfil».
+  { ruta: 'intereses', titulo: 'Mis intereses', descripcion: 'Elige los temas que te gustan y te recomendaremos actividades.', tituloMenu: 'Intereses', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'perfil' },
 ]
 
 /** Devuelve un rol válido: lo que no se reconoce (o falta) cuenta como "usuario" (el de menos permisos). */
@@ -60,7 +62,7 @@ export function puedeVer(rol, ruta, lista = PANTALLAS) {
 
 /** Pantallas que le tocan a ese rol: las del menú. */
 export function pantallasDelMenu(rol, lista = PANTALLAS) {
-  return lista.filter((p) => puedeVer(rol, p.ruta, lista))
+  return lista.filter((p) => p.enMenu !== false && puedeVer(rol, p.ruta, lista))
 }
 
 /** "#/agenda" -> "agenda". Sin nada (o "#/") es "inicio". */

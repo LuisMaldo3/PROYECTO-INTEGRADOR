@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { definirPassword } from '../services/authService'
+import './Intereses.css'
+import { ResumenIntereses } from './ResumenIntereses'
 import { RolBadge } from './RolBadge'
 
 /** Perfil: datos de la persona, contraseña opcional y cierre de sesión. */
@@ -71,6 +73,11 @@ export function Perfil({ usuario, rol, token, onSalir }) {
             {guardando ? 'Guardando…' : 'Guardar contraseña'}
           </button>
         </form>
+      </section>
+
+      <section className="perfil-seccion perfil-seccion--ancha">
+        <h2>Mis intereses</h2>
+        <ResumenIntereses token={token} />
       </section>
 
       <div className="perfil-salida">
