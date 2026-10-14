@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.tecsup.vynk.service.CredencialInvalidaException;
 import pe.tecsup.vynk.service.DominioNoPermitidoException;
 import pe.tecsup.vynk.service.LoginIncorrectoException;
+import pe.tecsup.vynk.service.SeleccionInvalidaException;
 
 import java.util.Map;
 
@@ -34,6 +35,14 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(401).body(Map.of(
                 "codigo", "LOGIN_INCORRECTO",
                 "mensaje", "Correo o contraseña incorrectos. Si nunca creaste una contraseña, entra con Google."));
+    }
+
+    /** La lista de intereses no se puede guardar (vacía, repetida o con uno que no existe). */
+    @ExceptionHandler(SeleccionInvalidaException.class)
+    public ResponseEntity<Map<String, String>> seleccionInvalida(SeleccionInvalidaException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "codigo", "SELECCION_INVALIDA",
+                "mensaje", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

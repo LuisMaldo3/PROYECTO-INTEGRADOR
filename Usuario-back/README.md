@@ -187,6 +187,22 @@ Invoke-RestMethod -Method Post -Uri http://localhost:8081/auth/logout -Headers $
 Invoke-RestMethod -Uri http://localhost:8081/auth/me -Headers $h                        # ahora da 401
 ```
 
+## 8.3 Intereses del estudiante
+
+Cada estudiante elige los temas que le interesan para recibir recomendaciones. Todos los endpoints exigen `Authorization: Bearer <token>`.
+
+| Método | Ruta | Para qué |
+|---|---|---|
+| GET | `/api/intereses` | los intereses disponibles: `{ total, intereses: [{ id, nombre, descripcion }] }` |
+| GET | `/api/intereses/mios` | lo que eligió la persona: `{ intereses: ["teatro", …], actualizadoEn }` (`[]` y `null` si todavía no eligió) |
+| PUT | `/api/intereses/mios` | guarda lo que eligió (reemplaza lo anterior). Cuerpo: `{ "intereses": ["teatro", "musica"] }` |
+
+El `PUT` responde `200` con lo guardado o `400 SELECCION_INVALIDA` con un mensaje: la lista falta, queda vacía («Elige al menos un interés.») o trae un interés que no existe. Se quitan los repetidos y las mayúsculas.
+
+- **Colecciones de MongoDB:** `intereses` (los disponibles) e `intereses_usuario` (un documento por persona, con su id de usuario).
+- Al arrancar, el backend crea los 11 intereses que faltan (salen de las actividades del programa del T&C Week: teatro, música, danza, libros, tecnología, inteligencia artificial, emprendimiento, videojuegos, deportes, gastronomía y concursos). Es seguro repetirlo: nunca pisa los que ya existen. Están en `InteresesIniciales.java`.
+- Los ids son texto fijo y legible (`tecnologia`): la web y la app los usan para elegir el ícono de cada interés.
+
 ## 9. Archivos que no deben subirse a Git
 
 No subir:
