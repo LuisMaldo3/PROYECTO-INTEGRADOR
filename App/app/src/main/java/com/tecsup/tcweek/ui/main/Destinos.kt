@@ -27,6 +27,9 @@ fun etiquetaRol(rol: String?): String = when (normalizarRol(rol)) {
     else -> "Usuario"
 }
 
+/** Pantalla que se abre desde Perfil: no tiene botón propio en el menú inferior (mientras se está en ella se marca «Perfil»). */
+const val RUTA_INTERESES = "intereses"
+
 /** Botones del menú inferior, en el orden en que se muestran. */
 enum class Destino(val ruta: String, val titulo: String) {
     INICIO("inicio", "Inicio"),

@@ -1,30 +1,55 @@
 package com.tecsup.tcweek.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import com.tecsup.tcweek.data.AgendaApi
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadAgenda
+import com.tecsup.tcweek.data.AgendaApi
 import com.tecsup.tcweek.data.SesionGuardada
+import kotlinx.coroutines.CancellationException
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private val Navy = Color(0xFF142C5B)
-private val Blue = Color(0xFF1464D8)
-
+/** Agenda: las actividades en las que está inscrita la persona, agrupadas por día. */
 @Composable
 fun AgendaScreen() {
     val context = LocalContext.current
@@ -33,60 +58,115 @@ fun AgendaScreen() {
     var error by remember { mutableStateOf<String?>(null) }
     var reload by remember { mutableIntStateOf(0) }
     var upcoming by remember { mutableStateOf(false) }
+
     LaunchedEffect(reload) {
-        loading = true; error = null
+        loading = true
+        error = null
         try {
             val token = SesionGuardada(context).leer()?.llave ?: throw IllegalStateException("Inicia sesión para consultar tu agenda.")
             items = AgendaApi.cargar(token)
-        } catch (e: Exception) { error = e.message ?: "No se pudo cargar la agenda." }
-        finally { loading = false }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            error = e.message ?: "No se pudo cargar la agenda."
+        } finally {
+            loading = false
+        }
     }
-    val filtered = if (upcoming) items.filter { it.fecha >= LocalDate.now().toString() } else items
-    LazyColumn(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F8FD)), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item {
-            Column(modifier = Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Navy, Blue)), RoundedCornerShape(24.dp)).padding(24.dp)) {
-                Text("TU ESPACIO · VYNK", color = Color(0xFFB9D9FF), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(12.dp))
-                Text("Mi agenda.", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                Text("Organiza tu semana y disfruta cada actividad.", color = Color(0xFFE0ECFF), fontSize = 13.sp)
-                Spacer(Modifier.height(18.dp))
-                Text("${items.size} actividades inscritas", color = Color.White, fontWeight = FontWeight.SemiBold)
+
+    val hoy = LocalDate.now().toString()
+    val visibles = items.filter { fechaValida(it.fecha) != null && (!upcoming || it.fecha >= hoy) }
+    val grupos = agruparPorDia(visibles, { it.fecha }, { it.inicio })
+
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F7FA))) {
+        Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)) {
+            Text("Mi agenda", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+            Text(
+                if (loading) "Cargando tu agenda…" else cantidad(items.size, "actividad inscrita", "actividades inscritas"),
+                style = MaterialTheme.typography.bodySmall,
+                color = ColorGris
+            )
+            Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = !upcoming, onClick = { upcoming = false }, label = { Text("Todas") })
+                FilterChip(selected = upcoming, onClick = { upcoming = true }, label = { Text("Próximas") })
             }
         }
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("Mis actividades", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Navy, modifier = Modifier.weight(1f))
-                FilterChip(selected = upcoming, onClick = { upcoming = !upcoming }, label = { Text(if (upcoming) "Próximas" else "Todas") })
+
+        when {
+            loading -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = ColorAzul)
             }
-        }
-        if (loading) item { Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
-        else if (error != null) item { Column { Text(error.orEmpty(), color = Color(0xFFBD3344)); TextButton(onClick = { reload++ }) { Text("Reintentar") } } }
-        else if (filtered.isEmpty()) item { Text("Todavía no tienes actividades para mostrar. Inscríbete y aparecerán aquí.", color = Color.Gray) }
-        else {
-            filtered.groupBy { it.fecha }.forEach { (date, dayItems) ->
-                item(key = "day-$date") {
-                    val label = runCatching { LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "PE"))) }.getOrDefault(date)
-                    Text(label.replaceFirstChar { it.uppercase() }, fontSize = 15.sp, color = Blue, fontWeight = FontWeight.Bold)
+
+            error != null -> EstadoVacio(
+                icono = Icons.Filled.ErrorOutline,
+                titulo = "No pudimos cargar tu agenda",
+                texto = error.orEmpty(),
+                esError = true
+            ) {
+                OutlinedButton(onClick = { reload++ }) { Text("Reintentar") }
+            }
+
+            visibles.isEmpty() -> EstadoVacio(
+                icono = Icons.Filled.Event,
+                titulo = "Tu agenda está lista para empezar",
+                texto = if (upcoming) "No tienes actividades próximas." else "Cuando te inscribas en una actividad, aparecerá aquí."
+            )
+
+            else -> LazyColumn(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                grupos.forEach { grupo ->
+                    item(key = "dia-${grupo.fecha}") {
+                        EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
+                    }
+                    items(grupo.items, key = { it.id.ifBlank { it.nombre + it.fecha + it.inicio } }) { actividad -> TarjetaAgenda(actividad) }
                 }
-                items(dayItems, key = { it.id.ifBlank { it.nombre + it.fecha } }) { activity -> AgendaCard(activity) }
             }
         }
     }
 }
 
 @Composable
-private fun AgendaCard(a: ActividadAgenda) {
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(18.dp), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(a.categoria.uppercase(), fontSize = 11.sp, color = Blue, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Surface(color = if (a.estado == "cancelada") Color(0xFFFFECEF) else Color(0xFFE6F8EE), shape = RoundedCornerShape(50)) {
-                    Text(if (a.estado == "cancelada") "Cancelada" else "Inscrito", modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp), fontSize = 11.sp, color = if (a.estado == "cancelada") Color(0xFFB63449) else Color(0xFF15875E))
-                }
+private fun TarjetaAgenda(a: ActividadAgenda) {
+    val cancelada = a.estado == "cancelada"
+    val categoria = estiloCategoria(nombre = a.categoria)
+    val ubicacion = a.ubicacion.takeIf { it.isNotBlank() && it != "null" && it != "Por confirmar" } ?: "Ubicación por confirmar"
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, ColorBorde),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.fillMaxWidth().alpha(if (cancelada) 0.65f else 1f)
+    ) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(modifier = Modifier.width(64.dp)) {
+                Text(a.inicio.ifBlank { "--:--" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+                if (a.fin.isNotBlank()) Text("hasta ${a.fin}", style = MaterialTheme.typography.labelSmall, color = ColorGris)
             }
-            Text(a.nombre, color = Navy, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text("◷  ${a.inicio.ifBlank { "Por confirmar" }}${if (a.fin.isNotBlank()) " – ${a.fin}" else ""}", color = Color(0xFF526785), fontSize = 13.sp)
-            Text("⌖  ${a.ubicacion}", color = Color(0xFF526785), fontSize = 13.sp)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    EtiquetaCategoria(categoria)
+                    Surface(color = if (cancelada) Color(0xFFEEF2F7) else Color(0xFFE2F6EA), shape = RoundedCornerShape(50)) {
+                        Text(
+                            if (cancelada) "Cancelada" else "Inscrito",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (cancelada) Color(0xFF5A6A82) else Color(0xFF14673B)
+                        )
+                    }
+                }
+                Text(
+                    a.nombre,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = ColorMarino,
+                    textDecoration = if (cancelada) TextDecoration.LineThrough else TextDecoration.None
+                )
+                DatoConIcono(Icons.Filled.Place, ubicacion)
+            }
         }
     }
 }

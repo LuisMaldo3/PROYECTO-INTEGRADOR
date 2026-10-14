@@ -81,7 +81,15 @@ fun MainScreen(onLogout: () -> Unit) {
             composable(Destino.AGENDA.ruta) { AgendaScreen() }
             composable(Destino.ASISTENTE.ruta) { AsistenteScreen() }
             composable(Destino.PERFIL.ruta) {
-                PerfilScreen(user = user, rol = rol, onLogout = onLogout)
+                PerfilScreen(
+                    user = user,
+                    rol = rol,
+                    onLogout = onLogout,
+                    onIntereses = { navMenu.navigate(RUTA_INTERESES) { launchSingleTop = true } }
+                )
+            }
+            composable(RUTA_INTERESES) {
+                InteresesScreen(onVolver = { navMenu.popBackStack() }, onSesionExpirada = onLogout)
             }
         }
     }
@@ -96,7 +104,7 @@ private fun BarraInferior(
     NavigationBar(containerColor = Color.White) {
         destinos.forEach { destino ->
             NavigationBarItem(
-                selected = rutaActual == destino.ruta,
+                selected = rutaActual == destino.ruta || (destino == Destino.PERFIL && rutaActual == RUTA_INTERESES),
                 onClick = { onIr(destino) },
                 icon = { Icon(imageVector = destino.icono(), contentDescription = null) },
                 label = { Text(destino.titulo) },

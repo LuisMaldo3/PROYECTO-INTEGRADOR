@@ -15,7 +15,8 @@ data class ActividadCatalogo(
     val horaFin: String,
     val cupos: Int?,
     val maximo: Int?,
-    val organizador: String
+    val organizador: String,
+    val categoriaId: String = ""
 )
 
 object CatalogoApi {
@@ -44,7 +45,8 @@ object CatalogoApi {
                     horaFin = a.optString("horaFin"),
                     cupos = if (a.isNull("cuposDisponibles")) null else a.optInt("cuposDisponibles"),
                     maximo = if (a.isNull("maximoParticipantes")) null else a.optInt("maximoParticipantes"),
-                    organizador = a.optString("organizador")
+                    organizador = a.optString("organizador"),
+                    categoriaId = a.optString("categoriaId").takeUnless { it == "null" }.orEmpty()
                 )
             }
         } finally {

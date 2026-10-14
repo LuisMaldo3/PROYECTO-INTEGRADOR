@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +38,7 @@ private val GrisTexto = Color(0xFF6B7A99)
 
 /** Perfil: datos de la persona y, abajo, la opción «Cerrar sesión». */
 @Composable
-fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit) {
+fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit, onIntereses: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var closing by remember { mutableStateOf(false) }
@@ -49,7 +51,8 @@ fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit) {
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -67,6 +70,8 @@ fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit) {
                     FilaDato("Rol", etiquetaRol(rol))
                 }
             }
+
+            ResumenIntereses(onElegir = onIntereses)
         }
 
         OutlinedButton(

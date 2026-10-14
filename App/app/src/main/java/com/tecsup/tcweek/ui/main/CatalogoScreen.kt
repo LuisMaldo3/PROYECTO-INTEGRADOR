@@ -1,24 +1,56 @@
 package com.tecsup.tcweek.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
-import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CancellationException
 
-private val Azul = Color(0xFF0B63FF)
-private val AzulOscuro = Color(0xFF0A2049)
-
+/** Catálogo: las actividades publicadas, agrupadas por día. */
 @Composable
 fun CatalogoScreen() {
     val context = LocalContext.current
@@ -32,37 +64,68 @@ fun CatalogoScreen() {
     LaunchedEffect(token, recarga) {
         cargando = true
         error = null
-        try { actividades = CatalogoApi.cargar(token) }
-        catch (e: Exception) { error = e.message ?: "No se pudo cargar el catálogo." }
-        finally { cargando = false }
+        try {
+            actividades = CatalogoApi.cargar(token)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            error = e.message ?: "No se pudo cargar el catálogo."
+        } finally {
+            cargando = false
+        }
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF5F7FC))) {
-        Column(Modifier.fillMaxWidth().background(AzulOscuro).padding(20.dp)) {
-            Text("VYNK", color = Color(0xFF8CB6FF), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(8.dp))
-            Text("Catálogo de actividades", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Actividades publicadas para T&C Week", color = Color(0xFFD5E2FA), style = MaterialTheme.typography.bodyMedium)
+    val grupos = remember(actividades) { agruparPorDia(actividades, { it.fecha }, { it.horaInicio }) }
+
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F7FA))) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Catálogo de actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+                Text(
+                    if (cargando) "Cargando actividades…" else cantidad(actividades.size, "actividad disponible", "actividades disponibles"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ColorGris
+                )
+            }
+            TextButton(onClick = { recarga++ }, enabled = !cargando) {
+                Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text("  Actualizar")
+            }
         }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(if (cargando) "Cargando actividades" else "${actividades.size} actividades disponibles", color = AzulOscuro, style = MaterialTheme.typography.titleSmall)
-            TextButton(onClick = { recarga++ }, enabled = !cargando) { Text("Actualizar", color = Azul) }
-        }
+
         when {
-            cargando -> Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(color = Azul) }
-            error != null -> Column(Modifier.padding(20.dp)) {
-                Text("No se pudo consultar el catálogo", fontWeight = FontWeight.Bold, color = AzulOscuro)
-                Spacer(Modifier.height(6.dp))
-                Text(error.orEmpty(), color = Color(0xFF596579))
-                TextButton(onClick = { recarga++ }) { Text("Reintentar") }
+            cargando -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = ColorAzul)
             }
-            actividades.isEmpty() -> Column(Modifier.padding(24.dp)) {
-                Text("Todavía no hay actividades publicadas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AzulOscuro)
-                Spacer(Modifier.height(8.dp))
-                Text("Cuando el administrador publique actividades, aparecerán aquí automáticamente.", color = Color(0xFF596579))
+
+            error != null -> EstadoVacio(
+                icono = Icons.Filled.ErrorOutline,
+                titulo = "No pudimos cargar el catálogo",
+                texto = error.orEmpty(),
+                esError = true
+            ) {
+                OutlinedButton(onClick = { recarga++ }) { Text("Reintentar") }
             }
-            else -> LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(actividades, key = { it.id }) { actividad -> TarjetaActividad(actividad) }
+
+            actividades.isEmpty() -> EstadoVacio(
+                icono = Icons.Filled.Event,
+                titulo = "Pronto habrá actividades para ti",
+                texto = "Cuando el administrador publique actividades, aparecerán aquí automáticamente."
+            )
+
+            else -> LazyColumn(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                grupos.forEach { grupo ->
+                    item(key = "dia-${grupo.fecha}") {
+                        EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
+                    }
+                    items(grupo.items, key = { it.id }) { actividad -> TarjetaActividad(actividad) }
+                }
             }
         }
     }
@@ -70,15 +133,36 @@ fun CatalogoScreen() {
 
 @Composable
 private fun TarjetaActividad(a: ActividadCatalogo) {
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(18.dp), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(a.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AzulOscuro)
-            if (a.descripcion.isNotBlank() && a.descripcion != "null") Text(a.descripcion, color = Color(0xFF56647A), style = MaterialTheme.typography.bodyMedium)
-            HorizontalDivider(color = Color(0xFFE8ECF4))
-            Text("Fecha: ${a.fecha.ifBlank { "Por confirmar" }}", color = AzulOscuro)
-            Text("Horario: ${a.horaInicio.ifBlank { "--:--" }} – ${a.horaFin.ifBlank { "--:--" }}", color = AzulOscuro)
-            if (a.cupos != null) Text(if (a.cupos > 0) "${a.cupos} cupos disponibles" else "Sin cupos disponibles", color = if (a.cupos > 0) Color(0xFF137B58) else Color(0xFFB45309), fontWeight = FontWeight.SemiBold)
-            if (a.organizador.isNotBlank() && a.organizador != "null") Text("Organiza: ${a.organizador}", color = Color(0xFF68768B), style = MaterialTheme.typography.bodySmall)
+    val categoria = estiloCategoria(id = a.categoriaId)
+    val cupos = estadoCupos(a.cupos)
+    val descripcion = a.descripcion.takeIf { it.isNotBlank() && it != "null" }
+    val organizador = a.organizador.takeIf { it.isNotBlank() && it != "null" }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, ColorBorde),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                EtiquetaCategoria(categoria)
+                Spacer(Modifier.weight(1f))
+                Text(cupos.texto, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = cupos.tono.color())
+            }
+            Text(a.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+            Text(
+                text = descripcion ?: "Sin descripción por ahora.",
+                style = MaterialTheme.typography.bodyMedium,
+                fontStyle = if (descripcion == null) FontStyle.Italic else FontStyle.Normal,
+                color = ColorGris,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            HorizontalDivider(color = Color(0xFFEDF1F7))
+            DatoConIcono(Icons.Filled.Schedule, rangoHoras(a.horaInicio, a.horaFin))
+            if (organizador != null) DatoConIcono(Icons.Filled.Group, organizador)
         }
     }
 }

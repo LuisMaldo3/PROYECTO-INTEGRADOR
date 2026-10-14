@@ -51,3 +51,24 @@ La sesión **no se incluye en los respaldos** de Android (`res/xml/backup_rules.
 
 Por ahora la app no avisa al servidor al cerrar sesión; solo la web lo hace.
 
+## Mis intereses (app)
+
+El estudiante elige los temas que le gustan para recibir recomendaciones. Usa los servicios `GET /api/intereses`, `GET /api/intereses/mios` y `PUT /api/intereses/mios` de Usuario-back.
+
+| Qué | Archivo |
+|---|---|
+| Conexión con los servicios | `data/InteresesApi.kt` |
+| Selección (marcar, descartar, guardar, mínimo uno) | `ui/main/Intereses.kt` (lógica pura, con `InteresesTest.kt`) |
+| Pantalla | `ui/main/InteresesScreen.kt` |
+| Resumen y acceso desde Perfil | `ui/main/ResumenIntereses.kt` |
+
+- Se abre desde **Perfil** («Elegir intereses» / «Editar intereses»). No tiene botón en el menú inferior; mientras se está en ella se marca «Perfil».
+- Se puede guardar solo si hay al menos un interés y algo cambió. Si la sesión expiró, vuelve al inicio de sesión.
+
+## Catálogo y agenda
+
+Las dos pantallas usan el mismo estilo que Perfil y el resto de la app: tarjetas planas con borde, íconos del sistema y la paleta de la marca, agrupadas por día.
+
+- **Catálogo:** categoría con color (azul para lo cultural y verde azulado para los concursos, como en el cartel del T&C Week), cupos con color si quedan pocos o ninguno, hora y organizador.
+- **Agenda:** hora a la izquierda, categoría y estado (Inscrito / Cancelada), y el lugar.
+- La lógica de presentación (días, horas, cupos, categorías) está en `ui/main/Presentacion.kt`, con `PresentacionTest.kt`. Las piezas compartidas, en `ui/main/ComponentesActividad.kt`.
