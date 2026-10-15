@@ -12,6 +12,18 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +47,8 @@ private val GrisTexto = Color(0xFF6B7A99)
  * Por ahora Inicio, Catálogo, Agenda y Asistente están vacías (cada una tiene su archivo
  * para llenarla cuando toque su historia); Perfil ya tiene los datos y «Cerrar sesión».
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
@@ -57,6 +71,8 @@ fun MainScreen(onLogout: () -> Unit) {
     val rutaActual = entradaActual?.destination?.route
 
     Scaffold(
+        topBar = { TopAppBar(title = { Text("VYNK", fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = AzulVynk) },
+            actions = { TextButton(onClick = { navMenu.navigate("recomendaciones") { launchSingleTop = true } }) { Text("✦ Para ti", color = AzulVynk) } }) },
         bottomBar = {
             BarraInferior(
                 destinos = Destino.entries,
@@ -76,6 +92,8 @@ fun MainScreen(onLogout: () -> Unit) {
             startDestination = Destino.INICIO.ruta,
             modifier = Modifier.padding(relleno)
         ) {
+            composable("recomendaciones") { RecomendacionesScreen() }
+            composable("recomendaciones") { RecomendacionesScreen() }
             composable(Destino.INICIO.ruta) { InicioScreen() }
             composable(Destino.CATALOGO.ruta) { CatalogoScreen() }
             composable(Destino.AGENDA.ruta) { AgendaScreen() }
