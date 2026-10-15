@@ -4,6 +4,8 @@ import { Asistente } from './components/Asistente'
 import { Catalogo } from './components/Catalogo'
 import { Inicio } from './components/Inicio'
 import { Intereses } from './components/Intereses'
+import { Recomendaciones } from './components/Recomendaciones'
+import { Recomendaciones } from './components/Recomendaciones'
 import { Login } from './components/Login'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
 import { PantallaVacia } from './components/PantallaVacia'
@@ -14,7 +16,7 @@ import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienS
 import { normalizarRol, resolverRuta } from './services/permisos'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente }
+const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)
