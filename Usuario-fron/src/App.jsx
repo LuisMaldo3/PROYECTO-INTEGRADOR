@@ -84,7 +84,7 @@ function App() {
     contenido = <Perfil usuario={sesion.usuario} rol={rol} token={sesion.token} onSalir={salir} />
   } else {
     const Seccion = SECCIONES[ruta]
-    contenido = Seccion ? <Seccion /> : <PantallaVacia />
+    contenido = Seccion ? <Seccion token={sesion.token} correo={sesion.usuario.correo} /> : <PantallaVacia />
   }
 
   const permitida = estado === 'permitida'

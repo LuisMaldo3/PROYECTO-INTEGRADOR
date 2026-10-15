@@ -11,7 +11,7 @@ import {
 } from './permisos.js'
 
 const rutas = (rol, lista) => pantallasDelMenu(rol, lista).map((p) => p.ruta)
-const TODAS = ['inicio', 'catalogo', 'agenda', 'asistente', 'perfil']
+const TODAS = ['inicio', 'catalogo', 'recomendaciones', 'agenda', 'asistente', 'perfil']
 
 // Lista de prueba con una pantalla solo del organizador (las reales se agregarán más adelante)
 const CON_ORGANIZADOR = [
@@ -37,7 +37,7 @@ test('ROL: normalizarUsuario no pierde los demás datos ni modifica el original'
   assert.equal(normalizarUsuario(null), null)
 })
 
-test('MENÚ: el usuario ve las cinco pantallas, en orden', () => {
+test('MENÚ: el usuario ve las seis pantallas, en orden', () => {
   assert.deepEqual(rutas('usuario'), TODAS)
 })
 
@@ -96,11 +96,15 @@ test('BLOQUEO: si el rol cambia, la misma dirección pasa de permitida a bloquea
 test('INTERESES: es una pantalla permitida, pero no tiene botón en el menú', () => {
   assert.equal(resolverRuta('#/intereses', 'usuario').estado, 'permitida')
   assert.equal(rutas('usuario').includes('intereses'), false)
-  assert.deepEqual(rutas('usuario'), TODAS) // el menú sigue con las mismas cinco
+  assert.deepEqual(rutas('usuario'), TODAS) // el menú sigue con las mismas seis
 })
 
 test('INTERESES: mientras se está en ella, el menú marca Perfil', () => {
   const r = resolverRuta('#/intereses', 'usuario')
   assert.equal(r.pantalla.menuActivo, 'perfil')
   assert.equal(r.pantalla.titulo, 'Mis intereses')
+})
+
+test('MENÚ: Para ti aparece una sola vez', () => {
+  assert.equal(rutas('usuario').filter(r => r === 'recomendaciones').length, 1)
 })

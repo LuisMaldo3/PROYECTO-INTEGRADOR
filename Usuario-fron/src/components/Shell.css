@@ -274,3 +274,6 @@
     width: 100%;
   }
 }
+
+/* Seis secciones sin duplicados, accesibles también en teléfonos pequeños. */
+@media(max-width:430px){.shell-menu a{font-size:.59rem;letter-spacing:-.015em}.shell-menu svg{width:38px;height:27px;padding:3px 7px}.shell{padding-bottom:74px}}

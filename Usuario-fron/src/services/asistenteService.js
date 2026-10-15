@@ -1,0 +1,29 @@
+import { API_URL } from '../config.js'
+
+/** Envía una pregunta al backend real. El token nunca se guarda en el historial del chat. */
+export async function preguntarAsistente({ mensaje, historial = [], token, signal }) {
+  if (!token) throw new Error('Debes iniciar sesión para consultar los horarios.')
+  const texto = String(mensaje ?? '').trim()
+  if (!texto || texto.length > 600) throw new Error('Escribe una pregunta de hasta 600 caracteres.')
+  let res
+  try {
+    res = await fetch(`${API_URL}/api/asistente/preguntar`, {
+      method: 'POST', signal,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ mensaje: texto, historial: historial.slice(-8).map(m => ({ rol: m.rol, contenido: m.contenido })) }),
+    })
+  } catch (e) {
+    if (e.name === 'AbortError') throw e
+    throw new Error(`No se pudo conectar con Spring Boot (${API_URL}). Comprueba que esté encendido y que React tenga la URL correcta.`)
+  }
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.')
+    if (res.status === 403) throw new Error('No tienes permiso para usar el asistente.')
+    if (res.status === 503) throw new Error('La base de datos de actividades no está disponible. Intenta nuevamente.')
+    if (res.status === 404) throw new Error('No existe el servicio del asistente en Spring Boot. Actualiza el backend y reinícialo.')
+    throw new Error(`El servidor no pudo responder (HTTP ${res.status}).`)
+  }
+  const datos = await res.json()
+  if (!datos || typeof datos.respuesta !== 'string') throw new Error('El backend devolvió una respuesta inválida.')
+  return datos
+}

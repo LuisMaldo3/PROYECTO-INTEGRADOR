@@ -15,6 +15,7 @@ const ICONOS = {
       <path d="m20 20-3.5-3.5" />
     </>
   ),
+  recomendaciones: <><path d="m12 2 1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9L12 2Z"/><path d="m19 17 .7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/></>,
   agenda: (
     <>
       <rect x="3" y="5" width="18" height="16" rx="2" />
