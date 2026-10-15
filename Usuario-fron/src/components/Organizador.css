@@ -1,0 +1,121 @@
+/* VYNK · Organizador — diseño exclusivo, accesible y adaptable */
+.org-pagina{--org-azul:#175ce5;--org-tinta:#142947;--org-gris:#63748e;--org-borde:#e6ebf3;--org-fondo:#f5f8fd;max-width:1240px;margin:0 auto;color:var(--org-tinta);padding:4px 0 40px;font-family:inherit}
+.org-pagina *{box-sizing:border-box}
+.org-pagina a{text-decoration:none}
+.org-pagina button,.org-pagina input,.org-pagina select,.org-pagina textarea{font:inherit}
+.org-pagina button:focus-visible,.org-pagina a:focus-visible,.org-pagina input:focus-visible,.org-pagina select:focus-visible,.org-pagina textarea:focus-visible{outline:3px solid #89b1ff;outline-offset:3px}
+.org-hero{background:linear-gradient(111deg,#112b66 0%,#1557b9 60%,#367af0 100%);border-radius:23px;min-height:215px;color:white;padding:36px 43px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;isolation:isolate}
+.org-hero:before{content:"";width:350px;height:350px;border:1px solid #ffffff40;position:absolute;right:-80px;top:-140px;border-radius:50%;box-shadow:0 0 0 54px #ffffff0c,0 0 0 104px #ffffff0c;z-index:-1}
+.org-hero h2{font-size:clamp(1.6rem,2.6vw,2.7rem);font-weight:800;line-height:1.15;max-width:650px;margin:12px 0 12px;letter-spacing:-1.1px}
+.org-hero h2 em{font-style:normal;color:#acd3ff}
+.org-hero p{max-width:590px;color:#d5e6ff;margin:0;line-height:1.6;font-size:.96rem}
+.org-hero__simbolo{font-size:8rem;color:#ffffff40;font-weight:400;transform:rotate(-19deg);padding:0 50px}
+.org-eyebrow{font-size:.68rem;letter-spacing:.15em;font-weight:800;text-transform:uppercase;color:var(--org-azul)}
+.org-hero .org-eyebrow,.org-interior-hero .org-eyebrow{color:#a8d1ff}
+.org-indicadores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0 36px}
+.org-indicadores>div{display:flex;flex-direction:column;padding:22px 24px;border:1px solid var(--org-borde);background:white;border-radius:17px;box-shadow:0 5px 22px #132a4906;gap:4px}
+.org-indicadores span{color:var(--org-gris);font-size:.85rem;font-weight:600}
+.org-indicadores strong{font-weight:800;font-size:2.1rem;letter-spacing:-1px;color:#163764;line-height:1.4}
+.org-indicadores small{color:#8793a8;font-size:.75rem}
+.org-seccion-titulo{display:flex;justify-content:space-between;align-items:end;gap:14px;margin:0 0 19px}
+.org-seccion-titulo h2{font-size:1.5rem;margin:5px 0 0;font-weight:800;letter-spacing:-.5px}
+.org-boton{display:inline-flex;justify-content:center;align-items:center;gap:9px;min-height:39px;border:1px solid transparent;border-radius:10px;padding:9px 14px;cursor:pointer;text-align:center;font-weight:700;font-size:.82rem;transition:background .15s,transform .15s,box-shadow .15s;white-space:nowrap}
+.org-boton:active{transform:translateY(1px)}
+.org-boton--primario{background:var(--org-azul);color:white!important;box-shadow:0 3px 8px #1851bb25}
+.org-boton--primario:hover{background:#1048bc}
+.org-boton--suave{background:#f0f5ff;color:#1557ce!important;border-color:#e0eaff}
+.org-boton--suave:hover{background:#dfeafe}
+.org-boton--simple{color:#506987!important;background:transparent;border-color:var(--org-borde)}
+.org-boton--simple:hover{background:#f5f8fd}
+.org-boton--grande{min-height:49px;padding:12px 20px;font-size:.92rem}
+.org-boton:disabled{cursor:not-allowed;opacity:.55;box-shadow:none}
+.org-filtros{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:19px}
+.org-buscar{background:white;border:1px solid var(--org-borde);border-radius:10px;display:flex;align-items:center;gap:10px;padding:0 14px;min-width:270px;flex:1;max-width:460px;min-height:43px;color:#8d9cb2}
+.org-buscar>span{font-size:1.7rem}
+.org-buscar input{outline:none!important;border:0;width:100%;min-width:0;color:var(--org-tinta);background:transparent;font-size:.88rem}
+.org-chips{display:flex;gap:5px;border:1px solid var(--org-borde);background:white;border-radius:11px;padding:4px;flex-wrap:wrap}
+.org-chips button{background:transparent;border:0;border-radius:8px;padding:8px 13px;cursor:pointer;color:var(--org-gris);font-size:.8rem;font-weight:700}
+.org-chips button[aria-pressed="true"]{background:#eaf1ff;color:var(--org-azul)}
+.org-tarjetas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.org-tarjeta{display:flex;flex-direction:column;min-width:0;background:white;border:1px solid var(--org-borde);border-radius:17px;padding:24px;box-shadow:0 7px 20px #17304c06}
+.org-tarjeta__arriba{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.org-tarjeta__id{letter-spacing:.16em;font-size:.62rem;color:#a4b0c1;font-weight:800}
+.org-estado{display:inline-flex;align-items:center;gap:6px;background:#e9f9f0;color:#137548;padding:7px 11px;border-radius:30px;font-size:.72rem;font-weight:800;text-transform:capitalize}
+.org-estado--cancelada{background:#fff0f0;color:#ad3e42}
+.org-punto{height:7px;width:7px;background:currentColor;border-radius:50%}
+.org-tarjeta h3{font-size:1.17rem;line-height:1.3;margin:0 0 10px;letter-spacing:-.3px;color:#15294a}
+.org-tarjeta__descripcion{color:#71819a;font-size:.85rem;line-height:1.6;margin:0 0 18px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:42px}
+.org-metadatos{display:flex;flex-wrap:wrap;gap:9px 17px;color:#546987;font-size:.79rem;margin-bottom:18px}
+.org-capacidad{margin-top:auto;border-top:1px solid #edf0f5;padding:16px 0 19px}
+.org-capacidad strong{font-size:1.1rem;color:#1e3963}
+.org-capacidad span{font-size:.8rem;color:#7b89a0}
+.org-barra{height:6px;background:#e9eef9;border-radius:999px;margin-top:9px;overflow:hidden}
+.org-barra span{display:block;background:linear-gradient(90deg,#185ce6,#65a8fa);border-radius:999px;height:100%}
+.org-tarjeta__acciones{display:flex;gap:8px;flex-wrap:wrap}
+.org-tarjeta__acciones .org-boton{font-size:.76rem;padding:8px 12px;min-height:37px}
+.org-cargando{padding:52px 20px;border-radius:18px;border:1px dashed #b8cae7;background:#f8fbff;text-align:center;color:#637996;font-weight:600}
+.org-alerta{border:1px solid #fac8c8;background:#fff7f7;color:#963f3f;padding:17px 20px;border-radius:13px;margin:14px 0;line-height:1.55;font-size:.88rem}
+.org-alerta p{margin:6px 0 0}
+.org-alerta button{border:0;background:none;padding:5px 0;text-decoration:underline;color:inherit;font-weight:800;cursor:pointer}
+.org-vacio{background:white;border:1px dashed #cbd8e9;border-radius:20px;padding:48px 25px;text-align:center;margin-top:15px;color:#677b98}
+.org-vacio__icono{margin:0 auto 15px;display:grid;place-items:center;background:#e9f2ff;color:#3168d4;width:65px;height:65px;border-radius:19px;font-size:2rem}
+.org-vacio h3{color:#1a3558;font-size:1.17rem;margin:7px 0}
+.org-vacio p{max-width:490px;margin:8px auto 20px;line-height:1.6;font-size:.88rem}
+.org-regresar{display:inline-block;color:#466b9d!important;font-weight:700;font-size:.83rem;margin-bottom:20px}
+.org-interior-hero{background:linear-gradient(115deg,#102959,#144c9a);border-radius:20px;padding:30px 35px;color:white;margin-bottom:28px}
+.org-interior-hero h2{margin:10px 0 6px;font-weight:800;font-size:clamp(1.45rem,3vw,2.05rem)}
+.org-interior-hero p{color:#d4e7ff;line-height:1.6;margin:0;max-width:730px}
+.org-interior-hero--asistencia{background:linear-gradient(115deg,#133966,#1974b8)}
+.org-interior-hero--reporte{background:linear-gradient(115deg,#132d58,#475bac)}
+.org-seccion-titulo--lista{align-items:center}
+.org-contador{display:inline-block;margin-top:7px;color:var(--org-gris);font-size:.84rem}
+.org-acciones{display:flex;gap:8px;flex-wrap:wrap}
+.org-lista{background:white;border:1px solid var(--org-borde);border-radius:16px;overflow:hidden}
+.org-lista__encabezado{display:flex;justify-content:space-between;padding:15px 23px;background:#f5f8fd;letter-spacing:.1em;font-size:.67rem;font-weight:800;color:#8091ac}
+.org-alumno{display:flex;align-items:center;gap:14px;padding:16px 20px;border-top:1px solid #edf1f7;min-width:0}
+.org-alumno:first-child{border-top:0}
+.org-alumno__numero{font-size:.78rem;color:#9caec2;width:25px;flex-shrink:0}
+.org-alumno__avatar{display:grid;place-items:center;background:#ebf1ff;color:#1d58bf;border-radius:12px;font-size:.77rem;font-weight:900;width:41px;height:41px;flex-shrink:0}
+.org-alumno__datos{min-width:0;display:flex;flex-direction:column;gap:4px;flex:1}
+.org-alumno__datos strong{font-size:.89rem;overflow-wrap:anywhere}
+.org-alumno__datos>span{font-size:.79rem;color:#8190a7;overflow-wrap:anywhere}
+.org-asistencia-tag{display:inline-flex;border-radius:30px;padding:7px 10px;font-weight:800;font-size:.72rem;background:#f4f6fa;color:#8995a6;white-space:nowrap}
+.org-asistencia-tag--si{background:#e7f8ee;color:#20784b}
+.org-asistencia-tag--no{background:#fff1ed;color:#af5e40}
+.org-asistencia-resumen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.org-asistencia-resumen>div{border:1px solid var(--org-borde);background:white;padding:18px 20px;border-radius:14px;display:flex;flex-direction:column;gap:6px}
+.org-asistencia-resumen span{color:#73849b;font-size:.8rem}
+.org-asistencia-resumen strong{font-size:1.75rem;color:#193b68}
+.org-asistencia-intro{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:15px}
+.org-asistencia-intro p{font-size:.87rem;color:#667891;line-height:1.6;margin:0}
+.org-asistencia-intro button{border:0;background:none;font-weight:800;color:var(--org-azul);cursor:pointer;white-space:nowrap}
+.org-alumno__control{display:flex;border:1px solid #e7edf5;border-radius:9px;padding:3px;gap:3px}
+.org-seleccion{border:0;border-radius:7px;background:white;color:#8795a9;padding:8px 12px;cursor:pointer;font-size:.75rem;font-weight:800}
+.org-seleccion--presente{background:#dcf8e7;color:#156a40}
+.org-seleccion--ausente{background:#fff0e9;color:#a64927}
+.org-pie-guardar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:19px;background:#f0f5fc;border:1px solid #deebfb;border-radius:13px;padding:16px 20px}
+.org-pie-guardar>div{display:flex;flex-direction:column;gap:3px}
+.org-pie-guardar strong{font-size:.9rem}
+.org-pie-guardar span{font-size:.79rem;color:#7486a0}
+.org-exito{border:1px solid #a2dfbb;background:#effdf4;color:#16754d;border-radius:12px;margin-top:13px;padding:14px 18px;font-weight:700;font-size:.88rem}
+.org-formulario-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,1fr);gap:20px;align-items:start}
+.org-formulario{background:white;border:1px solid var(--org-borde);border-radius:17px;padding:30px;display:flex;flex-direction:column;gap:20px}
+.org-campo{display:flex;flex-direction:column;gap:9px}
+.org-campo>span{font-size:.82rem;font-weight:800;color:#243e60}
+.org-campo b{color:#d85959}
+.org-campo input,.org-campo select,.org-campo textarea{border:1px solid #dfe7f2;border-radius:9px;background:#fbfcff;padding:13px 14px;color:#1a314f;width:100%;outline:none;font-size:.88rem}
+.org-campo textarea{resize:vertical;min-height:140px;line-height:1.55}
+.org-campo input[readonly]{color:#6a7b94;background:#f6f8fc}
+.org-campo small{text-align:right;color:#7d8ca3;font-size:.75rem}
+.org-ayuda{background:#edf5ff;border:1px solid #dceafb;border-radius:16px;padding:25px;color:#526a8c;font-size:.84rem;line-height:1.7}
+.org-ayuda>span{display:grid;place-items:center;color:#1563d0;background:white;border-radius:50%;width:34px;height:34px;font-size:1.2rem;font-weight:700}
+.org-ayuda h3{color:#213a61;margin:15px 0 6px;font-size:1.03rem}
+.org-confirmacion{text-align:center;background:white;border:1px solid #dceadd;border-radius:17px;padding:42px 24px}
+.org-confirmacion__marca{display:grid;place-items:center;background:#e4f9eb;color:#1d804d;width:64px;height:64px;border-radius:50%;margin:0 auto 17px;font-size:1.8rem}
+.org-confirmacion h3{font-size:1.3rem;color:#1f3a56;margin-bottom:10px}
+.org-confirmacion p{color:#6a7d95;max-width:470px;margin:0 auto 17px;line-height:1.6}
+.org-confirmacion code{display:block;background:#f5f8fc;padding:11px;border-radius:9px;max-width:340px;margin:0 auto 23px;overflow-wrap:anywhere;color:#38609a}
+.org-confirmacion>div{display:flex;justify-content:center;flex-wrap:wrap;gap:11px}
+@media (max-width:930px){.org-tarjetas{grid-template-columns:1fr}.org-formulario-layout{grid-template-columns:1fr}.org-hero__simbolo{padding:0 10px;font-size:6rem}}
+@media (max-width:650px){.org-hero{padding:29px 25px;min-height:190px}.org-hero h2{font-size:1.65rem}.org-hero__simbolo{display:none}.org-indicadores{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.org-indicadores>div{padding:16px}.org-indicadores>div:last-child{grid-column:span 2}.org-indicadores strong{font-size:1.55rem}.org-seccion-titulo{align-items:center}.org-filtros{align-items:stretch}.org-buscar{max-width:none;min-width:100%}.org-chips{width:100%;justify-content:center}.org-interior-hero{padding:25px}.org-acciones{width:100%}.org-seccion-titulo--lista{flex-wrap:wrap}.org-alumno{padding:14px 11px;gap:9px;flex-wrap:wrap}.org-alumno__numero{display:none}.org-alumno__control{width:100%;justify-content:center}.org-seleccion{flex:1}.org-asistencia-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}.org-asistencia-intro{align-items:start;flex-direction:column}.org-pie-guardar{flex-direction:column;align-items:stretch}.org-formulario{padding:20px}.org-tarjeta{padding:20px}}
+@media (prefers-reduced-motion:reduce){.org-pagina *{transition:none!important}}
