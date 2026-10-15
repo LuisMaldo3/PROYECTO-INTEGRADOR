@@ -37,6 +37,11 @@ export const PANTALLAS = [
   { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
   { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
   { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
+  // US-46 / US-51 / US-55 / US-50: solo el rol organizador puede abrir estas rutas.
+  { ruta: 'organizador-actividades', titulo: 'Mis actividades asignadas', descripcion: 'Gestiona tus actividades como organizador.', tituloMenu: 'Mis actividades', roles: [ROLES.ORGANIZADOR] },
+  { ruta: 'organizador-inscritos', titulo: 'Estudiantes inscritos', descripcion: 'Participantes de una actividad asignada.', tituloMenu: 'Inscritos', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
+  { ruta: 'organizador-asistencia', titulo: 'Control de asistencia', descripcion: 'Registra la asistencia de los estudiantes.', tituloMenu: 'Asistencia', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
+  { ruta: 'organizador-reporte', titulo: 'Reportar un problema', descripcion: 'Informa incidencias sobre la actividad.', tituloMenu: 'Reportar', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   // Se abre desde Perfil: no tiene botón propio en el menú y, mientras se está en ella, se marca «Perfil».
   { ruta: 'intereses', titulo: 'Mis intereses', descripcion: 'Elige los temas que te gustan y te recomendaremos actividades.', tituloMenu: 'Intereses', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'perfil' },
 ]

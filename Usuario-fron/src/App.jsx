@@ -5,6 +5,10 @@ import { Catalogo } from './components/Catalogo'
 import { Inicio } from './components/Inicio'
 import { Intereses } from './components/Intereses'
 import { Recomendaciones } from './components/Recomendaciones'
+import { OrganizadorActividades } from './components/OrganizadorActividades'
+import { OrganizadorInscritos } from './components/OrganizadorInscritos'
+import { OrganizadorAsistencia } from './components/OrganizadorAsistencia'
+import { OrganizadorReporte } from './components/OrganizadorReporte'
 import { Login } from './components/Login'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
 import { PantallaVacia } from './components/PantallaVacia'
@@ -15,7 +19,7 @@ import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienS
 import { normalizarRol, resolverRuta } from './services/permisos'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones }
+const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-inscritos': OrganizadorInscritos, 'organizador-asistencia': OrganizadorAsistencia, 'organizador-reporte': OrganizadorReporte }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)

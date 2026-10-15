@@ -13,7 +13,7 @@ import {
 const rutas = (rol, lista) => pantallasDelMenu(rol, lista).map((p) => p.ruta)
 const TODAS = ['inicio', 'catalogo', 'recomendaciones', 'agenda', 'asistente', 'perfil']
 
-// Lista de prueba con una pantalla solo del organizador (las reales se agregarán más adelante)
+// Lista de prueba con una segunda pantalla hipotética del organizador
 const CON_ORGANIZADOR = [
   ...PANTALLAS,
   { ruta: 'mis-actividades', titulo: 'Mis actividades', tituloMenu: 'Mis actividades', roles: ['organizador'] },
@@ -41,8 +41,8 @@ test('MENÚ: el usuario ve las seis pantallas, en orden', () => {
   assert.deepEqual(rutas('usuario'), TODAS)
 })
 
-test('MENÚ: por ahora todos los roles ven las pantallas del usuario', () => {
-  assert.deepEqual(rutas('organizador'), TODAS)
+test('MENÚ: el organizador ve sus actividades y los demás roles no', () => {
+  assert.deepEqual(rutas('organizador'), [...TODAS, 'organizador-actividades'])
   assert.deepEqual(rutas('administrador'), TODAS)
   assert.deepEqual(rutas('hacker'), TODAS)
   assert.deepEqual(rutas(undefined), TODAS)
@@ -84,7 +84,7 @@ test('BLOQUEO: una pantalla de organizador queda bloqueada para el usuario', () 
 
 test('BLOQUEO: el organizador sí entra a su pantalla y ve su menú', () => {
   assert.equal(resolverRuta('#/mis-actividades', 'organizador', CON_ORGANIZADOR).estado, 'permitida')
-  assert.deepEqual(rutas('organizador', CON_ORGANIZADOR), [...TODAS, 'mis-actividades'])
+  assert.deepEqual(rutas('organizador', CON_ORGANIZADOR), [...TODAS, 'organizador-actividades', 'mis-actividades'])
   assert.deepEqual(rutas('usuario', CON_ORGANIZADOR), TODAS)
 })
 
@@ -107,4 +107,15 @@ test('INTERESES: mientras se está en ella, el menú marca Perfil', () => {
 
 test('MENÚ: Para ti aparece una sola vez', () => {
   assert.equal(rutas('usuario').filter(r => r === 'recomendaciones').length, 1)
+})
+
+
+test('US-46/51/55/50: organizador accede a todas sus pantallas y usuario queda bloqueado', () => {
+  for (const ruta of ['organizador-actividades', 'organizador-inscritos', 'organizador-asistencia', 'organizador-reporte']) {
+    assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'organizador').estado, 'permitida')
+    assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'usuario').estado, 'bloqueada')
+    assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'administrador').estado, 'bloqueada')
+  }
+  assert.equal(rutas('organizador').filter(r => r.startsWith('organizador')).length, 1)
+  assert.equal(resolverRuta('#/organizador-inscritos', 'organizador').pantalla.menuActivo, 'organizador-actividades')
 })
