@@ -39,7 +39,7 @@ fun RecomendacionesScreen() {
                 Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("VYNK  ·  PARA TI", color = Color(0xFF9FCCFF), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     Text("Descubre actividades para ti", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
-                    Text("Gemini analiza tus intereses y las actividades publicadas.", color = Color(0xFFD7E6FF))
+                    Text("Actividades reales seleccionadas según tus intereses. Gemini se usa cuando está disponible.", color = Color(0xFFD7E6FF))
                     OutlinedButton(onClick = { version++ }, enabled = !cargando) { Text("Actualizar recomendaciones", color = Color.White) }
                 }
             }

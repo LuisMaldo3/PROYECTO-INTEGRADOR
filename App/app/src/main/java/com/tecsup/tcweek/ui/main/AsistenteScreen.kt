@@ -1,9 +1,199 @@
 package com.tecsup.tcweek.ui.main
 
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import com.tecsup.tcweek.data.AsistenteApi
+import com.tecsup.tcweek.data.HistorialAsistente
+import com.tecsup.tcweek.data.MensajeAsistente
+import com.tecsup.tcweek.data.SesionGuardada
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
-/** Asistente: vacía por ahora. Aquí va el contenido de la historia US-12. */
+private val AzulChat = Color(0xFF1765D8)
+private val MarinoChat = Color(0xFF0B2857)
+private val FondoChat = Color(0xFFF3F7FD)
+private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué horarios hay hoy?", "¿Qué hay mañana?")
+
+/** Jordi: chat conectado al servicio, historial por usuario y estados reales de carga/error. */
 @Composable
 fun AsistenteScreen() {
-    PantallaVacia()
+    val context = LocalContext.current
+    val sesion = remember { SesionGuardada(context).leer() }
+    val correo = sesion?.correo.orEmpty()
+    val historial = remember(correo) { HistorialAsistente(context, correo) }
+    val mensajes = remember(correo) { mutableStateListOf<MensajeAsistente>().apply { addAll(historial.cargar()) } }
+    var borrador by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var estadoConexion by remember { mutableStateOf("Verificando conexión…") }
+    val lista = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    fun enviar(texto: String) {
+        val consulta = texto.trim()
+        if (consulta.isBlank() || cargando || consulta.length > 600) return
+        val token = sesion?.llave
+        if (token.isNullOrBlank()) {
+            error = "Inicia sesión para consultar el asistente."
+            return
+        }
+        val previos = mensajes.takeLast(8)
+        mensajes.add(MensajeAsistente("usuario", consulta))
+        historial.guardar(mensajes)
+        borrador = ""
+        cargando = true
+        error = null
+        scope.launch {
+            try {
+                val respuesta = AsistenteApi.preguntar(token, consulta, previos)
+                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso))
+                historial.guardar(mensajes)
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { error = e.message ?: "No se pudo obtener la respuesta." }
+            finally { cargando = false }
+        }
+    }
+
+    LaunchedEffect(correo) {
+        estadoConexion = if (sesion?.llave.isNullOrBlank()) "Inicia sesión para consultar" else AsistenteApi.verificar(sesion!!.llave)
+    }
+
+    LaunchedEffect(mensajes.size, cargando) {
+        if (mensajes.isNotEmpty()) lista.animateScrollToItem(mensajes.size - 1 + if (cargando) 1 else 0)
+    }
+
+    Column(Modifier.fillMaxSize().background(FondoChat)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().background(
+                Brush.linearGradient(listOf(MarinoChat, Color(0xFF165DC2)))
+            ).padding(horizontal = 22.dp, vertical = 23.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color(0xFF9BD6FF), modifier = Modifier.size(17.dp))
+                Text("VYNK  ·  ASISTENTE DE HORARIOS", style = MaterialTheme.typography.labelMedium, color = Color(0xFFA8D2FF), fontWeight = FontWeight.Bold)
+            }
+            Text("Tu semana, más clara.", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.ExtraBold)
+            Text("Pregunta por actividades y horarios publicados. Sin datos inventados.", color = Color(0xFFD6E9FF), style = MaterialTheme.typography.bodyMedium)
+        }
+        Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = Color(0xFFEAF3FF), shape = RoundedCornerShape(12.dp)) {
+                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AzulChat, modifier = Modifier.padding(10.dp).size(21.dp))
+            }
+            Spacer(Modifier.width(11.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Asistente VYNK", color = MarinoChat, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                Text(if (cargando) "Consultando el cronograma…" else estadoConexion, color = Color(0xFF68809D), style = MaterialTheme.typography.labelSmall)
+            }
+            IconButton(onClick = { mensajes.clear(); historial.borrar(); error = null }, enabled = !cargando && mensajes.isNotEmpty()) {
+                Icon(Icons.Filled.DeleteOutline, contentDescription = "Borrar conversación", tint = Color(0xFF7890AA))
+            }
+        }
+        HorizontalDivider(color = Color(0xFFE4EBF6))
+        LazyColumn(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            state = lista,
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (mensajes.isEmpty()) {
+                item {
+                    BurbujaAsistente(MensajeAsistente("asistente", "¡Hola! Soy VYNK. Puedo consultar los horarios de las actividades publicadas. ¿Qué te gustaría saber?"))
+                    Spacer(Modifier.height(20.dp))
+                    Text("PREGUNTAS RÁPIDAS", color = Color(0xFF6683AA), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(9.dp))
+                    Sugerencias.forEach { sugerencia ->
+                        OutlinedCard(
+                            onClick = { enviar(sugerencia) },
+                            enabled = !cargando,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(13.dp),
+                            colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+                        ) {
+                            Text("↗  $sugerencia", modifier = Modifier.padding(15.dp), color = MarinoChat, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+            items(mensajes) { mensaje -> BurbujaAsistente(mensaje) }
+            if (cargando) item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp, color = AzulChat)
+                    Text("Buscando horarios reales…", color = Color(0xFF5E7696), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            if (error != null) item {
+                Surface(color = Color(0xFFFFECEC), shape = RoundedCornerShape(14.dp)) {
+                    Text(error.orEmpty(), modifier = Modifier.fillMaxWidth().padding(16.dp), color = Color(0xFFA42938), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+        Surface(shadowElevation = 8.dp, color = Color.White) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                OutlinedTextField(
+                    value = borrador,
+                    onValueChange = { if (it.length <= 600) borrador = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Pregunta por un horario…", style = MaterialTheme.typography.bodyMedium) },
+                    maxLines = 4,
+                    shape = RoundedCornerShape(17.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = { enviar(borrador) }),
+                    enabled = !cargando,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AzulChat)
+                )
+                FilledIconButton(
+                    onClick = { enviar(borrador) },
+                    enabled = !cargando && borrador.isNotBlank(),
+                    modifier = Modifier.size(53.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = AzulChat)
+                ) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar pregunta") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BurbujaAsistente(mensaje: MensajeAsistente) {
+    val esUsuario = mensaje.rol == "usuario"
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = if (esUsuario) Arrangement.End else Arrangement.Start) {
+        if (!esUsuario) {
+            Surface(color = Color(0xFFE5F0FF), shape = CircleShape) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = AzulChat, modifier = Modifier.padding(8.dp).size(17.dp))
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+        Column(Modifier.fillMaxWidth(0.87f), horizontalAlignment = if (esUsuario) Alignment.End else Alignment.Start) {
+            Text(if (esUsuario) "Tú" else "VYNK", color = Color(0xFF6C829D), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
+            Surface(color = if (esUsuario) AzulChat else Color.White, shape = RoundedCornerShape(18.dp), shadowElevation = if (esUsuario) 0.dp else 1.dp) {
+                Text(mensaje.contenido, color = if (esUsuario) Color.White else MarinoChat, modifier = Modifier.padding(15.dp), style = MaterialTheme.typography.bodyMedium)
+            }
+            if (!esUsuario && mensaje.origen.isNotBlank()) {
+                Text(if (mensaje.origen == "gemini") "✦ Gemini · datos verificados" else "✓ Cronograma publicado", color = Color(0xFF567291), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 7.dp))
+            }
+        }
+    }
 }

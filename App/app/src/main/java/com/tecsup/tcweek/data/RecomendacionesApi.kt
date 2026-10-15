@@ -15,7 +15,15 @@ object RecomendacionesApi {
             conn.requestMethod = "GET"; conn.connectTimeout = 8000; conn.readTimeout = 24000
             conn.setRequestProperty("Authorization", "Bearer $token"); conn.setRequestProperty("Accept", "application/json")
             val status = conn.responseCode
-            if(status !in 200..299) throw IllegalStateException(if(status == 401) "Sesión expirada. Inicia sesión." else "Error al cargar recomendaciones (HTTP $status)")
+            if (status !in 200..299) {
+                val motivo = when (status) {
+                    401 -> "Sesión expirada. Inicia sesión."
+                    404 -> "El backend todavía no tiene /api/recomendaciones. Actualiza Spring Boot."
+                    503 -> "MongoDB no responde. Revisa la conexión del backend."
+                    else -> "Error al cargar recomendaciones (HTTP $status)"
+                }
+                throw IllegalStateException(motivo)
+            }
             val obj = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
             val arr = obj.optJSONArray("actividades")
             val lista = (0 until (arr?.length() ?: 0)).map { i ->
@@ -29,6 +37,10 @@ object RecomendacionesApi {
                 ), a.optString("motivo"))
             }
             RespuestaRecomendaciones(obj.optString("origen"), obj.optString("aviso"), lista)
+        } catch(e: java.net.ConnectException) {
+            throw IllegalStateException("No se pudo conectar a ${Servidor.DIRECCION}. Revisa si el backend está encendido y la dirección del emulador/celular.", e)
+        } catch(e: java.net.SocketTimeoutException) {
+            throw IllegalStateException("El servidor de recomendaciones tardó demasiado. Revisa MongoDB y Gemini.", e)
         } finally { conn.disconnect() }
     }
 }
