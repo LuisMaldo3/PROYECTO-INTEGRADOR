@@ -46,7 +46,14 @@ public class CatalogoController {
             a.put("cuposDisponibles", max instanceof Number n ? Math.max(0, n.intValue() - inscritos) : null);
             a.put("categoriaId", doc.get("categoriaId"));
             a.put("ubicacionId", doc.get("ubicacionId"));
-            a.put("organizador", doc.get("organizador"));
+            // Django guarda el organizador como {id, nombre}; React espera texto.
+            Object responsable = doc.get("organizador");
+            if (responsable instanceof Map<?, ?> datosOrganizador) {
+                Object nombre = datosOrganizador.get("nombre");
+                a.put("organizador", nombre == null ? "" : String.valueOf(nombre));
+            } else {
+                a.put("organizador", responsable == null ? "" : String.valueOf(responsable));
+            }
             actividades.add(a);
         }
         actividades.sort(Comparator.comparing((Map<String, Object> a) -> String.valueOf(a.getOrDefault("fecha", "")))
