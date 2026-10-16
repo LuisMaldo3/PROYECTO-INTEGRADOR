@@ -21,6 +21,9 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -51,7 +54,7 @@ import java.time.LocalDate
 
 /** Agenda: las actividades en las que está inscrita la persona, agrupadas por día. */
 @Composable
-fun AgendaScreen() {
+fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
     val context = LocalContext.current
     var items by remember { mutableStateOf<List<ActividadAgenda>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -86,6 +89,10 @@ fun AgendaScreen() {
                 style = MaterialTheme.typography.bodySmall,
                 color = ColorGris
             )
+            Button(onClick = onVerSugerida, modifier = Modifier.fillMaxWidth().padding(top = 12.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF124DAB)), shape = RoundedCornerShape(12.dp)) {
+                androidx.compose.material3.Icon(Icons.Filled.AutoAwesome, contentDescription = null)
+                Text("  Ver mi agenda sugerida")
+            }
             Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = !upcoming, onClick = { upcoming = false }, label = { Text("Todas") })
                 FilterChip(selected = upcoming, onClick = { upcoming = true }, label = { Text("Próximas") })

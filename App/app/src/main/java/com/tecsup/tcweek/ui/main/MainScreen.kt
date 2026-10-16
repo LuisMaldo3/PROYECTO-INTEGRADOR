@@ -45,6 +45,7 @@ private val AzulVynk = Color(0xFF0B63FF)
 private val GrisTexto = Color(0xFF6B7A99)
 
 private const val RUTA_RECOMENDACIONES = "recomendaciones"
+private const val RUTA_AGENDA_SUGERIDA = "agenda-sugerida"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +71,18 @@ fun MainScreen(onLogout: () -> Unit) {
     LaunchedEffect(user.llave) {
         try {
             val estado = InteresesApi.estado(user.llave)
-            primerIngreso = debeSolicitarIntereses(estado.configurados, estado.omitido)
+            val preferencias = contextoOmitir(context)
+            val clave = "pendiente_${user.correo}"
+            val pendiente = preferencias.getBoolean(clave, false)
+            if (estado.configurados || estado.omitido) preferencias.edit().remove(clave).apply()
+            else if (pendiente) {
+                try {
+                    InteresesApi.omitir(user.llave)
+                    preferencias.edit().remove(clave).apply()
+                } catch (e: CancellationException) { throw e }
+                  catch (_: Exception) { /* Reintentar en la próxima entrada. */ }
+            }
+            primerIngreso = !pendiente && debeSolicitarIntereses(estado.configurados, estado.omitido)
         } catch (e: CancellationException) {
             throw e
         } catch (e: ErrorIntereses) {
@@ -149,7 +161,9 @@ fun MainScreen(onLogout: () -> Unit) {
             }
 
             composable(Destino.AGENDA.ruta) {
-                AgendaScreen()
+                AgendaScreen(onVerSugerida = {
+                    navMenu.navigate(RUTA_AGENDA_SUGERIDA) { launchSingleTop = true }
+                })
             }
 
             composable(Destino.ASISTENTE.ruta) {
@@ -186,6 +200,10 @@ fun MainScreen(onLogout: () -> Unit) {
                 )
             }
 
+            composable(RUTA_AGENDA_SUGERIDA) {
+                AgendaSugeridaScreen(onVolver = { navMenu.popBackStack() })
+            }
+
             composable(RUTA_RECOMENDACIONES) {
                 RecomendacionesScreen()
             }
@@ -208,7 +226,7 @@ private fun BarraInferior(
                         (
                                 destino == Destino.PERFIL &&
                                         rutaActual == RUTA_INTERESES
-                                ),
+                                ) || (destino == Destino.AGENDA && rutaActual == RUTA_AGENDA_SUGERIDA),
                 onClick = {
                     onIr(destino)
                 },

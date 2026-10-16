@@ -148,13 +148,19 @@ fun InteresesScreen(
         scope.launch {
             try {
                 InteresesApi.omitir(token)
+                contextoOmitir(context).edit().remove("pendiente_${repository.currentSession()?.correo.orEmpty()}").apply()
                 onTerminar()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 if (!sesionExpirada(e)) {
-                    aviso = e.message ?: "No se pudo omitir. Inténtalo nuevamente."
-                    avisoEsError = true
+                    if (e is ErrorIntereses && (e.estado == 0 || e.estado == 404 || e.estado >= 500)) {
+                        contextoOmitir(context).edit().putBoolean("pendiente_${repository.currentSession()?.correo.orEmpty()}", true).apply()
+                        onTerminar()
+                    } else {
+                        aviso = e.message ?: "No se pudo omitir. Inténtalo nuevamente."
+                        avisoEsError = true
+                    }
                 }
             } finally {
                 omitiendo = false
@@ -352,3 +358,7 @@ private fun BarraGuardar(
         }
     }
 }
+
+/** Registro por cuenta para continuar sin red y sincronizar la omisión más adelante. */
+fun contextoOmitir(context: android.content.Context): android.content.SharedPreferences =
+    context.getSharedPreferences("vynk_intereses_omision", android.content.Context.MODE_PRIVATE)
