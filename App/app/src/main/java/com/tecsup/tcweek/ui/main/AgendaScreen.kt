@@ -48,6 +48,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadAgenda
 import com.tecsup.tcweek.data.AgendaApi
+import com.tecsup.tcweek.data.AlternativasCruceApi
+import com.tecsup.tcweek.data.AvisoAlternativasCruce
 import com.tecsup.tcweek.data.SesionGuardada
 import kotlinx.coroutines.CancellationException
 import java.time.LocalDate
@@ -61,6 +63,8 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
     var error by remember { mutableStateOf<String?>(null) }
     var reload by remember { mutableIntStateOf(0) }
     var upcoming by remember { mutableStateOf(false) }
+    var avisos by remember { mutableStateOf<List<AvisoAlternativasCruce>>(emptyList()) }
+    var errorCruces by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(reload) {
         loading = true
@@ -68,6 +72,19 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
         try {
             val token = SesionGuardada(context).leer()?.llave ?: throw IllegalStateException("Inicia sesión para consultar tu agenda.")
             items = AgendaApi.cargar(token)
+            // Un fallo en alternativas nunca impide consultar la agenda del estudiante.
+            errorCruces = null
+            avisos = emptyList()
+            try {
+                val cruces = AlternativasCruceApi.cruces(token)
+                avisos = cruces.map { cruce ->
+                    try {
+                        AvisoAlternativasCruce(cruce, AlternativasCruceApi.alternativas(token, cruce.id))
+                    } catch (e: CancellationException) { throw e }
+                      catch (e: Exception) { AvisoAlternativasCruce(cruce, error = e.message ?: "No se pudieron cargar alternativas.") }
+                }
+            } catch (e: CancellationException) { throw e }
+              catch (e: Exception) { errorCruces = "No se pudieron consultar los cruces: ${e.message.orEmpty()}" }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -123,6 +140,9 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                if (avisos.isNotEmpty() || errorCruces != null) item(key = "avisos-cruces") {
+                    AvisoCrucesPanel(avisos, errorCruces)
+                }
                 grupos.forEach { grupo ->
                     item(key = "dia-${grupo.fecha}") {
                         EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
