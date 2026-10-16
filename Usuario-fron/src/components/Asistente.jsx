@@ -6,10 +6,30 @@ import { borrarHistorial, guardarHistorial, leerHistorial } from '../services/hi
 import { MensajesChat } from './MensajesChat'
 import './Asistente.css'
 
-const EJEMPLOS = ['¿Qué actividades hay?', '¿Qué horarios hay hoy?', '¿Qué actividades hay mañana?', '¿A qué hora empieza una actividad?']
+const EJEMPLOS = [
+  { texto: '¿Qué actividades hay?', icono: 'calendario' },
+  { texto: '¿Qué horarios hay hoy?', icono: 'reloj' },
+  { texto: '¿Qué actividades hay mañana?', icono: 'calendario' },
+  { texto: '¿A qué hora empieza una actividad?', icono: 'pregunta' },
+]
 const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas y horarios de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
 
-/** Mishel: estado de la conversación, almacenamiento por cuenta y control de carga/error. */
+/** Iconografía propia, ligera: no requiere instalar bibliotecas. */
+function Icono({ nombre, tamaño = 21 }) {
+  const comun = { width: tamaño, height: tamaño, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+  switch (nombre) {
+    case 'calendario': return <svg {...comun}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+    case 'reloj': return <svg {...comun}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    case 'pregunta': return <svg {...comun}><path d="M20 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.6-4.6A8.5 8.5 0 1 1 20 11.5Z"/><path d="M9.5 9a2.7 2.7 0 1 1 4.2 2.3c-.9.6-1.7 1.1-1.7 2.2M12 16.5h.01"/></svg>
+    case 'conexion': return <svg {...comun}><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1"/></svg>
+    case 'escudo': return <svg {...comun}><path d="M12 2 20 6v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6l8-4Z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg>
+    case 'mas': return <svg {...comun}><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    case 'flecha': return <svg {...comun}><path d="m9 6 6 6-6 6"/></svg>
+    default: return <svg {...comun}><path d="m12 2 2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6L12 2Z"/></svg>
+  }
+}
+
+/** Solo se renueva la presentación. Conexión, historial, sesión y peticiones existentes intactos. */
 export function Asistente() {
   const sesion = leerSesion()
   const correo = sesion?.usuario?.correo ?? ''
@@ -63,17 +83,35 @@ export function Asistente() {
   const limpiar = () => { peticion.current?.abort(); borrarHistorial(correo); setMensajes([]); setTexto(''); setError(''); setEstado('Listo para consultar') }
   return <section className="v-asistente" aria-label="Asistente de horarios">
     <div className="v-asistente-hero">
-      <div><span className="v-asistente-eyebrow"><span className="v-asistente-punto" /> VYNK INTELIGENTE · HORARIOS REALES</span><h2>Tu semana, más clara.</h2><p>Pregunta por fechas, actividades y horas del evento. Siempre consultamos la información publicada por administración.</p></div>
-      <div className="v-asistente-hero__icon" aria-hidden="true">✦</div>
+      <div className="v-asistente-hero__contenido">
+        <div className="v-asistente-hero__simbolo" aria-hidden="true"><Icono nombre="estrella" tamaño={34} /></div>
+        <div className="v-asistente-hero__texto">
+          <h2>Asistente <span>VYNK</span></h2>
+          <p>Consulta horarios, actividades y ubicaciones de forma rápida.</p>
+          <span className={`v-asistente-hero__estado${error ? ' v-asistente-hero__estado--error' : ''}`}><span className="v-asistente-punto" />{cargando ? 'Consultando el cronograma…' : error ? 'Revisa la última consulta' : 'Listo para consultar'}</span>
+        </div>
+      </div>
+      <div className="v-asistente-hero__arte" aria-hidden="true" />
     </div>
     <div className="v-asistente-grid">
-      <aside className="v-asistente-side">
+      <aside className="v-asistente-side" aria-label="Preguntas sugeridas">
         <div className="v-asistente-side__cab"><span>EXPLORA</span><h3>¿Qué necesitas saber?</h3><p>Empieza con una consulta rápida o escribe tu propia pregunta.</p></div>
-        <div className="v-asistente-ejemplos">{EJEMPLOS.map(p => <button key={p} type="button" onClick={() => enviar(p)} disabled={cargando}>{p}<span>↗</span></button>)}</div>
-        <div className="v-asistente-diagnostico"><button type="button" onClick={verificar} disabled={verificando}>{verificando ? 'Comprobando…' : '◉ Comprobar conexiones'}</button>{diagnostico && <p role="status">{diagnostico.mongodb === 'conectado' ? '✓ MongoDB conectado' : '⚠ MongoDB sin conexión'} · {diagnostico.actividadesPublicadas} actividades · Gemini {diagnostico.geminiConfigurado ? 'configurado' : 'sin configurar'}</p>}{diagnosticoError && <p role="alert">{diagnosticoError}</p>}</div><div className="v-asistente-fuente"><span aria-hidden="true">✓</span><div><strong>Información confiable</strong><small>Sin eventos inventados: el asistente consulta el catálogo real. Gemini es opcional.</small></div></div>
+        <div className="v-asistente-ejemplos">
+          {EJEMPLOS.map(e => <button key={e.texto} type="button" onClick={() => enviar(e.texto)} disabled={cargando}>
+            <span className="v-asistente-ejemplos__icono"><Icono nombre={e.icono} /></span>
+            <span className="v-asistente-ejemplos__texto">{e.texto}</span>
+            <Icono nombre="flecha" tamaño={17} />
+          </button>)}
+        </div>
+        <div className="v-asistente-diagnostico">
+          <button type="button" onClick={verificar} disabled={verificando}><Icono nombre="conexion" tamaño={17}/>{verificando ? 'Comprobando…' : 'Comprobar conexiones'}</button>
+          {diagnostico && <p role="status">{diagnostico.mongodb === 'conectado' ? '✓ MongoDB conectado' : '⚠ MongoDB sin conexión'} · {diagnostico.actividadesPublicadas} actividades · Gemini {diagnostico.geminiConfigurado ? 'configurado' : 'sin configurar'}</p>}
+          {diagnosticoError && <p role="alert">{diagnosticoError}</p>}
+        </div>
+        <div className="v-asistente-fuente"><span className="v-asistente-fuente__icono"><Icono nombre="escudo" tamaño={21}/></span><div><strong>Información confiable</strong><small>El asistente consulta las actividades publicadas por administración. No inventa actividades.</small></div></div>
       </aside>
       <div className="v-asistente-chat">
-        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true">✦</div><div><h3>Asistente VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || mensajes.length === 0} title="Borrar la conversación de este dispositivo">↻ Nueva conversación</button></header>
+        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true"><Icono nombre="estrella" tamaño={23}/></div><div className="v-asistente-chat__identidad"><h3>Asistente VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || mensajes.length === 0} title="Borrar la conversación de este dispositivo"><Icono nombre="mas" tamaño={19}/> Nueva conversación</button></header>
         <MensajesChat mensajes={mensajes.length ? mensajes : [SALUDO]} texto={texto} onTexto={setTexto} onEnviar={() => enviar()} cargando={cargando} deshabilitado={!correo} />
         {error && <div className="v-asistente-error" role="alert">⚠ {error} <button type="button" onClick={() => setError('')}>Cerrar</button></div>}
       </div>

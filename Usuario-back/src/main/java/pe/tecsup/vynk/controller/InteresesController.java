@@ -4,6 +4,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,7 +49,14 @@ public class InteresesController {
         return aDto(intereses.guardar(jwt.getSubject(), cuerpo == null ? null : cuerpo.intereses()));
     }
 
+    /** Registra que el estudiante prefiere elegir más tarde (sin crear una selección ficticia). */
+    @PostMapping("/omitir")
+    public MisInteresesDto omitir(@AuthenticationPrincipal Jwt jwt) {
+        return aDto(intereses.omitir(jwt.getSubject()));
+    }
+
     private static MisInteresesDto aDto(InteresesDeUsuario doc) {
-        return new MisInteresesDto(doc.getIntereses(), doc.getActualizadoEn() == null ? null : doc.getActualizadoEn().toString());
+        return new MisInteresesDto(doc.getIntereses(), doc.getActualizadoEn() == null ? null : doc.getActualizadoEn().toString(),
+                InteresesService.tieneInteresesElegidos(doc), doc.isOmitido());
     }
 }
