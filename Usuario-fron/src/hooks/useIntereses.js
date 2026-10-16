@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { guardarMisIntereses, listarIntereses, obtenerMisIntereses } from '../services/interesesService'
+import { guardarMisIntereses, listarIntereses, obtenerMisIntereses, omitirIntereses } from '../services/interesesService'
 import { alternar, mismosIntereses, ordenarComoCatalogo, puedeGuardar } from '../services/intereses'
 
 /**
@@ -8,17 +8,20 @@ import { alternar, mismosIntereses, ordenarComoCatalogo, puedeGuardar } from '..
  * alternar(id) marca/desmarca · guardar() envía · descartar() vuelve a lo guardado · recargar() pide todo de nuevo
  * aviso = { tipo: 'ok' | 'error', texto } del último guardado.
  */
-export function useIntereses({ token, onSesionExpirada }) {
+export function useIntereses({ token, onSesionExpirada, onGuardado, onOmitir }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', catalogo: [], guardados: [] })
   const [seleccion, setSeleccion] = useState([])
   const [guardando, setGuardando] = useState(false)
+  const [omitiendo, setOmitiendo] = useState(false)
   const [aviso, setAviso] = useState(null)
   const [version, setVersion] = useState(0)
 
   // Se guarda en una referencia para que un `onSesionExpirada` nuevo en cada pintado no vuelva a pedir los datos.
   const sesionExpirada = useRef(onSesionExpirada)
+  const callbacks = useRef({ onGuardado, onOmitir })
   useEffect(() => {
     sesionExpirada.current = onSesionExpirada
+    callbacks.current = { onGuardado, onOmitir }
   })
 
   useEffect(() => {
@@ -62,6 +65,7 @@ export function useIntereses({ token, onSesionExpirada }) {
       setEstado((e) => ({ ...e, guardados: quedaron }))
       setSeleccion(quedaron)
       setAviso({ tipo: 'ok', texto: 'Tus intereses se guardaron.' })
+      callbacks.current.onGuardado?.()
     } catch (e) {
       if (e.estado === 401) return sesionExpirada.current?.()
       setAviso({ tipo: 'error', texto: e.message })
@@ -70,13 +74,30 @@ export function useIntereses({ token, onSesionExpirada }) {
     }
   }, [token, seleccion, estado.catalogo])
 
+  const omitir = useCallback(async () => {
+    if (omitiendo || guardando) return
+    setOmitiendo(true)
+    setAviso(null)
+    try {
+      await omitirIntereses(token)
+      callbacks.current.onOmitir?.()
+    } catch (e) {
+      if (e.estado === 401) return sesionExpirada.current?.()
+      setAviso({ tipo: 'error', texto: e.message })
+    } finally {
+      setOmitiendo(false)
+    }
+  }, [token, omitiendo, guardando])
+
   return {
     ...estado,
     seleccion,
     guardando,
+    omitiendo,
+    omitir,
     aviso,
     hayCambios: !mismosIntereses(seleccion, estado.guardados),
-    puedeGuardar: puedeGuardar({ seleccion, guardados: estado.guardados, guardando }),
+    puedeGuardar: !omitiendo && puedeGuardar({ seleccion, guardados: estado.guardados, guardando }),
     alternar: cambiar,
     guardar,
     descartar,

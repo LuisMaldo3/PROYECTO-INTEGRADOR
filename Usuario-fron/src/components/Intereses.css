@@ -71,3 +71,8 @@
 .chip-interes { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #eaf3ff; color: #0a4aa8; font-size: .82rem; font-weight: 700; }
 .enlace-boton { padding: 0; border: 0; background: none; color: var(--azul); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 a.boton-secundario { text-decoration: none; }
+
+/* Bienvenida breve al configurar intereses por primera vez. */
+.intereses__intro { padding: 18px 20px; border-radius: 12px; background: linear-gradient(115deg, #e8f2ff, #f7faff); border: 1px solid #d8e7fc; color: var(--marino); }
+.intereses__intro strong { font-size: 1.12rem; }
+.intereses__intro p { margin: 6px 0 0; color: var(--texto-suave); }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
-import { ErrorIntereses, guardarMisIntereses, listarIntereses, obtenerMisIntereses } from './interesesService.js'
+import { ErrorIntereses, consultarEstadoIntereses, guardarMisIntereses, listarIntereses, obtenerMisIntereses, omitirIntereses } from './interesesService.js'
 
 const original = globalThis.fetch
 afterEach(() => {
@@ -67,4 +67,25 @@ test('SERVICIO: sin conexión avisa con estado 0', async () => {
     throw new TypeError('fetch failed')
   }
   await assert.rejects(listarIntereses('T'), (e) => e instanceof ErrorIntereses && e.estado === 0 && /conectar/.test(e.message))
+})
+
+test('ONBOARDING: consulta el estado por cuenta y distingue selección y omisión', async () => {
+  const llamadas = simular(200, { intereses: [], configurados: false, omitido: true })
+  assert.deepEqual(await consultarEstadoIntereses('TOKEN-A'), { configurados: false, omitido: true })
+  assert.ok(llamadas[0].url.endsWith('/api/intereses/mios'))
+  assert.equal(llamadas[0].opciones.headers.Authorization, 'Bearer TOKEN-A')
+})
+
+test('ONBOARDING: omitir envía POST sin lista de intereses', async () => {
+  const llamadas = simular(200, { configurados: false, omitido: true, intereses: [] })
+  assert.equal((await omitirIntereses('TOKEN-B')).omitido, true)
+  assert.ok(llamadas[0].url.endsWith('/api/intereses/omitir'))
+  assert.equal(llamadas[0].opciones.method, 'POST')
+  assert.equal(llamadas[0].opciones.headers.Authorization, 'Bearer TOKEN-B')
+  assert.equal(llamadas[0].opciones.body, undefined)
+})
+
+test('ONBOARDING: si omitir falla no se confirma el cambio local', async () => {
+  simular(503, { mensaje: 'Base de datos no disponible' })
+  await assert.rejects(omitirIntereses('TOKEN-B'), e => e.estado === 503 && /Base de datos/.test(e.message))
 })

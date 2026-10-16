@@ -48,3 +48,14 @@ export async function obtenerMisIntereses(token, signal) {
 export async function guardarMisIntereses(token, ids) {
   return lista(await pedir('/api/intereses/mios', token, { metodo: 'PUT', cuerpo: { intereses: ids } }))
 }
+
+/** Lee el estado de onboarding sin interpretar «no guardó» como «omitió». */
+export async function consultarEstadoIntereses(token, signal) {
+  const datos = await pedir('/api/intereses/mios', token, { signal })
+  return { configurados: datos?.configurados === true, omitido: datos?.omitido === true }
+}
+
+/** POST /api/intereses/omitir: el servidor recuerda que desea elegir después. */
+export async function omitirIntereses(token) {
+  return pedir('/api/intereses/omitir', token, { metodo: 'POST' })
+}
