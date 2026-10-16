@@ -1,6 +1,8 @@
 
 package com.tecsup.tcweek.ui.main
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Event
@@ -8,6 +10,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -21,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,6 +37,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.tcweek.data.AuthRepository
+import com.tecsup.tcweek.data.ErrorIntereses
+import com.tecsup.tcweek.data.InteresesApi
+import kotlinx.coroutines.CancellationException
 
 private val AzulVynk = Color(0xFF0B63FF)
 private val GrisTexto = Color(0xFF6B7A99)
@@ -55,6 +64,28 @@ fun MainScreen(onLogout: () -> Unit) {
     val rol = normalizarRol(user.rol)
 
     val navMenu = rememberNavController()
+    var comprobandoIntereses by remember(user.llave) { mutableStateOf(true) }
+    var primerIngreso by remember(user.llave) { mutableStateOf(false) }
+
+    LaunchedEffect(user.llave) {
+        try {
+            val estado = InteresesApi.estado(user.llave)
+            primerIngreso = debeSolicitarIntereses(estado.configurados, estado.omitido)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ErrorIntereses) {
+            if (e.estado == 401) {
+                repository.logout()
+                onLogout()
+            }
+            // Ante errores de red, no bloqueamos toda la app.
+        } catch (e: Exception) {
+            // Una respuesta inesperada del servidor tampoco debe cerrar la aplicación.
+        } finally {
+            comprobandoIntereses = false
+        }
+    }
+
     val entradaActual by navMenu.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
 
@@ -69,7 +100,7 @@ fun MainScreen(onLogout: () -> Unit) {
                     )
                 },
                 actions = {
-                    TextButton(
+                    if (!primerIngreso) TextButton(
                         onClick = {
                             navMenu.navigate(RUTA_RECOMENDACIONES) {
                                 launchSingleTop = true
@@ -85,7 +116,7 @@ fun MainScreen(onLogout: () -> Unit) {
             )
         },
         bottomBar = {
-            BarraInferior(
+            if (!primerIngreso) BarraInferior(
                 destinos = Destino.entries,
                 rutaActual = rutaActual,
                 onIr = { destino ->
@@ -100,9 +131,13 @@ fun MainScreen(onLogout: () -> Unit) {
             )
         }
     ) { relleno ->
-        NavHost(
+        if (comprobandoIntereses) {
+            Box(Modifier.fillMaxSize().padding(relleno), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AzulVynk)
+            }
+        } else NavHost(
             navController = navMenu,
-            startDestination = Destino.INICIO.ruta,
+            startDestination = if (primerIngreso) RUTA_INTERESES else Destino.INICIO.ruta,
             modifier = Modifier.padding(relleno)
         ) {
             composable(Destino.INICIO.ruta) {
@@ -139,7 +174,15 @@ fun MainScreen(onLogout: () -> Unit) {
                     onVolver = {
                         navMenu.popBackStack()
                     },
-                    onSesionExpirada = onLogout
+                    onSesionExpirada = onLogout,
+                    primerIngreso = primerIngreso,
+                    onTerminar = {
+                        primerIngreso = false
+                        navMenu.navigate(Destino.INICIO.ruta) {
+                            popUpTo(RUTA_INTERESES) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
