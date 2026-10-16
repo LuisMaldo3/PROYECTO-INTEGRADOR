@@ -83,7 +83,13 @@ export function useIntereses({ token, onSesionExpirada, onGuardado, onOmitir }) 
       callbacks.current.onOmitir?.()
     } catch (e) {
       if (e.estado === 401) return sesionExpirada.current?.()
-      setAviso({ tipo: 'error', texto: e.message })
+      // Si el servidor está temporalmente caído o aún no expone /omitir,
+      // la decisión se recuerda localmente y se sincronizará al volver a entrar.
+      if (e.estado === 0 || e.estado === 404 || e.estado >= 500) {
+        callbacks.current.onOmitir?.()
+      } else {
+        setAviso({ tipo: 'error', texto: e.message })
+      }
     } finally {
       setOmitiendo(false)
     }

@@ -57,5 +57,14 @@ export async function consultarEstadoIntereses(token, signal) {
 
 /** POST /api/intereses/omitir: el servidor recuerda que desea elegir después. */
 export async function omitirIntereses(token) {
-  return pedir('/api/intereses/omitir', token, { metodo: 'POST' })
+  const ctrl = new AbortController()
+  const timeout = setTimeout(() => ctrl.abort(), 7000)
+  try {
+    return await pedir('/api/intereses/omitir', token, { metodo: 'POST', signal: ctrl.signal })
+  } catch (error) {
+    if (ctrl.signal.aborted) throw new ErrorIntereses('El servidor tardó demasiado en responder.', 0)
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
 }
