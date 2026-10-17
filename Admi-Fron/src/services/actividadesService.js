@@ -44,7 +44,7 @@ export function modificarActividad(token, id, valores, { avisarInscritos = false
 }
 
 
-/** PATCH /api/actividades/:id/cancelar/ */
+/** PATCH /api/actividades/:id/cancelar/ guarda la cancelación y registra notificaciones a inscritos. */
 export function cancelarActividad(token, id) {
   return pedir(`/api/actividades/${encodeURIComponent(id)}/cancelar/`, token, { method: 'PATCH' })
 }

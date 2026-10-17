@@ -17,9 +17,9 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
     setProcesando(true)
     setErrorCancelar('')
     try {
-      await cancelarActividad(token, pendiente.id)
+      const respuesta = await cancelarActividad(token, pendiente.id)
       setPendiente(null)
-      setExitoCancelar(`La actividad «${pendiente.nombre}» fue cancelada.`)
+      setExitoCancelar(respuesta.avisosError || `Actividad «${pendiente.nombre}» cancelada. ${respuesta.avisosGenerados ?? 0} notificación(es) registradas para inscritos.`)
       setRecarga((n) => n + 1)
     } catch (e) {
       if (e.estado === 401) onSesionExpirada(e.detalle)
@@ -46,14 +46,21 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
   }, [token, version, recarga, onSesionExpirada])
 
   const { cargando, error, actividades } = estado
+  const [filtro, setFiltro] = useState('todas')
+  const [consulta, setConsulta] = useState('')
+  const filtradas = actividades.filter((a) =>
+    (filtro === 'todas' || (filtro === 'canceladas' ? a.estado === 'cancelada' : a.estado !== 'cancelada')) &&
+    `${a.nombre} ${a.descripcion} ${a.ubicacion?.nombre || ''}`.toLocaleLowerCase('es').includes(consulta.toLocaleLowerCase('es').trim()),
+  )
 
   return (
     <section className="lista">
       {exitoCancelar && <p className="aviso aviso--ok" role="status">{exitoCancelar}</p>}
       <header className="lista__cabecera">
         <div>
+          <p className="eyebrow">PROGRAMACIÓN Y EVENTOS</p>
           <h1>Actividades</h1>
-          <p className="suave">{cargando ? 'Cargando…' : `${actividades.length} ${actividades.length === 1 ? 'actividad' : 'actividades'}`}</p>
+          <p className="suave">Organiza eventos, horarios, lugares y participantes.</p>
         </div>
         <div className="lista__acciones">
           <button
@@ -72,6 +79,19 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
         </div>
       </header>
 
+      <div className="metricas-actividad" aria-label="Resumen de actividades">
+        <div className="metrica"><span>Total de actividades</span><strong>{actividades.length}</strong><small>Eventos registrados</small></div>
+        <div className="metrica"><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles en el catálogo</small></div>
+        <div className="metrica"><span>Canceladas</span><strong>{actividades.filter((a) => a.estado === 'cancelada').length}</strong><small>Con historial preservado</small></div>
+      </div>
+      <div className="barra-filtros">
+        <label className="buscador barra-filtros__busca"><Icono nombre="buscar" tam={18} />
+          <input type="search" placeholder="Buscar actividad o lugar..." value={consulta} onChange={(e) => setConsulta(e.target.value)} aria-label="Buscar actividades" /></label>
+        <div className="pestanas" role="group" aria-label="Filtrar actividades">
+          {[['todas', 'Todas'], ['activas', 'Activas'], ['canceladas', 'Canceladas']].map(([id, nombre]) =>
+            <button type="button" key={id} className={filtro === id ? 'pestana pestana--activa' : 'pestana'} onClick={() => setFiltro(id)}>{nombre}</button>)}
+        </div>
+      </div>
       {error && (
         <p className="aviso aviso--error" role="alert">
           <Icono nombre="alerta" tam={18} /> {error}
@@ -85,9 +105,10 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
         </div>
       )}
 
-      {actividades.length > 0 && (
+      {!cargando && !error && actividades.length > 0 && filtradas.length === 0 && <p className="vacio">No hay actividades que coincidan con los filtros.</p>}
+      {filtradas.length > 0 && (
         <div className="tabla-envoltura">
-          <table className="tabla">
+          <table className="tabla tabla--actividades">
             <thead>
               <tr>
                 <th>Actividad</th>
@@ -99,7 +120,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
               </tr>
             </thead>
             <tbody>
-              {actividades.map((a) => (
+              {filtradas.map((a) => (
                 <tr key={a.id}>
                   <td>
                     <div className="celda-principal" title={a.descripcion}>
@@ -149,7 +170,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
           <div className="confirmacion-panel" role="alertdialog" aria-modal="true" aria-labelledby="titulo-cancelacion" aria-describedby="detalle-cancelacion">
             <div className="confirmacion-icono" aria-hidden="true">!</div>
             <h2 id="titulo-cancelacion">Cancelar actividad</h2>
-            <p id="detalle-cancelacion">¿Confirmas la cancelación de <strong>{pendiente.nombre}</strong>? La actividad quedará marcada como cancelada y se conservará el historial de inscripciones.</p>
+            <p id="detalle-cancelacion">¿Confirmas la cancelación de <strong>{pendiente.nombre}</strong>? Se conservará el historial y se registrará una notificación para cada inscrito activo. Esta acción no se puede deshacer desde el panel.</p>
             {errorCancelar && <p className="aviso aviso--error" role="alert">{errorCancelar}</p>}
             <div className="confirmacion-acciones">
               <button type="button" className="boton boton--claro" disabled={procesando} onClick={() => setPendiente(null)}>Volver</button>

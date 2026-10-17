@@ -69,11 +69,12 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
           onCancelar={() => setFormularioAbierto(false)}
           onCreada={(actividad) => {
             setFormularioAbierto(false)
-            setAviso(actividadEditando && actividad.cambioHorario
-              ? actividad.avisosError || (actividad.avisarInscritosSolicitado
-                  ? `Horario actualizado. ${actividad.avisosGenerados ?? 0} aviso(s) registrados para inscritos${actividad.destinatariosDetectados === 0 ? ' (sin inscripciones coincidentes en la colección)' : ''}.`
-                  : 'Horario actualizado sin generar avisos.')
-              : `Actividad «${actividad.nombre}» ${actividadEditando ? 'actualizada' : 'creada'}.`)
+            const huboCambios = Boolean(actividad.cambioHorario || actividad.cambioUbicacion)
+            setAviso(actividad.avisosError || (actividadEditando && huboCambios
+              ? (actividad.avisarInscritosSolicitado
+                  ? `Cambios guardados. ${actividad.avisosGenerados ?? 0} notificación(es) registradas para inscritos.`
+                  : 'Cambios guardados sin enviar notificaciones.')
+              : `Actividad «${actividad.nombre}» ${actividadEditando ? 'actualizada' : 'creada'}.`))
             setActividadEditando(null)
             setVersion((n) => n + 1)
           }}

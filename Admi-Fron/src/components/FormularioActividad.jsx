@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Icono from './Iconos'
 import ConfirmarAvisoHorario from './ConfirmarAvisoHorario'
 import { datosEdicionActividad } from '../services/datosEdicionActividad'
+import { hayCambioNotificable } from '../services/cambiosNotificables'
 import SelectorUbicacion from './SelectorUbicacion'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
 import { crearActividad, modificarActividad } from '../services/actividadesService'
@@ -44,9 +45,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
     evento.preventDefault()
     setError('')
     if (!f.revisar()) return
-    if (actividad && ['fecha', 'horaInicio', 'horaFin'].some(
-      (clave) => (actividad[clave] ?? '') !== (f.valores[clave] ?? ''),
-    )) {
+    if (hayCambioNotificable(actividad, f.valores)) {
       setConfirmandoHorario(true)
       return
     }
@@ -63,7 +62,11 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
   return (
     <div className="modal">
       <form className="modal__ventana modal__ventana--ancha" role="dialog" aria-modal="true" aria-labelledby="form-titulo" onSubmit={enviar} noValidate>
-        <h2 id="form-titulo">{actividad ? 'Editar actividad' : 'Nueva actividad'}</h2>
+        <div className="modal__cabecera"><div className="modal__distintivo"><Icono nombre="calendario" tam={21} /></div>
+          <div><p className="eyebrow">GESTIÓN DE ACTIVIDADES</p><h2 id="form-titulo">{actividad ? 'Editar actividad' : 'Nueva actividad'}</h2>
+            <p className="suave">Completa los detalles, lugar y horario del evento.</p></div>
+          <button type="button" className="detalle__cerrar" aria-label="Cerrar formulario" onClick={onCancelar} disabled={enviando}><Icono nombre="cerrar" /></button>
+        </div>
 
         <label className="campo">
           Nombre

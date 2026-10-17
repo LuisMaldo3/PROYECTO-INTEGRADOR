@@ -36,7 +36,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
     <section className="lista">
       <header className="lista__cabecera">
         <div>
-          <h1>Usuarios</h1>
+          <p className="eyebrow">GESTIÓN DE COMUNIDAD</p><h1>Usuarios</h1>
           <p className="suave">
             {estado.cargando ? 'Buscando usuarios…' : `${visibles.length} cuentas encontradas`}
           </p>
@@ -46,6 +46,11 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         </button>
       </header>
 
+      <div className="metricas-usuarios" aria-label="Resumen de cuentas">
+        <div className="metrica"><span>Resultados</span><strong>{visibles.length}</strong><small>En la vista actual</small></div>
+        <div className="metrica"><span>Organizadores</span><strong>{visibles.filter((u) => u.rol === 'organizador').length}</strong><small>Dentro de los resultados</small></div>
+        <div className="metrica"><span>Cuentas activas</span><strong>{visibles.filter((u) => u.activo !== false).length}</strong><small>Dentro de los resultados</small></div>
+      </div>
       <div className="filtros" role="search" aria-label="Buscar usuarios">
         <span className="filtros__titulo">Encuentra una cuenta por nombre o correo</span>
         <span className="buscador">
@@ -85,7 +90,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
 
       {!estado.cargando && visibles.length > 0 && (
         <div className="tabla-envoltura">
-          <table className="tabla">
+          <table className="tabla tabla--usuarios">
             <thead>
               <tr>
                 <th>Nombre</th>

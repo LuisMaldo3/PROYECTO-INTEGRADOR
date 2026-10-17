@@ -57,7 +57,12 @@ export default function App() {
         onCerrarSesion={salir}
       />
 
-      <main className="contenido">
+      <div className="panel__workspace">
+        <header className="panel__topbar">
+          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? 'Usuarios' : vista === 'actividades' ? 'Actividades' : 'Avisos'}</strong></div>
+          <div className="panel__topbar-derecha"><span className="panel__online"/> Panel de administración <span className="panel__topbar-avatar">{(sesion.usuario?.nombre || sesion.usuario?.correo || 'A').charAt(0).toUpperCase()}</span></div>
+        </header>
+        <main className="contenido">
         {vista === 'usuarios' && (
           <>
             <ListaUsuarios
@@ -80,7 +85,8 @@ export default function App() {
         )}
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

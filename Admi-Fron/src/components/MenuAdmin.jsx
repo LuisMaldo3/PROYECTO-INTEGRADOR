@@ -13,7 +13,9 @@ export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion })
     <aside className="menu">
       <div className="menu__marca">
         <Logo />
+        <span className="menu__badge">ADMIN</span>
       </div>
+      <p className="menu__seccion">ESPACIO DE TRABAJO</p>
 
       <nav className="menu__lista" aria-label="Menú de administración">
         {OPCIONES.map((op) => (
@@ -30,6 +32,7 @@ export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion })
       </nav>
 
       <div className="menu__pie">
+        <p className="menu__seccion">CUENTA ACTIVA</p>
         <div className="menu__persona">
           <span className="avatar" aria-hidden="true">
             {(usuario?.nombre ?? usuario?.correo ?? 'A').trim().charAt(0).toUpperCase()}
