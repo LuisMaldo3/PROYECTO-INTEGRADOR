@@ -1,0 +1,39 @@
+/* Disponibilidad: diseño coherente con la agenda azul de VYNK. */
+.horario-libre { display: grid; gap: 18px; color: #172b50; }
+.horario-libre__hero { display: flex; align-items: center; justify-content: space-between; gap: 20px; color: white; background: linear-gradient(120deg,#102553,#174e9c 64%,#1775cb); padding: 28px; border-radius: 20px; }
+.horario-libre__eyebrow { font-size: .73rem; color: #b5d7ff; font-weight: 900; letter-spacing: .12em; }
+.horario-libre__hero h2 { margin: 7px 0; color: white; font-size: clamp(1.5rem, 3vw, 2rem); }
+.horario-libre__hero p { color: #dce9fa; margin: 0; max-width: 590px; line-height: 1.55; }
+.horario-libre__icon { display: grid; place-items: center; background: #ffffff20; width: 75px; height: 75px; border-radius: 18px; }
+.horario-libre__pasos { display: flex; gap: 10px; flex-wrap: wrap; }
+.horario-libre__pasos span { background: #e8f0fc; color: #245493; padding: 9px 13px; border-radius: 999px; font-size: .8rem; font-weight: 750; }
+.horario-libre__tarjeta,.horario-libre__resultados { background: white; border: 1px solid #d9e4f5; border-radius: 18px; padding: 23px; }
+.horario-libre__cabecera { display: flex; flex-wrap: wrap; gap: 10px; align-items: start; justify-content: space-between; margin-bottom: 17px; }
+.horario-libre__cabecera h3 { font-size: 1.22rem; color: #102b59; margin: 0 0 4px; }
+.horario-libre__cabecera p { color: #64758f; margin: 0; font-size: .86rem; }
+.horario-libre__estado { border-radius: 100px; background: #fff1d8; color: #966100; padding: 7px 12px; font-size: .77rem; font-weight: 800; }
+.horario-libre__estado--ok { background: #e2f6e9; color: #137040; }
+.horario-libre__subir { position: relative; display: flex; align-items: center; flex-direction: column; justify-content: center; min-height: 135px; gap: 5px; background: #f4f8ff; border: 2px dashed #96b8ec; border-radius: 15px; color: #185aa6; cursor: pointer; margin-bottom: 16px; }
+.horario-libre__subir small { color: #627da1; }
+.horario-libre__subir input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.horario-libre__subir:focus-within { outline: 3px solid #84b7ff; outline-offset: 2px; }
+.horario-libre__subir--busy { opacity: .55; }
+.horario-libre__tabla { display: grid; gap: 7px; overflow-x: auto; }
+.horario-libre__fila-titulos,.horario-libre__fila { display: grid; grid-template-columns: minmax(110px,1fr) minmax(105px,1fr) minmax(105px,1fr) minmax(130px,2fr) 40px; gap: 9px; min-width: 570px; align-items: center; }
+.horario-libre__fila-titulos { color: #66809f; font-size: .75rem; font-weight: 850; }
+.horario-libre__fila input,.horario-libre__fila select { min-width: 0; padding: 9px 8px; border: 1px solid #dae4f2; border-radius: 9px; font: inherit; background: white; color: #14345d; }
+.horario-libre__fila button { border: 0; border-radius: 8px; font-size: 1.4rem; font-weight: 700; color: #9f3045; background: #fcecf0; cursor: pointer; }
+.horario-libre__acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; justify-content: space-between; }
+.horario-libre__guardar { padding: 11px 18px; border: 0; border-radius: 10px; background: #1255b4; font: inherit; color: white; font-weight: 800; cursor: pointer; }
+.horario-libre__guardar:disabled { opacity: .6; cursor: wait; }
+.horario-libre__vacio,.horario-libre__nota { font-size: .85rem; color: #71809a; }
+.horario-libre__error { color: #ac2535; background: #fff1f3; padding: 12px; border-radius: 9px; }
+.horario-libre__advertencia { color: #805c08; background: #fff6df; padding: 9px 12px; border-radius: 9px; }
+.horario-libre__origen { font-size: .84rem; color: #576d8c; }
+.horario-libre__grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(255px,1fr)); gap: 12px; margin: 15px 0; }
+.horario-libre__sugerencia { display: flex; gap: 12px; border: 1px solid #dfebf9; border-radius: 13px; background: #f9fbff; padding: 14px; }
+.horario-libre__sugerencia-icon { background: #e4efff; color: #135bbd; border-radius: 11px; padding: 10px; height: fit-content; }
+.horario-libre__sugerencia strong { display: block; margin-bottom: 6px; }
+.horario-libre__sugerencia small,.horario-libre__sugerencia span { display: block; font-size: .8rem; color: #566d90; margin-top: 3px; }
+.horario-libre__sugerencia p { color: #27528b; line-height: 1.5; font-size: .85rem; }
+@media(max-width: 640px) { .horario-libre__hero { padding: 20px; } .horario-libre__icon { display: none; } .horario-libre__tarjeta,.horario-libre__resultados { padding: 16px; } .horario-libre__pasos span { font-size: .71rem; } }

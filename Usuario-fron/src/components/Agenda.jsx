@@ -8,6 +8,7 @@ import { agruparPorDia, bloqueDia, cantidad, estiloCategoria, hoyISO, nombreDia 
 import { AvisoCruces } from './AvisoCruces'
 import EstadoPantalla from './EstadoPantalla'
 import Icono from './Iconos'
+import HorarioLibre from './HorarioLibre'
 import './Actividades.css'
 import './Agenda.css'
 
@@ -106,6 +107,17 @@ export function Agenda() {
   const visibles = useMemo(() => actividades.filter((a) => a.fecha && (filtro !== 'proximas' || a.fecha >= hoy)), [actividades, filtro, hoy])
   const grupos = useMemo(() => agruparPorDia(visibles), [visibles])
 
+  if (vista === 'libres') {
+    return <div className="agenda">
+      <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
+        <button type="button" aria-pressed="false" onClick={() => setVista('inscritas')}>Mi agenda</button>
+        <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+        <button type="button" aria-pressed="true">Mis horas libres</button>
+      </div>
+      <HorarioLibre />
+    </div>
+  }
+
   if (vista === 'sugerida') {
     const lista = sugerida.actividades || []
     const gruposSugeridos = agruparPorDia(lista.filter((a) => a.fecha))
@@ -114,6 +126,7 @@ export function Agenda() {
         <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
           <button type="button" aria-pressed="false" onClick={() => setVista('inscritas')}>Mi agenda</button>
           <button type="button" aria-pressed="true">✦ Agenda sugerida</button>
+          <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
         </div>
         <div className="agenda-sugerida__hero">
           <div><span className="agenda-sugerida__eyebrow">PLAN PERSONALIZADO</span>
@@ -155,6 +168,7 @@ export function Agenda() {
         <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
           <button type="button" aria-pressed="true">Mi agenda</button>
           <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+          <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
         </div>
       <EstadoPantalla
         icono="alerta"
@@ -176,6 +190,7 @@ export function Agenda() {
       <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
         <button type="button" aria-pressed="true">Mi agenda</button>
         <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+        <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
       </div>
       <div className="lista-barra">
         <p>{cargando ? 'Cargando tu agenda…' : cantidad(actividades.length, 'actividad inscrita', 'actividades inscritas')}</p>
