@@ -46,6 +46,7 @@ private val GrisTexto = Color(0xFF6B7A99)
 
 private const val RUTA_RECOMENDACIONES = "recomendaciones"
 private const val RUTA_AGENDA_SUGERIDA = "agenda-sugerida"
+private const val RUTA_HORAS_LIBRES = "horas-libres"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +164,7 @@ fun MainScreen(onLogout: () -> Unit) {
             composable(Destino.AGENDA.ruta) {
                 AgendaScreen(onVerSugerida = {
                     navMenu.navigate(RUTA_AGENDA_SUGERIDA) { launchSingleTop = true }
-                })
+                }, onVerHuecos = { navMenu.navigate(RUTA_HORAS_LIBRES) { launchSingleTop = true } })
             }
 
             composable(Destino.ASISTENTE.ruta) {
@@ -200,6 +201,10 @@ fun MainScreen(onLogout: () -> Unit) {
                 )
             }
 
+            composable(RUTA_HORAS_LIBRES) {
+                HorarioLibreScreen(onVolver = { navMenu.popBackStack() })
+            }
+
             composable(RUTA_AGENDA_SUGERIDA) {
                 AgendaSugeridaScreen(onVolver = { navMenu.popBackStack() })
             }
@@ -226,7 +231,7 @@ private fun BarraInferior(
                         (
                                 destino == Destino.PERFIL &&
                                         rutaActual == RUTA_INTERESES
-                                ) || (destino == Destino.AGENDA && rutaActual == RUTA_AGENDA_SUGERIDA),
+                                ) || (destino == Destino.AGENDA && (rutaActual == RUTA_AGENDA_SUGERIDA || rutaActual == RUTA_HORAS_LIBRES)),
                 onClick = {
                     onIr(destino)
                 },
