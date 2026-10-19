@@ -41,3 +41,13 @@
   .v-chat-composer button { min-width:92px; padding:9px; min-height:54px; }
 }
 @media(max-width:400px) { .v-chat-composer button { min-width:48px; font-size:0; gap:0; }.v-chat-composer button svg { width:21px; } }
+
+/* Tarjetas de lugares publicados en el catálogo de Tecsup */
+.v-chat-lugares { display:grid; gap:9px; margin-top:8px; width:100%; }
+.v-chat-lugar { display:flex; gap:11px; padding:13px; background:#f4f9ff; border:1px solid #d8e7fb; border-radius:14px; }
+.v-chat-lugar__icono { display:grid; place-items:center; flex:0 0 33px; width:33px; height:33px; border-radius:11px; background:#dcecff; color:#0b5cc4; font-size:22px; font-weight:800; }
+.v-chat-lugar__detalle { display:flex; flex-direction:column; gap:5px; min-width:0; overflow-wrap:anywhere; color:#28476d; font-size:12px; }
+.v-chat-lugar__detalle strong { color:#102e59; font-size:13px; }
+.v-chat-lugar__detalle b { color:#064ca6; font-size:14px; }
+.v-chat-lugar__estado { align-self:flex-start; color:#92592a; font-weight:750; font-size:10px; }
+.v-chat-lugar__estado--ok { color:#18705b; }

@@ -18,3 +18,14 @@ test('Chat: historial aislado por cuenta, sin credenciales', () => {
   assert.deepEqual(leerHistorial('ana@tecsup.edu.pe'), [])
   delete globalThis.localStorage
 })
+
+test('Asistente: conserva las tarjetas de ubicación al reabrir el historial', async () => {
+  const { guardarHistorial, leerHistorial } = await import('./historialAsistente.js')
+  const previo = globalThis.localStorage
+  const contenido = new Map()
+  globalThis.localStorage = { setItem: (k,v) => contenido.set(k,v), getItem: k => contenido.get(k) ?? null }
+  try {
+    guardarHistorial('alumno@tecsup.edu.pe', [{ rol: 'asistente', contenido: 'El lugar es el auditorio', ubicaciones: [{ actividadId: '1', lugar: 'Auditorio' }] }])
+    assert.equal(leerHistorial('alumno@tecsup.edu.pe')[0].ubicaciones[0].lugar, 'Auditorio')
+  } finally { globalThis.localStorage = previo }
+})

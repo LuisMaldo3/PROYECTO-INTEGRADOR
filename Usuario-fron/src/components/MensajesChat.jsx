@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { normalizarUbicaciones } from '../services/asistenteService'
 import './MensajesChat.css'
 
 function Burbuja({ mensaje }) {
@@ -8,6 +9,20 @@ function Burbuja({ mensaje }) {
     <div className="v-chat-msg__content">
       <span className="v-chat-autor">{usuario ? 'Tú' : 'VYNK · Asistente de horarios'}</span>
       <p>{mensaje.contenido}</p>
+      {!usuario && normalizarUbicaciones(mensaje.ubicaciones).length > 0 && <div className="v-chat-lugares" aria-label="Ubicaciones de actividades">
+        {normalizarUbicaciones(mensaje.ubicaciones).map((lugar, i) => <div key={`${lugar.actividadId}-${i}`} className="v-chat-lugar">
+          <div className="v-chat-lugar__icono" aria-hidden="true">⌖</div>
+          <div className="v-chat-lugar__detalle">
+            <strong>{lugar.nombre || 'Actividad publicada'}</strong>
+            <span className={`v-chat-lugar__estado${lugar.confirmada ? ' v-chat-lugar__estado--ok' : ''}`}>{lugar.confirmada ? 'Lugar registrado por administración' : 'Ubicación por confirmar'}</span>
+            <b>{lugar.lugar}</b>
+            {(lugar.sede || lugar.pabellon || lugar.aula) && <span>{[lugar.sede, lugar.pabellon, lugar.aula].filter(Boolean).join(' · ')}</span>}
+            {lugar.direccion && <span>Dirección: {lugar.direccion}</span>}
+            {lugar.referencia && <span>Referencia: {lugar.referencia}</span>}
+            {lugar.fecha && <span>Fecha: {lugar.fecha}{lugar.horaInicio ? ` · ${lugar.horaInicio}` : ''}</span>}
+          </div>
+        </div>)}
+      </div>}
       {!usuario && mensaje.origen && <small>{mensaje.origen === 'gemini' ? '✦ Selección con Gemini · horarios verificados' : '✓ Información del cronograma real'}{mensaje.aviso ? ` · ${mensaje.aviso}` : ''}</small>}
     </div>
     {usuario && <div className="v-chat-avatar v-chat-avatar--user" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>}

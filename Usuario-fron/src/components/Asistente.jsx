@@ -11,14 +11,16 @@ const EJEMPLOS = [
   { texto: '¿Qué horarios hay hoy?', icono: 'reloj' },
   { texto: '¿Qué actividades hay mañana?', icono: 'calendario' },
   { texto: '¿A qué hora empieza una actividad?', icono: 'pregunta' },
+  { texto: '¿Dónde se realizará una actividad?', icono: 'ubicacion' },
 ]
-const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas y horarios de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
+const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas, horarios y ubicaciones de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
 
 /** Iconografía propia, ligera: no requiere instalar bibliotecas. */
 function Icono({ nombre, tamaño = 21 }) {
   const comun = { width: tamaño, height: tamaño, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
   switch (nombre) {
     case 'calendario': return <svg {...comun}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+    case 'ubicacion': return <svg {...comun}><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
     case 'reloj': return <svg {...comun}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
     case 'pregunta': return <svg {...comun}><path d="M20 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.6-4.6A8.5 8.5 0 1 1 20 11.5Z"/><path d="M9.5 9a2.7 2.7 0 1 1 4.2 2.3c-.9.6-1.7 1.1-1.7 2.2M12 16.5h.01"/></svg>
     case 'conexion': return <svg {...comun}><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1"/></svg>
@@ -71,7 +73,7 @@ export function Asistente() {
     const reloj = setTimeout(() => controller.abort(), 28000)
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, historial: anteriores, token, signal: controller.signal })
-      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso }])
+      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [] }])
       setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
     } catch (e) {
       if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }

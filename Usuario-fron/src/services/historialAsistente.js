@@ -11,7 +11,7 @@ export function leerHistorial(correo) {
 export function guardarHistorial(correo, mensajes) {
   if (!correo || typeof localStorage === 'undefined') return
   try {
-    localStorage.setItem(claveHistorial(correo), JSON.stringify(mensajes.slice(-30).map(m => ({ rol: m.rol, contenido: m.contenido, origen: m.origen || '', aviso: m.aviso || '' }))))
+    localStorage.setItem(claveHistorial(correo), JSON.stringify(mensajes.slice(-30).map(m => ({ rol: m.rol, contenido: m.contenido, origen: m.origen || '', aviso: m.aviso || '', ubicaciones: Array.isArray(m.ubicaciones) ? m.ubicaciones.slice(0, 7) : [] }))))
   } catch { /* la app funciona aun si el navegador bloquea almacenamiento */ }
 }
 export function borrarHistorial(correo) {

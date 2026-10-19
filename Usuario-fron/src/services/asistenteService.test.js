@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { preguntarAsistente } from './asistenteService.js'
+import { normalizarUbicaciones, preguntarAsistente } from './asistenteService.js'
 
 const anterior = globalThis.fetch
 
@@ -25,4 +25,20 @@ test('Asistente: 404 informa que falta instalar el backend', async () => {
 
 test('Asistente: no envía una pregunta vacía', async () => {
   await assert.rejects(preguntarAsistente({ token: 't', mensaje: '   ' }), /hasta 600 caracteres/)
+})
+
+test('Asistente: presenta la ubicación publicada y reconoce ubicación por confirmar', () => {
+  const lugares = normalizarUbicaciones([
+    { actividadId: 'a1', nombre: 'Robótica', lugar: 'Auditorio Tecsup', aula: 'A-201', confirmada: true },
+    { actividadId: 'a2', nombre: 'Taller', lugar: 'Ubicación por confirmar', confirmada: false },
+  ])
+  assert.equal(lugares[0].aula, 'A-201')
+  assert.equal(lugares[0].confirmada, true)
+  assert.equal(lugares[1].confirmada, false)
+})
+
+test('Asistente: descarta datos de ubicación malformados y acota el tamaño', () => {
+  assert.deepEqual(normalizarUbicaciones(null), [])
+  assert.equal(normalizarUbicaciones([{ nombre: 'X'.repeat(500) }, null]).length, 1)
+  assert.equal(normalizarUbicaciones([{ nombre: 'X'.repeat(500) }])[0].nombre.length, 300)
 })

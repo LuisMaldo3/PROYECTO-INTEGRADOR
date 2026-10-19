@@ -27,3 +27,17 @@ export async function preguntarAsistente({ mensaje, historial = [], token, signa
   if (!datos || typeof datos.respuesta !== 'string') throw new Error('El backend devolvió una respuesta inválida.')
   return datos
 }
+
+/** Datos estructurados que proceden del backend; sin enlaces geográficos no verificados. */
+export function normalizarUbicaciones(datos) {
+  if (!Array.isArray(datos)) return []
+  const texto = valor => typeof valor === 'string' ? valor.trim().slice(0, 300) : ''
+  return datos.slice(0, 7).filter(item => item && typeof item === 'object').map(item => ({
+    actividadId: texto(item.actividadId), nombre: texto(item.nombre),
+    fecha: texto(item.fecha), horaInicio: texto(item.horaInicio),
+    lugar: texto(item.lugar) || 'Ubicación por confirmar',
+    sede: texto(item.sede), pabellon: texto(item.pabellon), aula: texto(item.aula),
+    direccion: texto(item.direccion), referencia: texto(item.referencia),
+    confirmada: item.confirmada === true,
+  }))
+}
