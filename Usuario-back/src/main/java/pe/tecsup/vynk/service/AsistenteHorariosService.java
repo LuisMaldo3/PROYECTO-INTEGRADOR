@@ -30,20 +30,30 @@ import pe.tecsup.vynk.controller.CatalogoController;
 @Service
 public class AsistenteHorariosService {
     private static final Pattern FECHA = Pattern.compile("\\b(20\\d{2}-\\d{2}-\\d{2})\\b");
-    private static final Set<String> OMITIR = Set.of("que", "cual", "cuales", "cuando", "donde", "hora", "horas", "horario", "horarios", "hay", "actividad", "actividades", "del", "las", "los", "una", "uno", "para", "por", "con", "quiero", "saber", "dime", "muestra", "ver", "tienen", "tiene", "empieza", "termina", "inicio", "fin", "puedo", "asistir", "sobre", "evento", "semana", "week", "tecsup", "vynk", "hoy", "manana", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo", "esta", "este", "dia", "fecha", "gracias", "hola", "buenas", "dias", "tarde", "noches", "proximas", "proximos", "disponibles", "programadas", "programados", "estan", "todas", "todos", "a", "de", "en", "el", "la", "y", "es", "se", "al", "un", "mi", "me", "su");
+    private static final Pattern UBICACION = Pattern.compile("\\b(donde|ubicacion(?:es)?|lugar(?:es)?|aula|salon|pabellon|edificio|sede|direccion|ubicad[oa]|como llego)\\b");
+    private static final Set<String> OMITIR = Set.of("que", "cual", "cuales", "cuando", "donde", "dónde", "ubicacion", "ubicaciones", "lugar", "lugares", "sede", "aula", "salon", "pabellon", "edificio", "direccion", "ubicado", "ubicada", "realiza", "realizara", "sera", "encuentra", "queda", "llego", "ir", "hacer", "hacerme", "exacta", "exacto", "hora", "horas", "horario", "horarios", "hay", "actividad", "actividades", "del", "las", "los", "una", "uno", "para", "por", "con", "quiero", "saber", "dime", "muestra", "ver", "tienen", "tiene", "empieza", "termina", "inicio", "fin", "puedo", "asistir", "sobre", "evento", "semana", "week", "tecsup", "vynk", "hoy", "manana", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo", "esta", "este", "dia", "fecha", "gracias", "hola", "buenas", "dias", "tarde", "noches", "proximas", "proximos", "disponibles", "programadas", "programados", "estan", "todas", "todos", "a", "de", "en", "el", "la", "y", "es", "se", "al", "un", "mi", "me", "su");
     private final CatalogoController catalogo;
     private final ObjectMapper json;
+    private final UbicacionesActividadesService ubicaciones;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     @Value("${GEMINI_API_KEY:}") private String clave;
     @Value("${GEMINI_MODEL:gemini-2.5-flash}") private String modelo;
 
-    public AsistenteHorariosService(CatalogoController catalogo, ObjectMapper json) {
+    public AsistenteHorariosService(CatalogoController catalogo, ObjectMapper json, UbicacionesActividadesService ubicaciones) {
         this.catalogo = catalogo;
         this.json = json;
+        this.ubicaciones = ubicaciones;
     }
 
     public record Mensaje(String rol, String contenido) {}
-    public record Respuesta(String respuesta, String origen, String aviso, List<Map<String, Object>> actividades) {}
+    public record Respuesta(String respuesta, String origen, String aviso,
+                            List<Map<String, Object>> actividades, List<Map<String, Object>> ubicaciones) {}
+
+    /** Reconocimiento determinista de preguntas en lenguaje natural, incluso cuando Gemini no responde. */
+    static boolean preguntaUbicacion(String pregunta) {
+        String q = limpiar(pregunta == null ? "" : pregunta);
+        return UBICACION.matcher(q).find() || q.contains("en que ambiente") || q.contains("donde sera");
+    }
 
     public Respuesta responder(String pregunta, List<Mensaje> historial) {
         String texto = pregunta == null ? "" : pregunta.trim();
@@ -53,19 +63,21 @@ public class AsistenteHorariosService {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> disponibles = (List<Map<String, Object>>) catalogo.listar().get("actividades");
         if (disponibles == null || disponibles.isEmpty()) {
-            return new Respuesta("Aún no hay actividades programadas y publicadas por administración. Cuando se publiquen, podré consultar sus horarios aquí.", "catalogo", "No hay actividades publicadas.", List.of());
+            return new Respuesta("Aún no hay actividades programadas y publicadas por administración. Cuando se publiquen, podré consultar sus horarios aquí.", "catalogo", "No hay actividades publicadas.", List.of(), List.of());
         }
+        boolean consultarLugar = preguntaUbicacion(texto);
         List<Map<String, Object>> filtradas = filtrar(texto, disponibles);
         if (filtradas.isEmpty()) {
-            return new Respuesta("No encontré actividades publicadas que coincidan con tu consulta. Prueba con otro nombre, una fecha (AAAA-MM-DD) o pregunta «¿Qué actividades hay?». No voy a inventar horarios.", "catalogo", "Sin coincidencias en el cronograma real.", List.of());
+            return new Respuesta("No encontré actividades publicadas que coincidan con tu consulta. Prueba con otro nombre, una fecha (AAAA-MM-DD) o pregunta «¿Qué actividades hay?». No voy a inventar horarios.", "catalogo", "Sin coincidencias en el cronograma real.", List.of(), List.of());
         }
         List<Map<String, Object>> elegidas = filtradas.stream().limit(7).toList();
+        List<Map<String, Object>> lugaresCandidatos = consultarLugar ? ubicaciones.resolver(elegidas) : List.of();
         String origen = "catalogo";
         String aviso = "Horarios consultados en el catálogo publicado por administración.";
         // Gemini solo selecciona identificadores. Fechas, horas y nombres siempre se forman con datos reales.
         if (clave != null && !clave.isBlank()) {
             try {
-                List<String> ids = elegirConGemini(texto, historial, elegidas);
+                List<String> ids = elegirConGemini(texto, historial, elegidas, lugaresCandidatos);
                 if (!ids.isEmpty()) {
                     Map<String, Map<String, Object>> porId = new LinkedHashMap<>();
                     elegidas.forEach(a -> porId.put(String.valueOf(a.get("id")), a));
@@ -78,8 +90,15 @@ public class AsistenteHorariosService {
         } else {
             aviso = "Respuesta basada en el cronograma real (Gemini no está configurado).";
         }
-        StringBuilder respuesta = new StringBuilder(elegidas.size() == 1 ? "Encontré esta actividad publicada:" : "Estas son las actividades del cronograma que encontré:");
-        for (Map<String, Object> a : elegidas) {
+        Map<String, Map<String, Object>> lugarPorId = new LinkedHashMap<>();
+        lugaresCandidatos.forEach(l -> lugarPorId.put(valor(l, "actividadId", ""), l));
+        List<Map<String, Object>> lugares = consultarLugar ? elegidas.stream()
+                .map(a -> lugarPorId.get(valor(a, "id", ""))).filter(l -> l != null).toList() : List.of();
+        StringBuilder respuesta = new StringBuilder(consultarLugar
+                ? (elegidas.size() == 1 ? "Esta es la ubicación registrada para la actividad:" : "Estas son las ubicaciones registradas para las actividades:")
+                : (elegidas.size() == 1 ? "Encontré esta actividad publicada:" : "Estas son las actividades del cronograma que encontré:"));
+        for (int i = 0; i < elegidas.size(); i++) {
+            Map<String, Object> a = elegidas.get(i);
             respuesta.append("\n\n• ").append(valor(a, "nombre", "Actividad"));
             respuesta.append("\n  Fecha: ").append(valor(a, "fecha", "Por confirmar"));
             respuesta.append(" · Horario: ").append(valor(a, "horaInicio", "Por confirmar"));
@@ -87,9 +106,20 @@ public class AsistenteHorariosService {
             if (!fin.isBlank()) respuesta.append(" – ").append(fin);
             String organizador = valor(a, "organizador", "");
             if (!organizador.isBlank()) respuesta.append("\n  Organiza: ").append(organizador);
+            if (consultarLugar) {
+                Map<String, Object> lugar = lugares.get(i);
+                respuesta.append("\n  Lugar: ").append(valor(lugar, "lugar", "Ubicación por confirmar"));
+                for (String campo : List.of("sede", "pabellon", "aula", "direccion", "referencia")) {
+                    String valor = valor(lugar, campo, "");
+                    if (!valor.isBlank()) respuesta.append("\n  ").append(etiqueta(campo)).append(": ").append(valor);
+                }
+                if (Boolean.FALSE.equals(lugar.get("confirmada"))) {
+                    respuesta.append("\n  Administración aún no registró el lugar. Consulta al organizador antes de ir.");
+                }
+            }
         }
         if (filtradas.size() > elegidas.size()) respuesta.append("\n\nHay más resultados. Indica una fecha o el nombre de la actividad para precisar la búsqueda.");
-        return new Respuesta(respuesta.toString(), origen, aviso, elegidas);
+        return new Respuesta(respuesta.toString(), origen, aviso, elegidas, lugares);
     }
 
     private List<Map<String, Object>> filtrar(String pregunta, List<Map<String, Object>> todas) {
@@ -127,7 +157,8 @@ public class AsistenteHorariosService {
                 .limit(45).toList();
     }
 
-    private List<String> elegirConGemini(String pregunta, List<Mensaje> historial, List<Map<String, Object>> actividades) throws Exception {
+    private List<String> elegirConGemini(String pregunta, List<Mensaje> historial, List<Map<String, Object>> actividades,
+                                          List<Map<String, Object>> ubicacionesVerificadas) throws Exception {
         List<Map<String, Object>> resumen = new ArrayList<>();
         for (Map<String, Object> a : actividades) resumen.add(Map.of(
                 "id", valor(a, "id", ""), "nombre", valor(a, "nombre", ""),
@@ -140,7 +171,9 @@ public class AsistenteHorariosService {
                 + "Responde exclusivamente JSON {\"ids\":[\"id existente\"]}. "
                 + "Historial: " + json.writeValueAsString(contexto)
                 + ". Pregunta actual: " + json.writeValueAsString(pregunta)
-                + ". Actividades autorizadas: " + json.writeValueAsString(resumen);
+                + ". Actividades autorizadas: " + json.writeValueAsString(resumen)
+                + ". Ubicaciones publicadas (si hay): " + json.writeValueAsString(ubicacionesVerificadas)
+                + ". Nunca inventes nombres de sedes, pabellones, aulas, direcciones ni lugares.";
         String payload = json.writeValueAsString(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.1)));
         String nombreModelo = modelo.matches("[A-Za-z0-9._-]+") ? modelo : "gemini-2.5-flash";
@@ -163,6 +196,17 @@ public class AsistenteHorariosService {
             if (seleccion.size() == 7) break;
         }
         return seleccion;
+    }
+
+    private static String etiqueta(String campo) {
+        return switch (campo) {
+            case "sede" -> "Sede";
+            case "pabellon" -> "Pabellón/edificio";
+            case "aula" -> "Aula/ambiente";
+            case "direccion" -> "Dirección";
+            case "referencia" -> "Referencia";
+            default -> campo;
+        };
     }
 
     private static String valor(Map<String, Object> obj, String clave, String siFalta) {
