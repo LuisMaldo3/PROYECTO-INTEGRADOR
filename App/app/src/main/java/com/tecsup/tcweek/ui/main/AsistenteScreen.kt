@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,13 +29,14 @@ import com.tecsup.tcweek.data.AsistenteApi
 import com.tecsup.tcweek.data.HistorialAsistente
 import com.tecsup.tcweek.data.MensajeAsistente
 import com.tecsup.tcweek.data.SesionGuardada
+import com.tecsup.tcweek.data.UbicacionAsistente
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 private val AzulChat = Color(0xFF1765D8)
 private val MarinoChat = Color(0xFF0B2857)
 private val FondoChat = Color(0xFFF3F7FD)
-private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué horarios hay hoy?", "¿Qué hay mañana?")
+private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué horarios hay hoy?", "¿Qué hay mañana?", "¿Dónde se realizará una actividad?")
 
 /** Jordi: chat conectado al servicio, historial por usuario y estados reales de carga/error. */
 @Composable
@@ -68,7 +70,7 @@ fun AsistenteScreen() {
         scope.launch {
             try {
                 val respuesta = AsistenteApi.preguntar(token, consulta, previos)
-                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso))
+                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones))
                 historial.guardar(mensajes)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { error = e.message ?: "No se pudo obtener la respuesta." }
@@ -96,7 +98,7 @@ fun AsistenteScreen() {
                 Text("VYNK  ·  ASISTENTE DE HORARIOS", style = MaterialTheme.typography.labelMedium, color = Color(0xFFA8D2FF), fontWeight = FontWeight.Bold)
             }
             Text("Tu semana, más clara.", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.ExtraBold)
-            Text("Pregunta por actividades y horarios publicados. Sin datos inventados.", color = Color(0xFFD6E9FF), style = MaterialTheme.typography.bodyMedium)
+            Text("Consulta actividades, horarios y lugares publicados por Tecsup.", color = Color(0xFFD6E9FF), style = MaterialTheme.typography.bodyMedium)
         }
         Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(color = Color(0xFFEAF3FF), shape = RoundedCornerShape(12.dp)) {
@@ -120,7 +122,7 @@ fun AsistenteScreen() {
         ) {
             if (mensajes.isEmpty()) {
                 item {
-                    BurbujaAsistente(MensajeAsistente("asistente", "¡Hola! Soy VYNK. Puedo consultar los horarios de las actividades publicadas. ¿Qué te gustaría saber?"))
+                    BurbujaAsistente(MensajeAsistente("asistente", "¡Hola! Soy VYNK. Puedo consultar los horarios y ubicaciones de las actividades publicadas. ¿Qué te gustaría saber?"))
                     Spacer(Modifier.height(20.dp))
                     Text("PREGUNTAS RÁPIDAS", color = Color(0xFF6683AA), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(9.dp))
@@ -141,7 +143,7 @@ fun AsistenteScreen() {
             if (cargando) item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp, color = AzulChat)
-                    Text("Buscando horarios reales…", color = Color(0xFF5E7696), style = MaterialTheme.typography.bodySmall)
+                    Text("Consultando el catálogo de Tecsup…", color = Color(0xFF5E7696), style = MaterialTheme.typography.bodySmall)
                 }
             }
             if (error != null) item {
@@ -156,7 +158,7 @@ fun AsistenteScreen() {
                     value = borrador,
                     onValueChange = { if (it.length <= 600) borrador = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Pregunta por un horario…", style = MaterialTheme.typography.bodyMedium) },
+                    placeholder = { Text("Pregunta por horarios o ubicaciones…", style = MaterialTheme.typography.bodyMedium) },
                     maxLines = 4,
                     shape = RoundedCornerShape(17.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -191,8 +193,45 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
             Surface(color = if (esUsuario) AzulChat else Color.White, shape = RoundedCornerShape(18.dp), shadowElevation = if (esUsuario) 0.dp else 1.dp) {
                 Text(mensaje.contenido, color = if (esUsuario) Color.White else MarinoChat, modifier = Modifier.padding(15.dp), style = MaterialTheme.typography.bodyMedium)
             }
+            if (!esUsuario && mensaje.ubicaciones.isNotEmpty()) {
+                Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    mensaje.ubicaciones.take(7).forEach { lugar -> TarjetaUbicacionAsistente(lugar) }
+                }
+            }
             if (!esUsuario && mensaje.origen.isNotBlank()) {
                 Text(if (mensaje.origen == "gemini") "✦ Gemini · datos verificados" else "✓ Cronograma publicado", color = Color(0xFF567291), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 7.dp))
+            }
+        }
+    }
+}
+
+/** La tarjeta muestra únicamente datos procedentes de la actividad publicada. */
+@Composable
+private fun TarjetaUbicacionAsistente(lugar: UbicacionAsistente) {
+    OutlinedCard(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF3F8FF)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(color = Color(0xFFE0EDFF), shape = RoundedCornerShape(10.dp)) {
+                Icon(Icons.Filled.Place, contentDescription = null, tint = AzulChat,
+                    modifier = Modifier.padding(8.dp).size(21.dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(lugar.nombre.ifBlank { "Actividad publicada" }, color = MarinoChat,
+                    fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                Text(if (lugar.confirmada) "Ubicación registrada" else "Ubicación por confirmar",
+                    color = if (lugar.confirmada) Color(0xFF18705B) else Color(0xFF92592A),
+                    style = MaterialTheme.typography.labelSmall)
+                Text(lugar.lugar, color = AzulChat, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium)
+                lugar.detalles().forEach { detalle ->
+                    Text(detalle, color = Color(0xFF526A89), style = MaterialTheme.typography.bodySmall)
+                }
+                if (lugar.fecha.isNotBlank()) Text(
+                    lugar.fecha + if (lugar.horaInicio.isNotBlank()) " · ${lugar.horaInicio}" else "",
+                    color = Color(0xFF526A89), style = MaterialTheme.typography.labelSmall)
             }
         }
     }

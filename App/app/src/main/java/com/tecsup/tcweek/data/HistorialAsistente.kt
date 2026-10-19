@@ -15,7 +15,8 @@ class HistorialAsistente(context: Context, correo: String) {
             val v = json.optJSONObject(n) ?: return@mapNotNull null
             val rol = v.optString("rol")
             if (rol != "usuario" && rol != "asistente") return@mapNotNull null
-            MensajeAsistente(rol, v.optString("contenido"), v.optString("origen"), v.optString("aviso"))
+            MensajeAsistente(rol, v.optString("contenido"), v.optString("origen"), v.optString("aviso"),
+                leerUbicaciones(v.optJSONArray("ubicaciones")))
         }.takeLast(30)
     } catch (_: Exception) { emptyList() }
 
@@ -23,7 +24,16 @@ class HistorialAsistente(context: Context, correo: String) {
         val array = JSONArray()
         mensajes.takeLast(30).forEach { m ->
             array.put(JSONObject().put("rol", m.rol).put("contenido", m.contenido)
-                .put("origen", m.origen).put("aviso", m.aviso))
+                .put("origen", m.origen).put("aviso", m.aviso)
+                .put("ubicaciones", JSONArray().apply {
+                    m.ubicaciones.take(7).forEach { u ->
+                        put(JSONObject().put("actividadId", u.actividadId).put("nombre", u.nombre)
+                            .put("fecha", u.fecha).put("horaInicio", u.horaInicio)
+                            .put("lugar", u.lugar).put("sede", u.sede).put("pabellon", u.pabellon)
+                            .put("aula", u.aula).put("direccion", u.direccion)
+                            .put("referencia", u.referencia).put("confirmada", u.confirmada))
+                    }
+                }))
         }
         prefs.edit().putString(clave, array.toString()).apply()
     }

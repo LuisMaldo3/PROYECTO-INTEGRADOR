@@ -13,10 +13,11 @@ data class MensajeAsistente(
     val rol: String,
     val contenido: String,
     val origen: String = "",
-    val aviso: String = ""
+    val aviso: String = "",
+    val ubicaciones: List<UbicacionAsistente> = emptyList()
 )
 
-data class RespuestaAsistente(val respuesta: String, val origen: String, val aviso: String)
+data class RespuestaAsistente(val respuesta: String, val origen: String, val aviso: String, val ubicaciones: List<UbicacionAsistente> = emptyList())
 
 /** Jordi: consume /api/asistente/preguntar con la misma sesión JWT de VYNK. */
 object AsistenteApi {
@@ -70,7 +71,8 @@ object AsistenteApi {
             val respuesta = JSONObject(conexion.inputStream.bufferedReader().use { it.readText() })
             val texto = respuesta.optString("respuesta", "").trim()
             if (texto.isEmpty()) throw IllegalStateException("El backend envió una respuesta vacía.")
-            RespuestaAsistente(texto, respuesta.optString("origen", "catalogo"), respuesta.optString("aviso", ""))
+            RespuestaAsistente(texto, respuesta.optString("origen", "catalogo"), respuesta.optString("aviso", ""),
+                leerUbicaciones(respuesta.optJSONArray("ubicaciones")))
         } catch (e: SocketTimeoutException) {
             throw IllegalStateException("El servidor tardó demasiado. Comprueba Spring Boot y MongoDB.", e)
         } catch (e: java.net.ConnectException) {
@@ -80,5 +82,21 @@ object AsistenteApi {
         } finally {
             conexion.disconnect()
         }
+    }
+}
+
+/** Lee el contrato público del backend; las respuestas de versiones anteriores siguen funcionando. */
+internal fun leerUbicaciones(array: JSONArray?): List<UbicacionAsistente> {
+    if (array == null) return emptyList()
+    return (0 until minOf(array.length(), 7)).mapNotNull { indice ->
+        val dato = array.optJSONObject(indice) ?: return@mapNotNull null
+        UbicacionAsistente(
+            actividadId = dato.optString("actividadId"), nombre = dato.optString("nombre"),
+            fecha = dato.optString("fecha"), horaInicio = dato.optString("horaInicio"),
+            lugar = dato.optString("lugar").takeIf { it.isNotBlank() && it != "null" } ?: "Ubicación por confirmar",
+            sede = dato.optString("sede"), pabellon = dato.optString("pabellon"),
+            aula = dato.optString("aula"), direccion = dato.optString("direccion"),
+            referencia = dato.optString("referencia"), confirmada = dato.optBoolean("confirmada", false)
+        )
     }
 }
