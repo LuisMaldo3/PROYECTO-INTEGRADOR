@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.tecsup.tcweek.data.ActividadMomentoAsistente
 import com.tecsup.tcweek.data.AsistenteApi
 import com.tecsup.tcweek.data.HistorialAsistente
 import com.tecsup.tcweek.data.MensajeAsistente
@@ -36,7 +37,7 @@ import kotlinx.coroutines.launch
 private val AzulChat = Color(0xFF1765D8)
 private val MarinoChat = Color(0xFF0B2857)
 private val FondoChat = Color(0xFFF3F7FD)
-private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué horarios hay hoy?", "¿Qué hay mañana?", "¿Dónde se realizará una actividad?")
+private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué hay hoy a las 15:00?", "¿Qué hay mañana?", "¿Dónde se realizará una actividad?")
 
 /** Jordi: chat conectado al servicio, historial por usuario y estados reales de carga/error. */
 @Composable
@@ -70,7 +71,7 @@ fun AsistenteScreen() {
         scope.launch {
             try {
                 val respuesta = AsistenteApi.preguntar(token, consulta, previos)
-                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones))
+                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones, respuesta.tipoConsulta, respuesta.actividades))
                 historial.guardar(mensajes)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { error = e.message ?: "No se pudo obtener la respuesta." }
@@ -198,6 +199,11 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
                     mensaje.ubicaciones.take(7).forEach { lugar -> TarjetaUbicacionAsistente(lugar) }
                 }
             }
+            if (!esUsuario && mensaje.tipoConsulta == "momento" && mensaje.actividades.isNotEmpty()) {
+                Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    mensaje.actividades.take(7).forEach { actividad -> TarjetaActividadMomento(actividad) }
+                }
+            }
             if (!esUsuario && mensaje.origen.isNotBlank()) {
                 Text(if (mensaje.origen == "gemini") "✦ Gemini · datos verificados" else "✓ Cronograma publicado", color = Color(0xFF567291), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 7.dp))
             }
@@ -232,6 +238,33 @@ private fun TarjetaUbicacionAsistente(lugar: UbicacionAsistente) {
                 if (lugar.fecha.isNotBlank()) Text(
                     lugar.fecha + if (lugar.horaInicio.isNotBlank()) " · ${lugar.horaInicio}" else "",
                     color = Color(0xFF526A89), style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+
+/** Actividad verificada para el momento consultado; no realiza inscripciones. */
+@Composable
+private fun TarjetaActividadMomento(actividad: ActividadMomentoAsistente) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF3F8FF))
+    ) {
+        Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(color = Color(0xFFDFECFF), shape = RoundedCornerShape(10.dp)) {
+                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AzulChat,
+                    modifier = Modifier.padding(8.dp).size(21.dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(actividad.nombre, color = MarinoChat, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium)
+                Text(actividad.horario(), color = Color(0xFF415D85), style = MaterialTheme.typography.bodySmall)
+                if (actividad.organizador.isNotBlank()) Text(
+                    "Organiza: ${actividad.organizador}", color = Color(0xFF526A89),
+                    style = MaterialTheme.typography.bodySmall)
+                Text(actividad.etiquetaCupos(), color = Color(0xFF18705B),
+                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelSmall)
             }
         }
     }

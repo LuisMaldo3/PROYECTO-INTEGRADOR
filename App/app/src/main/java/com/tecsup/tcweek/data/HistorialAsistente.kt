@@ -16,7 +16,8 @@ class HistorialAsistente(context: Context, correo: String) {
             val rol = v.optString("rol")
             if (rol != "usuario" && rol != "asistente") return@mapNotNull null
             MensajeAsistente(rol, v.optString("contenido"), v.optString("origen"), v.optString("aviso"),
-                leerUbicaciones(v.optJSONArray("ubicaciones")))
+                leerUbicaciones(v.optJSONArray("ubicaciones")), v.optString("tipoConsulta", "general"),
+                leerActividadesMomento(v.optJSONArray("actividades")))
         }.takeLast(30)
     } catch (_: Exception) { emptyList() }
 
@@ -25,6 +26,15 @@ class HistorialAsistente(context: Context, correo: String) {
         mensajes.takeLast(30).forEach { m ->
             array.put(JSONObject().put("rol", m.rol).put("contenido", m.contenido)
                 .put("origen", m.origen).put("aviso", m.aviso)
+                .put("tipoConsulta", m.tipoConsulta)
+                .put("actividades", JSONArray().apply {
+                    m.actividades.take(7).forEach { a ->
+                        put(JSONObject().put("id", a.id).put("nombre", a.nombre)
+                            .put("fecha", a.fecha).put("horaInicio", a.horaInicio)
+                            .put("horaFin", a.horaFin).put("organizador", a.organizador)
+                            .put("cuposDisponibles", a.cuposDisponibles ?: JSONObject.NULL))
+                    }
+                })
                 .put("ubicaciones", JSONArray().apply {
                     m.ubicaciones.take(7).forEach { u ->
                         put(JSONObject().put("actividadId", u.actividadId).put("nombre", u.nombre)

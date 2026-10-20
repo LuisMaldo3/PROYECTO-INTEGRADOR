@@ -14,10 +14,16 @@ data class MensajeAsistente(
     val contenido: String,
     val origen: String = "",
     val aviso: String = "",
-    val ubicaciones: List<UbicacionAsistente> = emptyList()
+    val ubicaciones: List<UbicacionAsistente> = emptyList(),
+    val tipoConsulta: String = "general",
+    val actividades: List<ActividadMomentoAsistente> = emptyList()
 )
 
-data class RespuestaAsistente(val respuesta: String, val origen: String, val aviso: String, val ubicaciones: List<UbicacionAsistente> = emptyList())
+data class RespuestaAsistente(
+    val respuesta: String, val origen: String, val aviso: String,
+    val ubicaciones: List<UbicacionAsistente> = emptyList(),
+    val tipoConsulta: String = "general", val actividades: List<ActividadMomentoAsistente> = emptyList()
+)
 
 /** Jordi: consume /api/asistente/preguntar con la misma sesión JWT de VYNK. */
 object AsistenteApi {
@@ -72,7 +78,8 @@ object AsistenteApi {
             val texto = respuesta.optString("respuesta", "").trim()
             if (texto.isEmpty()) throw IllegalStateException("El backend envió una respuesta vacía.")
             RespuestaAsistente(texto, respuesta.optString("origen", "catalogo"), respuesta.optString("aviso", ""),
-                leerUbicaciones(respuesta.optJSONArray("ubicaciones")))
+                leerUbicaciones(respuesta.optJSONArray("ubicaciones")),
+                respuesta.optString("tipoConsulta", "general"), leerActividadesMomento(respuesta.optJSONArray("actividades")))
         } catch (e: SocketTimeoutException) {
             throw IllegalStateException("El servidor tardó demasiado. Comprueba Spring Boot y MongoDB.", e)
         } catch (e: java.net.ConnectException) {
@@ -98,5 +105,22 @@ internal fun leerUbicaciones(array: JSONArray?): List<UbicacionAsistente> {
             aula = dato.optString("aula"), direccion = dato.optString("direccion"),
             referencia = dato.optString("referencia"), confirmada = dato.optBoolean("confirmada", false)
         )
+    }
+}
+
+
+/** Limita el número de resultados y valida datos del catálogo antes de mostrarlos. */
+internal fun leerActividadesMomento(array: JSONArray?): List<ActividadMomentoAsistente> {
+    if (array == null) return emptyList()
+    return (0 until minOf(array.length(), 7)).mapNotNull { indice ->
+        val dato = array.optJSONObject(indice) ?: return@mapNotNull null
+        val cupos = if (dato.has("cuposDisponibles") && !dato.isNull("cuposDisponibles"))
+            dato.optInt("cuposDisponibles", -1).takeIf { it >= 0 } else null
+        ActividadMomentoAsistente(
+            id = dato.optString("id").take(100), nombre = dato.optString("nombre").take(220),
+            fecha = dato.optString("fecha").take(35), horaInicio = dato.optString("horaInicio").take(16),
+            horaFin = dato.optString("horaFin").take(16), organizador = dato.optString("organizador").take(150),
+            cuposDisponibles = cupos
+        ).takeIf { it.esMostrable() }
     }
 }
