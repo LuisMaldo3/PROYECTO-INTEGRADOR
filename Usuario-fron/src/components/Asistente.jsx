@@ -8,7 +8,7 @@ import './Asistente.css'
 
 const EJEMPLOS = [
   { texto: '¿Qué actividades hay?', icono: 'calendario' },
-  { texto: '¿Qué horarios hay hoy?', icono: 'reloj' },
+  { texto: '¿Qué actividades hay hoy a las 15:00?', icono: 'reloj' },
   { texto: '¿Qué actividades hay mañana?', icono: 'calendario' },
   { texto: '¿A qué hora empieza una actividad?', icono: 'pregunta' },
   { texto: '¿Dónde se realizará una actividad?', icono: 'ubicacion' },
@@ -73,7 +73,7 @@ export function Asistente() {
     const reloj = setTimeout(() => controller.abort(), 28000)
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, historial: anteriores, token, signal: controller.signal })
-      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [] }])
+      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', actividades: resultado.tipoConsulta === 'momento' ? resultado.actividades || [] : [] }])
       setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
     } catch (e) {
       if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }

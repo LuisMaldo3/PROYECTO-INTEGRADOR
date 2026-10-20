@@ -51,3 +51,12 @@
 .v-chat-lugar__detalle b { color:#064ca6; font-size:14px; }
 .v-chat-lugar__estado { align-self:flex-start; color:#92592a; font-weight:750; font-size:10px; }
 .v-chat-lugar__estado--ok { color:#18705b; }
+
+
+/* Resultados horarios del catálogo, sin cambiar las tarjetas de ubicación. */
+.v-chat-actividades { width:100%; display:grid; gap:9px; margin-top:9px; }
+.v-chat-actividad { display:flex; gap:12px; padding:13px; border:1px solid #d7e6fb; border-radius:14px; background:linear-gradient(115deg,#f4f9ff,#fff); }
+.v-chat-actividad__fecha { display:grid; place-items:center; flex:0 0 36px; height:36px; border-radius:11px; color:#135dc4; background:#dbeaff; font-weight:900; font-size:22px; }
+.v-chat-actividad__info { min-width:0; display:flex; flex-direction:column; gap:5px; overflow-wrap:anywhere; font-size:12px; color:#395574; }
+.v-chat-actividad__info strong { color:#112e59; font-size:14px; }
+.v-chat-actividad__info b { color:#14735c; font-size:11px; }

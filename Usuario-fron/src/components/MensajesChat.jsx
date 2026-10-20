@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { normalizarUbicaciones } from '../services/asistenteService'
+import { normalizarUbicaciones, normalizarActividadesMomento } from '../services/asistenteService'
 import './MensajesChat.css'
 
 function Burbuja({ mensaje }) {
@@ -22,6 +22,17 @@ function Burbuja({ mensaje }) {
             {lugar.fecha && <span>Fecha: {lugar.fecha}{lugar.horaInicio ? ` · ${lugar.horaInicio}` : ''}</span>}
           </div>
         </div>)}
+      </div>}
+      {!usuario && mensaje.tipoConsulta === 'momento' && normalizarActividadesMomento(mensaje.actividades).length > 0 && <div className="v-chat-actividades" aria-label="Actividades en el horario consultado">
+        {normalizarActividadesMomento(mensaje.actividades).map((a, i) => <article className="v-chat-actividad" key={`${a.id}-${i}`}>
+          <div className="v-chat-actividad__fecha" aria-hidden="true">◷</div>
+          <div className="v-chat-actividad__info">
+            <strong>{a.nombre}</strong>
+            <span>{a.fecha} · {a.horaInicio} – {a.horaFin}</span>
+            {a.organizador && <span>Organiza: {a.organizador}</span>}
+            <b>{a.cuposDisponibles === null ? 'Cupos por confirmar' : `${a.cuposDisponibles} cupos disponibles`}</b>
+          </div>
+        </article>)}
       </div>}
       {!usuario && mensaje.origen && <small>{mensaje.origen === 'gemini' ? '✦ Selección con Gemini · horarios verificados' : '✓ Información del cronograma real'}{mensaje.aviso ? ` · ${mensaje.aviso}` : ''}</small>}
     </div>

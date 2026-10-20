@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { normalizarUbicaciones, preguntarAsistente } from './asistenteService.js'
+import { normalizarUbicaciones, normalizarActividadesMomento, preguntarAsistente } from './asistenteService.js'
 
 const anterior = globalThis.fetch
 
@@ -41,4 +41,23 @@ test('Asistente: descarta datos de ubicación malformados y acota el tamaño', (
   assert.deepEqual(normalizarUbicaciones(null), [])
   assert.equal(normalizarUbicaciones([{ nombre: 'X'.repeat(500) }, null]).length, 1)
   assert.equal(normalizarUbicaciones([{ nombre: 'X'.repeat(500) }])[0].nombre.length, 300)
+})
+
+
+test('Asistente: muestra solo actividades verificables de una consulta temporal', () => {
+  const lista = normalizarActividadesMomento([
+    { id: 'a1', nombre: 'Robótica', fecha: '2026-10-26', horaInicio: '14:00', horaFin: '16:00', cuposDisponibles: 5 },
+    { id: 'a2', nombre: 'Sin fecha' }, null,
+  ])
+  assert.equal(lista.length, 1)
+  assert.equal(lista[0].cuposDisponibles, 5)
+  assert.equal(lista[0].nombre, 'Robótica')
+})
+
+test('Asistente: limita los resultados y no inventa cupos desconocidos', () => {
+  const lista = normalizarActividadesMomento(Array.from({ length: 12 }, (_, n) => ({
+    id: `${n}`, nombre: `Taller ${n}`, fecha: '2026-10-26', horaInicio: '09:00', horaFin: '11:00', cuposDisponibles: 'sin dato',
+  })))
+  assert.equal(lista.length, 7)
+  assert.equal(lista[0].cuposDisponibles, null)
 })

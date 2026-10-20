@@ -41,3 +41,16 @@ export function normalizarUbicaciones(datos) {
     confirmada: item.confirmada === true,
   }))
 }
+
+
+/** Resultados publicados por Tecsup; rechaza datos incompletos antes de mostrarlos. */
+export function normalizarActividadesMomento(datos) {
+  if (!Array.isArray(datos)) return []
+  const texto = valor => typeof valor === 'string' ? valor.trim().slice(0, 220) : ''
+  return datos.slice(0, 7).filter(a => a && typeof a === 'object').map(a => ({
+    id: texto(a.id), nombre: texto(a.nombre), fecha: texto(a.fecha),
+    horaInicio: texto(a.horaInicio), horaFin: texto(a.horaFin),
+    organizador: texto(a.organizador),
+    cuposDisponibles: Number.isInteger(a.cuposDisponibles) && a.cuposDisponibles >= 0 ? a.cuposDisponibles : null,
+  })).filter(a => a.nombre && a.fecha && a.horaInicio && a.horaFin)
+}
