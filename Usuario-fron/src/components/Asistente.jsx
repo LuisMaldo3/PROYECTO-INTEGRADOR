@@ -4,9 +4,11 @@ import { preguntarAsistente } from '../services/asistenteService'
 import { comprobarServicios } from '../services/estadoServicio'
 import { borrarHistorial, guardarHistorial, leerHistorial } from '../services/historialAsistente'
 import { MensajesChat } from './MensajesChat'
+import { PREGUNTAS_NATURALES } from '../services/preguntasNaturales.js'
 import './Asistente.css'
 
 const EJEMPLOS = [
+  ...PREGUNTAS_NATURALES,
   { texto: '¿Qué actividades hay?', icono: 'calendario' },
   { texto: '¿Qué actividades hay hoy a las 15:00?', icono: 'reloj' },
   { texto: '¿Qué actividades hay mañana?', icono: 'calendario' },
@@ -73,7 +75,7 @@ export function Asistente() {
     const reloj = setTimeout(() => controller.abort(), 28000)
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, historial: anteriores, token, signal: controller.signal })
-      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', actividades: resultado.tipoConsulta === 'momento' ? resultado.actividades || [] : [] }])
+      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
       setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
     } catch (e) {
       if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }

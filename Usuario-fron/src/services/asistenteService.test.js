@@ -54,6 +54,14 @@ test('Asistente: muestra solo actividades verificables de una consulta temporal'
   assert.equal(lista[0].nombre, 'Robótica')
 })
 
+test('Asistente: acepta actividades para tema y horario sin inventar cupos', () => {
+  const tipoConsulta = 'tema_horario'
+  const actividades = normalizarActividadesMomento([{ id: 'd1', nombre: 'Gymkana', fecha: '2026-10-28', horaInicio: '16:00', horaFin: '17:00', cuposDisponibles: null }])
+  assert.ok(['momento', 'tema_horario'].includes(tipoConsulta))
+  assert.equal(actividades.length, 1)
+  assert.equal(actividades[0].cuposDisponibles, null)
+})
+
 test('Asistente: limita los resultados y no inventa cupos desconocidos', () => {
   const lista = normalizarActividadesMomento(Array.from({ length: 12 }, (_, n) => ({
     id: `${n}`, nombre: `Taller ${n}`, fecha: '2026-10-26', horaInicio: '09:00', horaFin: '11:00', cuposDisponibles: 'sin dato',

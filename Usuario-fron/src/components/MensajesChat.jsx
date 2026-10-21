@@ -23,7 +23,7 @@ function Burbuja({ mensaje }) {
           </div>
         </div>)}
       </div>}
-      {!usuario && mensaje.tipoConsulta === 'momento' && normalizarActividadesMomento(mensaje.actividades).length > 0 && <div className="v-chat-actividades" aria-label="Actividades en el horario consultado">
+      {!usuario && ['momento', 'tema_horario'].includes(mensaje.tipoConsulta) && normalizarActividadesMomento(mensaje.actividades).length > 0 && <div className="v-chat-actividades" aria-label="Actividades en el horario consultado">
         {normalizarActividadesMomento(mensaje.actividades).map((a, i) => <article className="v-chat-actividad" key={`${a.id}-${i}`}>
           <div className="v-chat-actividad__fecha" aria-hidden="true">◷</div>
           <div className="v-chat-actividad__info">
