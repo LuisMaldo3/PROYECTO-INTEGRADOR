@@ -63,8 +63,15 @@ public class AsistenteHorariosService {
             throw new IllegalArgumentException("Escribe una pregunta de 1 a 600 caracteres.");
         }
         // Interpretar el momento en horario peruano, independientemente de la zona del servidor.
-        ConsultaMomento momento = ConsultaMomento.interpretar(texto, Clock.system(ZoneId.of("America/Lima")));
-        if (momento.aplicable() && !momento.aclaracion().isBlank()) {
+        Clock reloj = Clock.system(ZoneId.of("America/Lima"));
+        ConsultaTemaHorario temaHorario = ConsultaTemaHorario.interpretar(texto, reloj);
+        boolean consultaCombinada = temaHorario.tema() != null && !preguntaUbicacion(texto);
+        if (consultaCombinada && !temaHorario.aclaracion().isBlank()) {
+            return new Respuesta(temaHorario.aclaracion(), "catalogo", "Precisa la hora para filtrar correctamente.",
+                    List.of(), List.of(), "tema_horario");
+        }
+        ConsultaMomento momento = ConsultaMomento.interpretar(texto, reloj);
+        if (!consultaCombinada && momento.aplicable() && !momento.aclaracion().isBlank()) {
             return new Respuesta(momento.aclaracion(), "catalogo", "Falta precisar el momento de la consulta.", List.of(), List.of(), "momento");
         }
         @SuppressWarnings("unchecked")
@@ -73,10 +80,13 @@ public class AsistenteHorariosService {
             return new Respuesta("Aún no hay actividades programadas y publicadas por administración. Cuando se publiquen, podré consultar sus horarios aquí.", "catalogo", "No hay actividades publicadas.", List.of(), List.of(), "general");
         }
         boolean consultarLugar = preguntaUbicacion(texto);
-        boolean consultaTemporal = momento.aplicable() && !consultarLugar;
-        List<Map<String, Object>> filtradas = consultaTemporal
-                ? BusquedaActividadesMomento.buscar(disponibles, momento.fecha(), momento.hora(), momento.hasta())
-                : filtrar(texto, disponibles);
+        boolean consultaTemporal = momento.aplicable() && !consultarLugar && !consultaCombinada;
+        List<Map<String, Object>> filtradas = consultaCombinada
+                ? BusquedaTemaHorario.buscar(disponibles, temaHorario, reloj)
+                : consultaTemporal
+                    ? BusquedaActividadesMomento.buscar(disponibles, momento.fecha(), momento.hora(), momento.hasta())
+                    : filtrar(texto, disponibles);
+        if (consultaCombinada && filtradas.isEmpty()) return RespuestaSinResultados.para(temaHorario);
         if (filtradas.isEmpty() && consultaTemporal) {
             String franja = momento.hora() == null ? "" : " a las " + momento.hora();
             return new Respuesta("No encontré actividades publicadas que coincidan con el " + momento.fecha()
@@ -91,7 +101,7 @@ public class AsistenteHorariosService {
         String origen = "catalogo";
         String aviso = "Horarios consultados en el catálogo publicado por administración.";
         // Gemini solo selecciona identificadores. Fechas, horas y nombres siempre se forman con datos reales.
-        if (!consultaTemporal && clave != null && !clave.isBlank()) {
+        if (!consultaTemporal && !consultaCombinada && clave != null && !clave.isBlank()) {
             try {
                 List<String> ids = elegirConGemini(texto, historial, elegidas, lugaresCandidatos);
                 if (!ids.isEmpty()) {
@@ -103,14 +113,19 @@ public class AsistenteHorariosService {
                 }
             } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
               catch (Exception ignored) { /* El catálogo puede responder incluso si la IA falla. */ }
-        } else if (!consultaTemporal) {
+        } else if (!consultaTemporal && !consultaCombinada) {
             aviso = "Respuesta basada en el cronograma real (Gemini no está configurado).";
         }
         Map<String, Map<String, Object>> lugarPorId = new LinkedHashMap<>();
         lugaresCandidatos.forEach(l -> lugarPorId.put(valor(l, "actividadId", ""), l));
         List<Map<String, Object>> lugares = consultarLugar ? elegidas.stream()
                 .map(a -> lugarPorId.get(valor(a, "id", ""))).filter(l -> l != null).toList() : List.of();
-        String encabezado = consultaTemporal
+        String encabezado = consultaCombinada
+                ? "Actividades de " + temaHorario.tema() + " que coinciden con tu horario"
+                    + (temaHorario.fecha() != null ? " el " + temaHorario.fecha() : "")
+                    + (temaHorario.hora() != null ? " (" + temaHorario.modo().name().toLowerCase(Locale.ROOT)
+                        + " " + temaHorario.hora() + ")" : "") + ":"
+                : consultaTemporal
                 ? ("Actividades disponibles el " + momento.fecha() + (momento.hora() != null
                     ? (momento.hasta() == null ? " a las " + momento.hora() : " entre " + momento.hora() + " y " + momento.hasta()) : "") + ":")
                 : (consultarLugar ? (elegidas.size() == 1 ? "Esta es la ubicación registrada para la actividad:"
@@ -140,9 +155,13 @@ public class AsistenteHorariosService {
             }
         }
         if (filtradas.size() > elegidas.size()) respuesta.append("\n\nHay más resultados. Indica una fecha o el nombre de la actividad para precisar la búsqueda.");
-        if (consultaTemporal) aviso = "Resultados del catálogo de Tecsup, excluyendo actividades con cupos agotados; verifica los cupos aún no informados.";
+        if (consultaTemporal || consultaCombinada) aviso = "Resultados del catálogo de Tecsup; cupos sin publicar se muestran por confirmar.";
+        if (consultaCombinada && temaHorario.tardeInferida()) {
+            respuesta.append("\n\nInterpreté tu hora sin período como ").append(temaHorario.hora())
+                    .append(" (tarde). Puedes indicar a. m. o p. m. para cambiar el filtro.");
+        }
         return new Respuesta(respuesta.toString(), origen, aviso, elegidas, lugares,
-                consultaTemporal ? "momento" : consultarLugar ? "ubicacion" : "general");
+                consultaCombinada ? "tema_horario" : consultaTemporal ? "momento" : consultarLugar ? "ubicacion" : "general");
     }
 
     private List<Map<String, Object>> filtrar(String pregunta, List<Map<String, Object>> todas) {
