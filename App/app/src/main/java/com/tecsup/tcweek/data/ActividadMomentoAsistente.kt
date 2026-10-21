@@ -1,5 +1,8 @@
 package com.tecsup.tcweek.data
 
+/** Acepta tanto consultas por momento como las que combinan tema y hora. */
+fun esConsultaDeActividades(tipo: String): Boolean = tipo == "momento" || tipo == "tema_horario"
+
 /** Datos estructurados del catálogo; nunca se crean actividades en el móvil. */
 data class ActividadMomentoAsistente(
     val id: String, val nombre: String, val fecha: String, val horaInicio: String,

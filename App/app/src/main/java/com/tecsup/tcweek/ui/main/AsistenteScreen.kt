@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadMomentoAsistente
+import com.tecsup.tcweek.data.EjemplosConsultasNaturales
+import com.tecsup.tcweek.data.esConsultaDeActividades
 import com.tecsup.tcweek.data.AsistenteApi
 import com.tecsup.tcweek.data.HistorialAsistente
 import com.tecsup.tcweek.data.MensajeAsistente
@@ -37,7 +39,7 @@ import kotlinx.coroutines.launch
 private val AzulChat = Color(0xFF1765D8)
 private val MarinoChat = Color(0xFF0B2857)
 private val FondoChat = Color(0xFFF3F7FD)
-private val Sugerencias = listOf("¿Qué actividades hay?", "¿Qué hay hoy a las 15:00?", "¿Qué hay mañana?", "¿Dónde se realizará una actividad?")
+private val Sugerencias = EjemplosConsultasNaturales.preguntas
 
 /** Jordi: chat conectado al servicio, historial por usuario y estados reales de carga/error. */
 @Composable
@@ -199,7 +201,7 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
                     mensaje.ubicaciones.take(7).forEach { lugar -> TarjetaUbicacionAsistente(lugar) }
                 }
             }
-            if (!esUsuario && mensaje.tipoConsulta == "momento" && mensaje.actividades.isNotEmpty()) {
+            if (!esUsuario && esConsultaDeActividades(mensaje.tipoConsulta) && mensaje.actividades.isNotEmpty()) {
                 Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     mensaje.actividades.take(7).forEach { actividad -> TarjetaActividadMomento(actividad) }
                 }
