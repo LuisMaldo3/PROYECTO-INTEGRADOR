@@ -23,6 +23,6 @@ public final class RespuestaSinResultados {
                 + consulta.hora() + " (tarde); puedes precisarla en tu pregunta.";
         return new AsistenteHorariosService.Respuesta(texto, "catalogo",
                 "No hay coincidencias en el catálogo consultado; no se han inventado actividades.",
-                List.of(), List.of(), "tema_horario");
+                List.of(), List.of(), "tema_horario", List.of());
     }
 }

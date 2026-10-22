@@ -49,7 +49,8 @@ public class AsistenteHorariosService {
 
     public record Mensaje(String rol, String contenido) {}
     public record Respuesta(String respuesta, String origen, String aviso,
-                            List<Map<String, Object>> actividades, List<Map<String, Object>> ubicaciones, String tipoConsulta) {}
+                            List<Map<String, Object>> actividades, List<Map<String, Object>> ubicaciones, String tipoConsulta,
+                            List<Map<String, Object>> requisitos) {}
 
     /** Reconocimiento determinista de preguntas en lenguaje natural, incluso cuando Gemini no responde. */
     static boolean preguntaUbicacion(String pregunta) {
@@ -62,22 +63,29 @@ public class AsistenteHorariosService {
         if (texto.isEmpty() || texto.length() > 600) {
             throw new IllegalArgumentException("Escribe una pregunta de 1 a 600 caracteres.");
         }
+        // Requisitos tienen prioridad frente a consultas de hora, lugar o tema.
+        // El catálogo, no Gemini, determina qué datos oficiales se muestran.
+        if (RequisitosActividadesService.esConsultaDeRequisitos(texto)) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> publicadas = (List<Map<String, Object>>) catalogo.listar().get("actividades");
+            return RequisitosActividadesService.responder(texto, publicadas == null ? List.of() : publicadas);
+        }
         // Interpretar el momento en horario peruano, independientemente de la zona del servidor.
         Clock reloj = Clock.system(ZoneId.of("America/Lima"));
         ConsultaTemaHorario temaHorario = ConsultaTemaHorario.interpretar(texto, reloj);
         boolean consultaCombinada = temaHorario.tema() != null && !preguntaUbicacion(texto);
         if (consultaCombinada && !temaHorario.aclaracion().isBlank()) {
             return new Respuesta(temaHorario.aclaracion(), "catalogo", "Precisa la hora para filtrar correctamente.",
-                    List.of(), List.of(), "tema_horario");
+                    List.of(), List.of(), "tema_horario", List.of());
         }
         ConsultaMomento momento = ConsultaMomento.interpretar(texto, reloj);
         if (!consultaCombinada && momento.aplicable() && !momento.aclaracion().isBlank()) {
-            return new Respuesta(momento.aclaracion(), "catalogo", "Falta precisar el momento de la consulta.", List.of(), List.of(), "momento");
+            return new Respuesta(momento.aclaracion(), "catalogo", "Falta precisar el momento de la consulta.", List.of(), List.of(), "momento", List.of());
         }
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> disponibles = (List<Map<String, Object>>) catalogo.listar().get("actividades");
         if (disponibles == null || disponibles.isEmpty()) {
-            return new Respuesta("Aún no hay actividades programadas y publicadas por administración. Cuando se publiquen, podré consultar sus horarios aquí.", "catalogo", "No hay actividades publicadas.", List.of(), List.of(), "general");
+            return new Respuesta("Aún no hay actividades programadas y publicadas por administración. Cuando se publiquen, podré consultar sus horarios aquí.", "catalogo", "No hay actividades publicadas.", List.of(), List.of(), "general", List.of());
         }
         boolean consultarLugar = preguntaUbicacion(texto);
         boolean consultaTemporal = momento.aplicable() && !consultarLugar && !consultaCombinada;
@@ -91,10 +99,10 @@ public class AsistenteHorariosService {
             String franja = momento.hora() == null ? "" : " a las " + momento.hora();
             return new Respuesta("No encontré actividades publicadas que coincidan con el " + momento.fecha()
                     + franja + ". Puedes consultar otra fecha u hora.", "catalogo",
-                    "Búsqueda realizada en las actividades publicadas.", List.of(), List.of(), "momento");
+                    "Búsqueda realizada en las actividades publicadas.", List.of(), List.of(), "momento", List.of());
         }
         if (filtradas.isEmpty()) {
-            return new Respuesta("No encontré actividades publicadas que coincidan con tu consulta. Prueba con otro nombre, una fecha (AAAA-MM-DD) o pregunta «¿Qué actividades hay?». No voy a inventar horarios.", "catalogo", "Sin coincidencias en el cronograma real.", List.of(), List.of(), "general");
+            return new Respuesta("No encontré actividades publicadas que coincidan con tu consulta. Prueba con otro nombre, una fecha (AAAA-MM-DD) o pregunta «¿Qué actividades hay?». No voy a inventar horarios.", "catalogo", "Sin coincidencias en el cronograma real.", List.of(), List.of(), "general", List.of());
         }
         List<Map<String, Object>> elegidas = filtradas.stream().limit(7).toList();
         List<Map<String, Object>> lugaresCandidatos = consultarLugar ? ubicaciones.resolver(elegidas) : List.of();
@@ -161,7 +169,7 @@ public class AsistenteHorariosService {
                     .append(" (tarde). Puedes indicar a. m. o p. m. para cambiar el filtro.");
         }
         return new Respuesta(respuesta.toString(), origen, aviso, elegidas, lugares,
-                consultaCombinada ? "tema_horario" : consultaTemporal ? "momento" : consultarLugar ? "ubicacion" : "general");
+                consultaCombinada ? "tema_horario" : consultaTemporal ? "momento" : consultarLugar ? "ubicacion" : "general", List.of());
     }
 
     private List<Map<String, Object>> filtrar(String pregunta, List<Map<String, Object>> todas) {

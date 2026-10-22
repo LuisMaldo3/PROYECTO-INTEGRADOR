@@ -35,6 +35,10 @@ public class CatalogoController {
             a.put("id", String.valueOf(doc.get("_id")));
             a.put("nombre", doc.get("nombre"));
             a.put("descripcion", doc.get("descripcion"));
+            // Datos publicados por administración: nunca deducir requisitos desde la descripción.
+            Object requisitos = doc.get("requisitos");
+            if (requisitos == null) requisitos = doc.get("requisitosInscripcion");
+            a.put("requisitos", requisitos);
             a.put("fecha", doc.get("fecha"));
             a.put("horaInicio", doc.get("horaInicio"));
             a.put("horaFin", doc.get("horaFin"));
