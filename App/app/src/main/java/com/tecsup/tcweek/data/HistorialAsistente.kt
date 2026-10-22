@@ -17,7 +17,8 @@ class HistorialAsistente(context: Context, correo: String) {
             if (rol != "usuario" && rol != "asistente") return@mapNotNull null
             MensajeAsistente(rol, v.optString("contenido"), v.optString("origen"), v.optString("aviso"),
                 leerUbicaciones(v.optJSONArray("ubicaciones")), v.optString("tipoConsulta", "general"),
-                leerActividadesMomento(v.optJSONArray("actividades")))
+                leerActividadesMomento(v.optJSONArray("actividades")),
+                leerRequisitosAsistente(v.optJSONArray("requisitos")))
         }.takeLast(30)
     } catch (_: Exception) { emptyList() }
 
@@ -33,6 +34,12 @@ class HistorialAsistente(context: Context, correo: String) {
                             .put("fecha", a.fecha).put("horaInicio", a.horaInicio)
                             .put("horaFin", a.horaFin).put("organizador", a.organizador)
                             .put("cuposDisponibles", a.cuposDisponibles ?: JSONObject.NULL))
+                    }
+                })
+                .put("requisitos", JSONArray().apply {
+                    m.requisitos.take(7).forEach { r ->
+                        put(JSONObject().put("actividadId", r.actividadId).put("nombre", r.nombre)
+                            .put("confirmados", r.confirmados).put("items", JSONArray(r.items)))
                     }
                 })
                 .put("ubicaciones", JSONArray().apply {

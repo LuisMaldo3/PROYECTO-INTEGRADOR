@@ -33,6 +33,7 @@ import com.tecsup.tcweek.data.HistorialAsistente
 import com.tecsup.tcweek.data.MensajeAsistente
 import com.tecsup.tcweek.data.SesionGuardada
 import com.tecsup.tcweek.data.UbicacionAsistente
+import com.tecsup.tcweek.data.RequisitosAsistente
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -73,7 +74,7 @@ fun AsistenteScreen() {
         scope.launch {
             try {
                 val respuesta = AsistenteApi.preguntar(token, consulta, previos)
-                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones, respuesta.tipoConsulta, respuesta.actividades))
+                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones, respuesta.tipoConsulta, respuesta.actividades, respuesta.requisitos))
                 historial.guardar(mensajes)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { error = e.message ?: "No se pudo obtener la respuesta." }
@@ -125,7 +126,7 @@ fun AsistenteScreen() {
         ) {
             if (mensajes.isEmpty()) {
                 item {
-                    BurbujaAsistente(MensajeAsistente("asistente", "¡Hola! Soy VYNK. Puedo consultar los horarios y ubicaciones de las actividades publicadas. ¿Qué te gustaría saber?"))
+                    BurbujaAsistente(MensajeAsistente("asistente", "¡Hola! Soy VYNK. Puedo consultar horarios, ubicaciones y requisitos de las actividades publicadas. ¿Qué te gustaría saber?"))
                     Spacer(Modifier.height(20.dp))
                     Text("PREGUNTAS RÁPIDAS", color = Color(0xFF6683AA), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(9.dp))
@@ -161,7 +162,7 @@ fun AsistenteScreen() {
                     value = borrador,
                     onValueChange = { if (it.length <= 600) borrador = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Pregunta por horarios o ubicaciones…", style = MaterialTheme.typography.bodyMedium) },
+                    placeholder = { Text("Pregunta por horarios, ubicaciones o requisitos…", style = MaterialTheme.typography.bodyMedium) },
                     maxLines = 4,
                     shape = RoundedCornerShape(17.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -204,6 +205,11 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
             if (!esUsuario && esConsultaDeActividades(mensaje.tipoConsulta) && mensaje.actividades.isNotEmpty()) {
                 Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     mensaje.actividades.take(7).forEach { actividad -> TarjetaActividadMomento(actividad) }
+                }
+            }
+            if (!esUsuario && mensaje.tipoConsulta == "requisitos" && mensaje.requisitos.isNotEmpty()) {
+                Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    mensaje.requisitos.take(7).forEach { requisito -> TarjetaRequisitosAsistente(requisito) }
                 }
             }
             if (!esUsuario && mensaje.origen.isNotBlank()) {
@@ -267,6 +273,32 @@ private fun TarjetaActividadMomento(actividad: ActividadMomentoAsistente) {
                     style = MaterialTheme.typography.bodySmall)
                 Text(actividad.etiquetaCupos(), color = Color(0xFF18705B),
                     fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+
+/** Tarjeta de requisitos sin suponer condiciones no registradas por administración. */
+@Composable
+private fun TarjetaRequisitosAsistente(datos: RequisitosAsistente) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF3F8FF))
+    ) {
+        Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(color = Color(0xFFDFECFF), shape = RoundedCornerShape(10.dp)) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = AzulChat,
+                    modifier = Modifier.padding(8.dp).size(21.dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text(datos.nombre, color = MarinoChat, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium)
+                Text(datos.estado(), color = if (datos.tieneInformacion()) Color(0xFF18705B) else Color(0xFF92592A),
+                    style = MaterialTheme.typography.labelSmall)
+                if (datos.tieneInformacion()) datos.items.take(12).forEach { item ->
+                    Text("• $item", color = Color(0xFF405C7B), style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }

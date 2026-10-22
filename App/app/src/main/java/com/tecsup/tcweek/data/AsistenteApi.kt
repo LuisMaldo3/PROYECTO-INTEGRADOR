@@ -16,13 +16,15 @@ data class MensajeAsistente(
     val aviso: String = "",
     val ubicaciones: List<UbicacionAsistente> = emptyList(),
     val tipoConsulta: String = "general",
-    val actividades: List<ActividadMomentoAsistente> = emptyList()
+    val actividades: List<ActividadMomentoAsistente> = emptyList(),
+    val requisitos: List<RequisitosAsistente> = emptyList()
 )
 
 data class RespuestaAsistente(
     val respuesta: String, val origen: String, val aviso: String,
     val ubicaciones: List<UbicacionAsistente> = emptyList(),
-    val tipoConsulta: String = "general", val actividades: List<ActividadMomentoAsistente> = emptyList()
+    val tipoConsulta: String = "general", val actividades: List<ActividadMomentoAsistente> = emptyList(),
+    val requisitos: List<RequisitosAsistente> = emptyList()
 )
 
 /** Jordi: consume /api/asistente/preguntar con la misma sesión JWT de VYNK. */
@@ -79,7 +81,8 @@ object AsistenteApi {
             if (texto.isEmpty()) throw IllegalStateException("El backend envió una respuesta vacía.")
             RespuestaAsistente(texto, respuesta.optString("origen", "catalogo"), respuesta.optString("aviso", ""),
                 leerUbicaciones(respuesta.optJSONArray("ubicaciones")),
-                respuesta.optString("tipoConsulta", "general"), leerActividadesMomento(respuesta.optJSONArray("actividades")))
+                respuesta.optString("tipoConsulta", "general"), leerActividadesMomento(respuesta.optJSONArray("actividades")),
+                leerRequisitosAsistente(respuesta.optJSONArray("requisitos")))
         } catch (e: SocketTimeoutException) {
             throw IllegalStateException("El servidor tardó demasiado. Comprueba Spring Boot y MongoDB.", e)
         } catch (e: java.net.ConnectException) {
@@ -122,5 +125,27 @@ internal fun leerActividadesMomento(array: JSONArray?): List<ActividadMomentoAsi
             horaFin = dato.optString("horaFin").take(16), organizador = dato.optString("organizador").take(150),
             cuposDisponibles = cupos
         ).takeIf { it.esMostrable() }
+    }
+}
+
+
+/** Solo lee elementos publicados y mantiene el contrato compatible con respuestas antiguas. */
+internal fun leerRequisitosAsistente(array: JSONArray?): List<RequisitosAsistente> {
+    if (array == null) return emptyList()
+    return (0 until minOf(array.length(), 7)).mapNotNull { indice ->
+        val dato = array.optJSONObject(indice) ?: return@mapNotNull null
+        val nombre = dato.optString("nombre").trim().take(220)
+        if (nombre.isBlank()) return@mapNotNull null
+        val itemsArray = dato.optJSONArray("items")
+        val items = if (itemsArray == null) emptyList() else (0 until minOf(itemsArray.length(), 12))
+            .mapNotNull { i ->
+                val texto = itemsArray.opt(i) as? String
+                texto?.trim()?.takeIf { it.isNotEmpty() }?.take(300)
+            }
+        RequisitosAsistente(
+            actividadId = dato.optString("actividadId").take(100),
+            nombre = nombre, items = items,
+            confirmados = dato.optBoolean("confirmados", false) && items.isNotEmpty()
+        )
     }
 }
