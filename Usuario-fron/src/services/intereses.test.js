@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   MINIMO_SUGERIDO,
   alternar,
+  debeSolicitarIntereses,
   iconoDeInteres,
   mismosIntereses,
   ordenarComoCatalogo,
@@ -63,4 +64,11 @@ test('TEXTOS: el contador y la ayuda cambian según cuántos hay elegidos', () =
   assert.match(textoAyuda(0), /Marca los temas/)
   assert.match(textoAyuda(MINIMO_SUGERIDO - 1), /salen mejor/)
   assert.match(textoAyuda(MINIMO_SUGERIDO), /Listo/)
+})
+
+test('ONBOARDING: primera entrada, guardado y omisión tienen flujos distintos', () => {
+  assert.equal(debeSolicitarIntereses({ configurados: false, omitido: false }), true)
+  assert.equal(debeSolicitarIntereses({ configurados: true, omitido: false }), false)
+  assert.equal(debeSolicitarIntereses({ configurados: false, omitido: true }), false)
+  assert.equal(debeSolicitarIntereses({ configurados: true, omitido: true }), false)
 })

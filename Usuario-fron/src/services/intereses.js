@@ -57,3 +57,8 @@ export function textoAyuda(n) {
   if (n < MINIMO_SUGERIDO) return `Con ${MINIMO_SUGERIDO} o más, las recomendaciones salen mejor.`
   return 'Listo. Puedes cambiarlos cuando quieras.'
 }
+
+/** Solo interrumpir el primer ingreso si no hay elección guardada ni omisión. */
+export function debeSolicitarIntereses({ configurados = false, omitido = false } = {}) {
+  return !configurados && !omitido
+}

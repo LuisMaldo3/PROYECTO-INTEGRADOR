@@ -16,7 +16,9 @@ import { Perfil } from './components/Perfil'
 import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
 import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
-import { normalizarRol, resolverRuta } from './services/permisos'
+import { normalizarRol, resolverRuta, pantallaDe } from './services/permisos'
+import { consultarEstadoIntereses } from './services/interesesService'
+import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
 const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-inscritos': OrganizadorInscritos, 'organizador-asistencia': OrganizadorAsistencia, 'organizador-reporte': OrganizadorReporte }
@@ -24,6 +26,8 @@ const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistent
 function App() {
   const [sesion, setSesion] = useState(leerSesion)
   const hash = useHash()
+  // El estado se consulta por token, no por dispositivo: cambiar de usuario no hereda el onboarding.
+  const [inicioIntereses, setInicioIntereses] = useState({ token: null, estado: 'revisando' })
 
   // Al abrir la web con una sesión guardada, se pregunta al backend «quién soy»:
   // así el rol mostrado es el actual (el administrador pudo cambiarlo) y, si la
@@ -49,6 +53,27 @@ function App() {
     return () => {
       cancelado = true
     }
+  }, [token])
+
+  useEffect(() => {
+    if (!token) return undefined
+    const ctrl = new AbortController()
+    consultarEstadoIntereses(token, ctrl.signal)
+      .then(({ configurados, omitido }) => {
+        if (!ctrl.signal.aborted) setInicioIntereses({ token, estado: debeSolicitarIntereses({ configurados, omitido }) ? 'primera-vez' : 'normal' })
+      })
+      .catch((e) => {
+        if (ctrl.signal.aborted) return
+        if (e.estado === 401) {
+          cerrarSesion()
+          window.location.hash = ''
+          setSesion(null)
+          return
+        }
+        // Una caída temporal del backend no impide usar una sesión válida.
+        setInicioIntereses({ token, estado: 'normal' })
+      })
+    return () => ctrl.abort()
   }, [token])
 
   // Si se cierra la sesión en otra pestaña, esta también vuelve al inicio de sesión
@@ -78,9 +103,21 @@ function App() {
   // El rol decide qué menú se ve y qué pantallas se pueden abrir (permisos.js).
   const rol = normalizarRol(sesion.usuario.rol)
   const { ruta, pantalla, estado } = resolverRuta(hash, rol)
+  const revisando = inicioIntereses.token !== token || inicioIntereses.estado === 'revisando'
+  const primeraVez = !revisando && inicioIntereses.estado === 'primera-vez'
+  const terminarPersonalizacion = () => {
+    setInicioIntereses({ token, estado: 'normal' })
+    window.location.hash = '#/inicio'
+  }
+  const pantallaVisible = primeraVez ? pantallaDe('intereses') : pantalla
+  const rutaVisible = primeraVez ? 'intereses' : ruta
 
   let contenido
-  if (estado !== 'permitida') {
+  if (revisando) {
+    contenido = <p role="status" className="intereses__guia">Comprobando tus preferencias…</p>
+  } else if (primeraVez) {
+    contenido = <Intereses token={sesion.token} onSesionExpirada={salir} primerIngreso onGuardado={terminarPersonalizacion} onOmitir={terminarPersonalizacion} />
+  } else if (estado !== 'permitida') {
     contenido = <PantallaBloqueada estado={estado} pantalla={pantalla} rol={rol} />
   } else if (ruta === 'intereses') {
     contenido = <Intereses token={sesion.token} onSesionExpirada={salir} />
@@ -91,14 +128,14 @@ function App() {
     contenido = Seccion ? <Seccion token={sesion.token} correo={sesion.usuario.correo} /> : <PantallaVacia />
   }
 
-  const permitida = estado === 'permitida'
+  const permitida = revisando || primeraVez || estado === 'permitida'
 
   return (
     <Shell
       rol={rol}
-      rutaActual={pantalla?.menuActivo ?? ruta}
-      titulo={permitida ? pantalla.titulo : undefined}
-      descripcion={permitida ? pantalla.descripcion : undefined}
+      rutaActual={pantallaVisible?.menuActivo ?? rutaVisible}
+      titulo={revisando ? 'Preparando tu experiencia' : permitida ? pantallaVisible?.titulo : undefined}
+      descripcion={revisando ? 'Configurando tu inicio en VYNK.' : permitida ? pantallaVisible?.descripcion : undefined}
     >
       {contenido}
     </Shell>
