@@ -16,6 +16,13 @@ export function Intereses({ token, onSesionExpirada, primerIngreso = false, onGu
             <span key={n} className="interes interes--esqueleto" />
           ))}
         </div>
+        {primerIngreso && (
+          <div className="intereses__acciones">
+            <button type="button" className="boton-secundario" onClick={i.omitir} disabled={i.omitiendo}>
+              {i.omitiendo ? 'Omitiendo…' : 'Omitir por ahora'}
+            </button>
+          </div>
+        )}
       </div>
     )
   }

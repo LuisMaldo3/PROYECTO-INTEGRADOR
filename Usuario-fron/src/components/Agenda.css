@@ -59,3 +59,22 @@
   .agenda-item__hora { display: flex; align-items: baseline; gap: 8px; padding: 0 0 8px; border-right: 0; border-bottom: 1px solid #edf1f7; }
   .cruces__item { grid-template-columns: 1fr; }
 }
+
+/* Vista sugerida: mantiene el lenguaje visual azul/marino de VYNK. */
+.agenda-vistas { display: flex; flex-wrap: wrap; gap: 7px; padding: 5px; margin-bottom: 20px; border-radius: 14px; background: #eaf0fb; width: fit-content; }
+.agenda-vistas button { border: 0; border-radius: 10px; padding: 10px 17px; font: inherit; font-weight: 800; font-size: .9rem; background: transparent; color: #51617f; cursor: pointer; }
+.agenda-vistas button[aria-pressed='true'] { background: white; color: #0b63ff; box-shadow: 0 2px 8px #12345e1c; }
+.agenda-sugerida__hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; padding: 26px; margin-bottom: 15px; border-radius: 18px; background: linear-gradient(112deg, #0e2557 0%, #1556a6 70%, #1978c8 100%); color: white; }
+.agenda-sugerida__hero h2 { font-size: clamp(1.35rem, 3vw, 1.95rem); margin: 7px 0; color: white; }
+.agenda-sugerida__hero p { max-width: 480px; margin: 0; font-size: .9rem; line-height: 1.5; color: #dae8ff; }
+.agenda-sugerida__hero .boton-secundario { background: white; color: #17457f; border-color: white; }
+.agenda-sugerida__eyebrow { color: #b9d8ff; font-size: .75rem; font-weight: 900; letter-spacing: .1em; }
+.agenda-sugerida__resumen { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.agenda-sugerida__dato { background: white; color: #425679; border: 1px solid #dce6f4; padding: 10px 15px; border-radius: 12px; font-size: .83rem; }
+.agenda-sugerida__dato strong { color: #0e2557; font-size: 1.15rem; }
+.agenda-sugerida__origen { padding: 10px 14px; border-radius: 12px; background: #e8edf5; color: #455473; font-size: .83rem; font-weight: 800; }
+.agenda-sugerida__origen--ia { background: #e9e9ff; color: #4b38a1; }
+.agenda-sugerida__aviso { color: #58708f; font-size: .85rem; margin-bottom: 19px; }
+.agenda-sugerida__motivo { margin: 1px 0; color: #365ba0; font-size: .86rem; line-height: 1.5; }
+.agenda-vistas button:focus-visible { outline: 3px solid #74adff; outline-offset: 2px; }
+@media(max-width:640px) { .agenda-sugerida__hero { padding: 20px; } .agenda-vistas { width: 100%; } .agenda-vistas button { flex: 1; } }

@@ -17,7 +17,7 @@ import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
 import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
 import { normalizarRol, resolverRuta, pantallaDe } from './services/permisos'
-import { consultarEstadoIntereses } from './services/interesesService'
+import { consultarEstadoIntereses, omitirIntereses } from './services/interesesService'
 import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
@@ -34,6 +34,7 @@ function App() {
   // cuenta ya no existe o está desactivada, se cierra la sesión. Si no hay conexión,
   // se mantiene lo guardado.
   const token = sesion?.token
+  const claveOmitir = `vynk:intereses:omision:${sesion?.usuario?.correo || ''}`
   useEffect(() => {
     if (!token) return undefined
     let cancelado = false
@@ -60,7 +61,14 @@ function App() {
     const ctrl = new AbortController()
     consultarEstadoIntereses(token, ctrl.signal)
       .then(({ configurados, omitido }) => {
-        if (!ctrl.signal.aborted) setInicioIntereses({ token, estado: debeSolicitarIntereses({ configurados, omitido }) ? 'primera-vez' : 'normal' })
+        if (ctrl.signal.aborted) return
+        const pendienteLocal = localStorage.getItem(claveOmitir) === 'pendiente'
+        if (configurados || omitido) localStorage.removeItem(claveOmitir)
+        if (pendienteLocal && !configurados && !omitido) {
+          // Recuperar la decisión que se realizó sin conectividad.
+          omitirIntereses(token).then(() => localStorage.removeItem(claveOmitir)).catch(() => {})
+        }
+        setInicioIntereses({ token, estado: pendienteLocal || !debeSolicitarIntereses({ configurados, omitido }) ? 'normal' : 'primera-vez' })
       })
       .catch((e) => {
         if (ctrl.signal.aborted) return
@@ -109,6 +117,14 @@ function App() {
     setInicioIntereses({ token, estado: 'normal' })
     window.location.hash = '#/inicio'
   }
+  const omitirPersonalizacion = () => {
+    localStorage.setItem(claveOmitir, 'pendiente')
+    terminarPersonalizacion()
+  }
+  const guardarPersonalizacion = () => {
+    localStorage.removeItem(claveOmitir)
+    terminarPersonalizacion()
+  }
   const pantallaVisible = primeraVez ? pantallaDe('intereses') : pantalla
   const rutaVisible = primeraVez ? 'intereses' : ruta
 
@@ -116,7 +132,7 @@ function App() {
   if (revisando) {
     contenido = <p role="status" className="intereses__guia">Comprobando tus preferencias…</p>
   } else if (primeraVez) {
-    contenido = <Intereses token={sesion.token} onSesionExpirada={salir} primerIngreso onGuardado={terminarPersonalizacion} onOmitir={terminarPersonalizacion} />
+    contenido = <Intereses token={sesion.token} onSesionExpirada={salir} primerIngreso onGuardado={guardarPersonalizacion} onOmitir={omitirPersonalizacion} />
   } else if (estado !== 'permitida') {
     contenido = <PantallaBloqueada estado={estado} pantalla={pantalla} rol={rol} />
   } else if (ruta === 'intereses') {
