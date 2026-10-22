@@ -47,7 +47,13 @@ public class DetectorHorarioGemini {
                 .header("Content-Type", "application/json").header("x-goog-api-key", clave)
                 .timeout(Duration.ofSeconds(35)).POST(HttpRequest.BodyPublishers.ofString(payload)).build();
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() / 100 != 2) throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini no pudo leer la imagen. Inténtalo de nuevo.");
+            if (resp.statusCode() / 100 != 2) {
+                System.err.println("Error de Gemini: HTTP " + resp.statusCode());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY,
+                        "Gemini no pudo procesar la imagen."
+                );
+            }
             String texto = json.readTree(resp.body()).path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
             JsonNode raiz = json.readTree(texto);
             List<BloqueOcupado> bloques = new ArrayList<>();
