@@ -66,4 +66,27 @@ class InteresesTest {
         assertEquals(IconoInteres.ESTRELLA, iconoDeInteres("nuevo"))
         assertNotEquals(IconoInteres.ESTRELLA, iconoDeInteres("ia"))
     }
+    @Test
+    fun onboarding_abreSoloSiNoEligioNiOmitio() {
+        assertTrue(debeSolicitarIntereses(configurados = false, omitido = false))
+        assertFalse(debeSolicitarIntereses(configurados = true, omitido = false))
+        assertFalse(debeSolicitarIntereses(configurados = false, omitido = true))
+        assertFalse(debeSolicitarIntereses(configurados = true, omitido = true))
+    }
+
+    @Test
+    fun onboarding_luegoDeElegirPuedeGuardarPeroSinCambiosNo() {
+        val seleccion = alternar(emptyList(), "tecnologia")
+        assertTrue(puedeGuardar(seleccion, emptyList()))
+        assertFalse(puedeGuardar(seleccion, seleccion))
+        assertFalse(puedeGuardar(emptyList(), emptyList()))
+        assertFalse(puedeGuardar(seleccion, emptyList(), guardando = true))
+    }
+
+    @Test
+    fun onboarding_omitirNoCambiaUnaSeleccionExistente() {
+        val misIntereses = listOf("teatro", "deportes")
+        assertFalse(debeSolicitarIntereses(configurados = true, omitido = true))
+        assertEquals(misIntereses, ordenarComoCatalogo(misIntereses, misIntereses))
+    }
 }

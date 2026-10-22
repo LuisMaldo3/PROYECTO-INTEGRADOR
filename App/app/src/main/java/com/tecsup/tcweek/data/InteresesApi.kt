@@ -10,6 +10,9 @@ import org.json.JSONObject
 /** Un interés disponible (id fijo y legible, como "tecnologia"). */
 data class Interes(val id: String, val nombre: String, val descripcion: String)
 
+/** Estado compartido con la web: omitir no equivale a configurar. */
+data class EstadoIntereses(val configurados: Boolean, val omitido: Boolean)
+
 /** Error de la API de intereses. [estado] es el código HTTP (0 si no hubo conexión). */
 class ErrorIntereses(val estado: Int, mensaje: String) : Exception(mensaje)
 
@@ -36,10 +39,27 @@ object InteresesApi {
 
     suspend fun mios(token: String): List<String> = ids(pedir("GET", "/api/intereses/mios", token))
 
+    suspend fun estado(token: String): EstadoIntereses {
+        val json = pedir("GET", "/api/intereses/mios", token)
+        return EstadoIntereses(
+            configurados = json.optBoolean("configurados", false),
+            omitido = json.optBoolean("omitido", false)
+        )
+    }
+
     /** Devuelve lo que quedó guardado. Si el servidor rechaza algo, lanza [ErrorIntereses] con su mensaje. */
     suspend fun guardar(token: String, ids: List<String>): List<String> {
         val cuerpo = JSONObject().put("intereses", JSONArray(ids)).toString()
         return ids(pedir("PUT", "/api/intereses/mios", token, cuerpo))
+    }
+
+    /** Registra que desea elegir más tarde. La omisión queda asociada a su cuenta. */
+    suspend fun omitir(token: String): EstadoIntereses {
+        val json = pedir("POST", "/api/intereses/omitir", token)
+        return EstadoIntereses(
+            configurados = json.optBoolean("configurados", false),
+            omitido = json.optBoolean("omitido", false)
+        )
     }
 
     private fun ids(json: JSONObject): List<String> {

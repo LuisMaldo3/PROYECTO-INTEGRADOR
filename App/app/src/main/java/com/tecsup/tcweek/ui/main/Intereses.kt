@@ -8,6 +8,9 @@ package com.tecsup.tcweek.ui.main
 /** Con este número de intereses o más las recomendaciones salen mejor (es una sugerencia, no una exigencia). */
 const val MINIMO_SUGERIDO = 3
 
+/** Solo se muestra el onboarding si nunca eligió intereses ni decidió omitirlos. */
+fun debeSolicitarIntereses(configurados: Boolean, omitido: Boolean): Boolean = !configurados && !omitido
+
 /** Agrega el interés si no estaba y lo quita si estaba. Devuelve una lista nueva. */
 fun alternar(seleccion: List<String>, id: String): List<String> =
     if (id in seleccion) seleccion.filter { it != id } else seleccion + id

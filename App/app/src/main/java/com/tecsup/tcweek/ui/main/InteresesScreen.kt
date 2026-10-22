@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,7 +92,12 @@ fun IconoInteres.dibujo(): ImageVector = when (this) {
 
 /** Pantalla «Mis intereses»: la persona marca los temas que le gustan y los guarda. Se abre desde Perfil. */
 @Composable
-fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
+fun InteresesScreen(
+    onVolver: () -> Unit,
+    onSesionExpirada: () -> Unit,
+    primerIngreso: Boolean = false,
+    onTerminar: () -> Unit = {}
+) {
     val context = LocalContext.current
     val repository = remember { AuthRepository(context) }
     val token = remember { repository.currentSession()?.llave.orEmpty() }
@@ -103,6 +109,7 @@ fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
     var guardados by remember { mutableStateOf<List<String>>(emptyList()) }
     var seleccion by remember { mutableStateOf<List<String>>(emptyList()) }
     var guardando by remember { mutableStateOf(false) }
+    var omitiendo by remember { mutableStateOf(false) }
     var aviso by remember { mutableStateOf<String?>(null) }
     var avisoEsError by remember { mutableStateOf(false) }
     var recarga by remember { mutableIntStateOf(0) }
@@ -134,20 +141,55 @@ fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
         }
     }
 
+    fun omitirPorAhora() {
+        if (omitiendo || guardando) return
+        omitiendo = true
+        aviso = null
+        scope.launch {
+            try {
+                InteresesApi.omitir(token)
+                onTerminar()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (!sesionExpirada(e)) {
+                    aviso = e.message ?: "No se pudo omitir. Inténtalo nuevamente."
+                    avisoEsError = true
+                }
+            } finally {
+                omitiendo = false
+            }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onVolver) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver al perfil", tint = Marino)
+            if (!primerIngreso) {
+                IconButton(onClick = onVolver) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver al perfil", tint = Marino)
+                }
             }
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text("Mis intereses", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Marino)
-                Text("Te recomendaremos actividades según lo que elijas.", style = MaterialTheme.typography.bodySmall, color = Gris)
+                Text(
+                    if (primerIngreso) "Personaliza tu experiencia o elige más tarde desde Perfil."
+                    else "Te recomendaremos actividades según lo que elijas.",
+                    style = MaterialTheme.typography.bodySmall, color = Gris
+                )
+            }
+            if (primerIngreso) {
+                TextButton(onClick = ::omitirPorAhora, enabled = !guardando && !omitiendo) {
+                    Text(if (omitiendo) "Omitiendo…" else "Omitir por ahora")
+                }
             }
         }
         HorizontalDivider(color = Borde)
+        if (primerIngreso && avisoEsError && aviso != null) {
+            Text(aviso.orEmpty(), color = Color(0xFFA12525), modifier = Modifier.padding(12.dp))
+        }
 
         when {
             cargando -> Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
@@ -177,7 +219,7 @@ fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
                         TarjetaInteres(
                             interes = interes,
                             marcado = interes.id in seleccion,
-                            habilitado = !guardando,
+                            habilitado = !guardando && !omitiendo,
                             onClick = {
                                 aviso = null
                                 seleccion = alternar(seleccion, interes.id)
@@ -191,7 +233,7 @@ fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
                     aviso = aviso,
                     avisoEsError = avisoEsError,
                     hayCambios = !mismosIntereses(seleccion, guardados),
-                    puedeGuardar = puedeGuardar(seleccion, guardados, guardando),
+                    puedeGuardar = !omitiendo && puedeGuardar(seleccion, guardados, guardando),
                     guardando = guardando,
                     onDescartar = {
                         aviso = null
@@ -207,6 +249,7 @@ fun InteresesScreen(onVolver: () -> Unit, onSesionExpirada: () -> Unit) {
                                 seleccion = quedaron
                                 aviso = "Tus intereses se guardaron."
                                 avisoEsError = false
+                                if (primerIngreso) onTerminar()
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {
