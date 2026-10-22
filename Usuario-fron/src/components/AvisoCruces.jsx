@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { leerSesion } from '../services/authService'
 import { explicarCruce } from '../services/crucesService'
 import { nombreDia } from '../services/presentacion'
+import { useAlternativasCruces } from '../hooks/useAlternativasCruces'
 import Icono from './Iconos'
 
 /** Aviso de cruces de horario de la agenda, con una explicación (IA o automática) de cada uno. */
 export function AvisoCruces({ cruces = [], error = '' }) {
   const [explicaciones, setExplicaciones] = useState({})
   const [cargando, setCargando] = useState('')
+  const { resultados, reintentar } = useAlternativasCruces(cruces)
 
   async function explicar(id) {
     const token = leerSesion()?.token
@@ -65,6 +67,33 @@ export function AvisoCruces({ cruces = [], error = '' }) {
               <Icono nombre="destellos" tamano={16} />
               {cargando === c.id ? 'Consultando…' : 'Explicar con IA'}
             </button>
+            <div className="cruces__alternativas" aria-label={`Alternativas para ${c.actividadA} y ${c.actividadB}`}>
+              <div className="cruces__alternativas-titulo">
+                <strong><Icono nombre="calendario" tamano={17} /> Actividades que sí puedes realizar</strong>
+                <span>{resultados[c.id]?.cargando ? 'Buscando…' : `${resultados[c.id]?.alternativas?.length || 0} opciones`}</span>
+              </div>
+              {resultados[c.id]?.cargando && <p role="status">Buscando actividades con cupos y horarios compatibles…</p>}
+              {resultados[c.id]?.error && (
+                <p role="alert">{resultados[c.id].error}{' '}
+                  <button type="button" className="cruces__reintentar" onClick={() => reintentar(c.id)}>Reintentar</button>
+                </p>
+              )}
+              {!resultados[c.id]?.cargando && !resultados[c.id]?.error && resultados[c.id] && (
+                resultados[c.id].alternativas.length ? (
+                  <ul className="cruces__opciones">
+                    {resultados[c.id].alternativas.map((a) => (
+                      <li key={a.id} className="cruces__opcion">
+                        <div><strong>{a.nombre || 'Actividad'}</strong><small>
+                          <Icono nombre="calendario" tamano={14} /> {nombreDia(a.fecha)} · {a.horaInicio} – {a.horaFin}
+                        </small><small><Icono nombre="ubicacion" tamano={14} /> {a.ubicacionId || 'Ubicación por confirmar'}</small></div>
+                        <span>Sin cruce</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p>Por ahora no hay actividades compatibles con cupos disponibles.</p>
+              )}
+              <small className="cruces__nota-alternativas">Son sugerencias, no nuevas inscripciones. Consulta el catálogo para inscribirte.</small>
+            </div>
             {explicaciones[c.id] && (
               <div className="cruces__explicacion" role="status">
                 <p>{explicaciones[c.id].texto}</p>
