@@ -56,7 +56,7 @@ import java.time.LocalDate
 
 /** Agenda: las actividades en las que está inscrita la persona, agrupadas por día. */
 @Composable
-fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
+fun AgendaScreen(onVerSugerida: () -> Unit = {}, onVerHuecos: () -> Unit = {}) {
     val context = LocalContext.current
     var items by remember { mutableStateOf<List<ActividadAgenda>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -109,6 +109,9 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}) {
             Button(onClick = onVerSugerida, modifier = Modifier.fillMaxWidth().padding(top = 12.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF124DAB)), shape = RoundedCornerShape(12.dp)) {
                 androidx.compose.material3.Icon(Icons.Filled.AutoAwesome, contentDescription = null)
                 Text("  Ver mi agenda sugerida")
+            }
+            OutlinedButton(onClick = onVerHuecos, modifier = Modifier.fillMaxWidth()) {
+                Text("✦ Mis horas libres · Sugerencias con IA")
             }
             Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = !upcoming, onClick = { upcoming = false }, label = { Text("Todas") })
