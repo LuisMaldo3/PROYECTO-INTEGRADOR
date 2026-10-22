@@ -46,7 +46,24 @@ public class InteresesService {
         exigirCuentaActiva(usuarioId);
         Set<String> validos = disponibles().stream().map(Interes::getId).collect(Collectors.toSet());
         List<String> limpios = validarSeleccion(pedidos, validos);
+        // Guardar intereses reactiva la invitación solo si luego se vaciara la selección.
         return elegidos.save(new InteresesDeUsuario(usuarioId, limpios, Instant.now()));
+    }
+
+    /** La selección existe únicamente cuando se guardaron intereses válidos. */
+    public static boolean tieneInteresesElegidos(InteresesDeUsuario estado) {
+        return estado != null && estado.getActualizadoEn() != null
+                && estado.getIntereses() != null && !estado.getIntereses().isEmpty();
+    }
+
+    /** Omitir no equivale a haber elegido: queda pendiente para Perfil, sin volver a interrumpir. */
+    public InteresesDeUsuario omitir(String usuarioId) {
+        exigirCuentaActiva(usuarioId);
+        InteresesDeUsuario estado = elegidos.findById(usuarioId)
+                .orElseGet(() -> new InteresesDeUsuario(usuarioId, List.of(), null));
+        if (tieneInteresesElegidos(estado) || estado.isOmitido()) return estado;
+        estado.setOmitido(true);
+        return elegidos.save(estado);
     }
 
     private void exigirCuentaActiva(String usuarioId) {

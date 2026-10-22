@@ -10,7 +10,7 @@ import { Menu } from './Menu'
  */
 export function Shell({ rol, rutaActual, titulo, descripcion, children }) {
   return (
-    <div className="shell">
+    <div className={`shell${rutaActual === 'asistente' ? ' shell--asistente' : ''}`}>
       <aside className="shell-lateral">
         <a className="shell-marca" href="#/inicio" aria-label="VYNK, ir al inicio">
           <Logo />

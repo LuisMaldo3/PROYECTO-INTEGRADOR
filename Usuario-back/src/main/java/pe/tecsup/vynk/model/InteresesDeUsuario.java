@@ -16,6 +16,8 @@ public class InteresesDeUsuario {
 
     private List<String> intereses = new ArrayList<>();
     private Instant actualizadoEn;
+    // Se almacena por persona para no repetir la invitación en otros dispositivos.
+    private boolean omitido;
 
     public InteresesDeUsuario() {
     }
@@ -31,6 +33,9 @@ public class InteresesDeUsuario {
 
     public List<String> getIntereses() { return intereses; }
     public void setIntereses(List<String> intereses) { this.intereses = intereses; }
+
+    public boolean isOmitido() { return omitido; }
+    public void setOmitido(boolean omitido) { this.omitido = omitido; }
 
     public Instant getActualizadoEn() { return actualizadoEn; }
     public void setActualizadoEn(Instant actualizadoEn) { this.actualizadoEn = actualizadoEn; }
