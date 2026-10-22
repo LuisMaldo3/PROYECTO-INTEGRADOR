@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { normalizarUbicaciones, normalizarActividadesMomento, preguntarAsistente } from './asistenteService.js'
+import { normalizarUbicaciones, normalizarActividadesMomento, normalizarRequisitos, preguntarAsistente } from './asistenteService.js'
 
 const anterior = globalThis.fetch
 
@@ -68,4 +68,25 @@ test('Asistente: limita los resultados y no inventa cupos desconocidos', () => {
   })))
   assert.equal(lista.length, 7)
   assert.equal(lista[0].cuposDisponibles, null)
+})
+
+
+test('Asistente: normaliza requisitos publicados y descarta formatos inválidos', () => {
+  const datos = normalizarRequisitos([
+    { actividadId: 'a1', nombre: 'Robótica', items: ['Laptop', 'Inscripción previa'], confirmados: true },
+    { actividadId: 'a2', nombre: 'Charla', items: null, confirmados: false },
+    null,
+  ])
+  assert.equal(datos.length, 2)
+  assert.deepEqual(datos[0].items, ['Laptop', 'Inscripción previa'])
+  assert.equal(datos[0].confirmados, true)
+  assert.deepEqual(datos[1].items, [])
+  assert.equal(datos[1].confirmados, false)
+})
+
+test('Asistente: nunca interpreta requisitos no registrados como confirmados', () => {
+  const datos = normalizarRequisitos([{ nombre: 'Taller', items: ['    ', null, 5], confirmados: 'true' }])
+  assert.equal(datos[0].confirmados, false)
+  assert.deepEqual(datos[0].items, [])
+  assert.deepEqual(normalizarRequisitos({ nombre: 'No es lista' }), [])
 })

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { normalizarUbicaciones, normalizarActividadesMomento } from '../services/asistenteService'
+import { normalizarUbicaciones, normalizarActividadesMomento, normalizarRequisitos } from '../services/asistenteService'
 import './MensajesChat.css'
 
 function Burbuja({ mensaje }) {
@@ -31,6 +31,16 @@ function Burbuja({ mensaje }) {
             <span>{a.fecha} · {a.horaInicio} – {a.horaFin}</span>
             {a.organizador && <span>Organiza: {a.organizador}</span>}
             <b>{a.cuposDisponibles === null ? 'Cupos por confirmar' : `${a.cuposDisponibles} cupos disponibles`}</b>
+          </div>
+        </article>)}
+      </div>}
+      {!usuario && mensaje.tipoConsulta === 'requisitos' && normalizarRequisitos(mensaje.requisitos).length > 0 && <div className="v-chat-requisitos" aria-label="Requisitos de la actividad">
+        {normalizarRequisitos(mensaje.requisitos).map((dato, i) => <article className="v-chat-requisito" key={`${dato.actividadId}-${i}`}>
+          <div className="v-chat-requisito__simbolo" aria-hidden="true">✓</div>
+          <div className="v-chat-requisito__detalle">
+            <strong>{dato.nombre}</strong>
+            <span className={`v-chat-requisito__estado${dato.confirmados && dato.items.length ? ' v-chat-requisito__estado--ok' : ''}`}>{dato.confirmados && dato.items.length ? 'Requisitos publicados por administración' : 'Requisitos por confirmar con el organizador'}</span>
+            {dato.confirmados && dato.items.length > 0 && <ul>{dato.items.map((requisito, j) => <li key={j}>{requisito}</li>)}</ul>}
           </div>
         </article>)}
       </div>}

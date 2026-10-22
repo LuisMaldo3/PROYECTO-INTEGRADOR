@@ -29,3 +29,17 @@ test('Asistente: conserva las tarjetas de ubicación al reabrir el historial', a
     assert.equal(leerHistorial('alumno@tecsup.edu.pe')[0].ubicaciones[0].lugar, 'Auditorio')
   } finally { globalThis.localStorage = previo }
 })
+
+
+test('Historial: conserva requisitos registrados en el mensaje del asistente', () => {
+  const previo = globalThis.localStorage
+  const contenido = new Map()
+  globalThis.localStorage = { setItem: (k,v) => contenido.set(k,v), getItem: k => contenido.get(k) ?? null, removeItem: k => contenido.delete(k) }
+  try {
+    const correo = 'requisitos@tecsup.edu.pe'
+    guardarHistorial(correo, [{ rol: 'asistente', contenido: 'Requisitos de robótica', tipoConsulta: 'requisitos', requisitos: [{ actividadId: '1', nombre: 'Robótica', items: ['Laptop'], confirmados: true }] }])
+    const recuperado = leerHistorial(correo)
+    assert.equal(recuperado[0].requisitos[0].items[0], 'Laptop')
+    borrarHistorial(correo)
+  } finally { globalThis.localStorage = previo }
+})

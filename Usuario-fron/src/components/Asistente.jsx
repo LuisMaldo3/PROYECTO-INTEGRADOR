@@ -14,8 +14,9 @@ const EJEMPLOS = [
   { texto: '¿Qué actividades hay mañana?', icono: 'calendario' },
   { texto: '¿A qué hora empieza una actividad?', icono: 'pregunta' },
   { texto: '¿Dónde se realizará una actividad?', icono: 'ubicacion' },
+  { texto: '¿Qué requisitos tiene el taller de robótica?', icono: 'pregunta' },
 ]
-const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas, horarios y ubicaciones de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
+const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas, horarios, ubicaciones y requisitos de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
 
 /** Iconografía propia, ligera: no requiere instalar bibliotecas. */
 function Icono({ nombre, tamaño = 21 }) {
@@ -75,7 +76,7 @@ export function Asistente() {
     const reloj = setTimeout(() => controller.abort(), 28000)
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, historial: anteriores, token, signal: controller.signal })
-      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
+      setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', requisitos: resultado.requisitos || [], actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
       setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
     } catch (e) {
       if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }
@@ -91,7 +92,7 @@ export function Asistente() {
         <div className="v-asistente-hero__simbolo" aria-hidden="true"><Icono nombre="estrella" tamaño={34} /></div>
         <div className="v-asistente-hero__texto">
           <h2>Asistente <span>VYNK</span></h2>
-          <p>Consulta horarios, actividades y ubicaciones de forma rápida.</p>
+          <p>Consulta horarios, requisitos y ubicaciones de actividades.</p>
           <span className={`v-asistente-hero__estado${error ? ' v-asistente-hero__estado--error' : ''}`}><span className="v-asistente-punto" />{cargando ? 'Consultando el cronograma…' : error ? 'Revisa la última consulta' : 'Listo para consultar'}</span>
         </div>
       </div>

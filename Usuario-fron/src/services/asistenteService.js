@@ -54,3 +54,15 @@ export function normalizarActividadesMomento(datos) {
     cuposDisponibles: Number.isInteger(a.cuposDisponibles) && a.cuposDisponibles >= 0 ? a.cuposDisponibles : null,
   })).filter(a => a.nombre && a.fecha && a.horaInicio && a.horaFin)
 }
+
+
+/** Requisitos publicados; si no están registrados se muestra estado pendiente, no "sin requisitos". */
+export function normalizarRequisitos(datos) {
+  if (!Array.isArray(datos)) return []
+  const texto = valor => typeof valor === 'string' ? valor.trim().slice(0, 300) : ''
+  return datos.slice(0, 7).filter(d => d && typeof d === 'object').map(d => ({
+    actividadId: texto(d.actividadId), nombre: texto(d.nombre),
+    items: Array.isArray(d.items) ? d.items.filter(i => typeof i === 'string' && i.trim()).slice(0, 12).map(texto) : [],
+    confirmados: d.confirmados === true,
+  })).filter(d => d.nombre)
+}
