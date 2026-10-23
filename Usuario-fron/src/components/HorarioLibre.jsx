@@ -1,3 +1,4 @@
+import { cabeEnHorario } from '../services/compatibilidadHorario'
 import { useEffect, useState } from 'react'
 import { leerSesion } from '../services/authService'
 import { guardarDisponibilidad, interpretarHorario, obtenerDisponibilidad, obtenerSugerenciasHuecos, revisarBloques } from '../services/disponibilidadService'
@@ -120,6 +121,7 @@ export default function HorarioLibre() {
           <div className="horario-libre__grid">{(sugerencias.actividades || []).map((a) => <article className="horario-libre__sugerencia" key={a.id}>
             <div className="horario-libre__sugerencia-icon"><Icono nombre="destellos" tamano={22} /></div>
             <div><strong>{a.nombre || a.nombreActividad}</strong><small>{a.fecha} · {a.horaInicio} – {a.horaFin}</small>
+              {cabeEnHorario(a) && <strong className="horario-libre__compatible">✓ Cabe en tu horario</strong>}
               <span>Hueco libre: {a.huecoInicio} – {a.huecoFin}</span><p>{a.motivo || 'Se ajusta a tus preferencias y disponibilidad.'}</p></div>
           </article>)}</div>
           <small>La plataforma no te inscribe automáticamente en ninguna actividad.</small>

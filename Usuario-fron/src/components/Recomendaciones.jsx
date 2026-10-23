@@ -19,7 +19,8 @@ export function Recomendaciones() {
     {error && <div className="rec-estado" role="alert">{error}<button onClick={() => setVersion(v=>v+1)}>Reintentar</button></div>}
     {!cargando && !error && datos && <><p className="rec-aviso" role="status">{datos.aviso} {datos.origen === 'ia_no_disponible' && 'Estas sugerencias NO fueron generadas por IA.'}</p>
       {datos.origen === 'sin_intereses' && <a className="rec-enlace" href="#/intereses">Elegir mis intereses →</a>}
-      {!datos.actividades?.length && <p className="rec-estado">Todavía no hay actividades para recomendar. Consulta el catálogo cuando se publiquen nuevas actividades.</p>}
+      {datos.origen === 'sin_horario' && <div className="rec-sin-horario"><strong>Primero confirma tu horario semanal</strong><p>Sube una imagen de tus clases, corrige las horas detectadas y guárdalas en Mi agenda → Mis horas libres.</p><a className="rec-enlace" href="#/agenda">Configurar mi disponibilidad →</a></div>}
+      {datos.origen !== 'sin_horario' && !datos.actividades?.length && <p className="rec-estado">Todavía no hay actividades compatibles con tus horarios confirmados. Consulta el catálogo cuando se publiquen nuevas actividades.</p>}
       <div className="rec-grid">{datos.actividades?.map((a,i) => <TarjetaRecomendada key={a.id} actividad={a} posicion={i+1}/>)}</div>
     </>}
   </main>

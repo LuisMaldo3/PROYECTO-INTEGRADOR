@@ -37,3 +37,5 @@
 .horario-libre__sugerencia small,.horario-libre__sugerencia span { display: block; font-size: .8rem; color: #566d90; margin-top: 3px; }
 .horario-libre__sugerencia p { color: #27528b; line-height: 1.5; font-size: .85rem; }
 @media(max-width: 640px) { .horario-libre__hero { padding: 20px; } .horario-libre__icon { display: none; } .horario-libre__tarjeta,.horario-libre__resultados { padding: 16px; } .horario-libre__pasos span { font-size: .71rem; } }
+
+.horario-libre__compatible{display:inline-flex;align-items:center;padding:5px 10px;background:#e9f8ef;border:1px solid #c2e9d0;border-radius:9px;color:#116e44;font-size:12px;margin:8px 0}
