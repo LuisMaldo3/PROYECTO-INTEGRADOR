@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-data class Recomendacion(val actividad: ActividadCatalogo, val motivo: String)
+data class Recomendacion(val actividad: ActividadCatalogo, val motivo: String, val horario: CompatibilidadHorario = CompatibilidadHorario())
 data class RespuestaRecomendaciones(val origen: String, val aviso: String, val actividades: List<Recomendacion>)
 object RecomendacionesApi {
     suspend fun cargar(token: String): RespuestaRecomendaciones = withContext(Dispatchers.IO) {
@@ -34,7 +34,12 @@ object RecomendacionesApi {
                     cupos=if(a.isNull("cuposDisponibles")) null else a.optInt("cuposDisponibles"),
                     maximo=if(a.isNull("maximoParticipantes")) null else a.optInt("maximoParticipantes"),
                     organizador=a.optString("organizador"), categoriaId=a.optString("categoriaId")
-                ), a.optString("motivo"))
+                ), a.optString("motivo"), CompatibilidadHorario(
+                    cabeEnHorario = a.optBoolean("cabeEnHorario", false),
+                    huecoInicio = a.optString("huecoInicio", ""),
+                    huecoFin = a.optString("huecoFin", ""),
+                    motivo = a.optString("motivoHorario", "")
+                ))
             }
             RespuestaRecomendaciones(obj.optString("origen"), obj.optString("aviso"), lista)
         } catch(e: java.net.ConnectException) {

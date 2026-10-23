@@ -49,7 +49,12 @@ fun RecomendacionesScreen() {
         else {
             item { Text(if(datos?.origen == "ia") "✦ Recomendaciones generadas con Gemini" else "Sugerencias automáticas · SIN IA", color = AzulRec, fontWeight = FontWeight.Bold)
                 Text(datos?.aviso.orEmpty(), color = Color(0xFF586A83)) }
-            if(datos?.actividades.isNullOrEmpty()) item { Card { Text("No hay recomendaciones disponibles. Selecciona tus intereses o espera nuevas actividades.", modifier = Modifier.padding(22.dp)) } }
+            if(datos?.actividades.isNullOrEmpty()) item { Card {
+                Text(if (datos?.origen == "sin_horario")
+                    "Primero confirma tu horario: abre Mi agenda → Mis horas libres, sube la imagen y revisa las horas detectadas."
+                    else "No hay actividades que encajen con tus horas disponibles. Revisa tu agenda o consulta el catálogo.",
+                    modifier = Modifier.padding(22.dp))
+            } }
             itemsIndexed(datos?.actividades.orEmpty()) { index, recomendacion ->
                 val a = recomendacion.actividad
                 Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
@@ -58,6 +63,17 @@ fun RecomendacionesScreen() {
                         Text(a.nombre, style = MaterialTheme.typography.titleLarge, color = MarinoRec, fontWeight = FontWeight.Bold)
                         if(a.descripcion.isNotBlank()) Text(a.descripcion, color = Color(0xFF586A83))
                         Text("📅 ${a.fecha}    🕒 ${a.horaInicio} – ${a.horaFin}", color = Color(0xFF475C79))
+                        if (recomendacion.horario.mostrarEtiqueta()) {
+                            Surface(color = Color(0xFFE6F7EE), shape = RoundedCornerShape(10.dp)) {
+                                Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                                    Text("✓ Cabe en tu horario", color = Color(0xFF146B42), fontWeight = FontWeight.Bold)
+                                    Text("Hueco: ${recomendacion.horario.huecoInicio} – ${recomendacion.horario.huecoFin}",
+                                        color = Color(0xFF1F714D), style = MaterialTheme.typography.bodySmall)
+                                    if (recomendacion.horario.motivo.isNotBlank())
+                                        Text(recomendacion.horario.motivo, color = Color(0xFF1F714D), style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
                         Surface(color = Color(0xFFEAF3FF), shape = RoundedCornerShape(12.dp)) {
                             Column(Modifier.padding(14.dp)) { Text("✦ ¿Por qué para ti?", color = AzulRec, fontWeight = FontWeight.Bold)
                                 Text(recomendacion.motivo, color = MarinoRec) }
