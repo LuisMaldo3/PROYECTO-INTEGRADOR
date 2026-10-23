@@ -41,4 +41,27 @@ class SugerenciasHuecosServiceTest {
         assertEquals(1, datos.get(0).dia());
         assertThrows(IllegalArgumentException.class, () -> DisponibilidadService.normalizar(List.of(new BloqueOcupado(8, "10:00", "12:00", "Error"))));
     }
+    @Test void filtraCrucesConClasesInscripcionesYEntreDias() {
+        var clase = new BloqueOcupado(1, "09:00", "11:00", "Clase de software");
+        var inscritas = List.of(inscrito("2026-11-02", "13:00", "14:00"));
+        var candidatas = List.of(
+            Map.<String, Object>of("id", "1", "fecha", "2026-11-02", "horaInicio", "10:00", "horaFin", "11:30"),
+            Map.<String, Object>of("id", "2", "fecha", "2026-11-02", "horaInicio", "11:00", "horaFin", "12:00"),
+            Map.<String, Object>of("id", "3", "fecha", "2026-11-02", "horaInicio", "13:30", "horaFin", "14:30"),
+            Map.<String, Object>of("id", "4", "fecha", "2026-11-03", "horaInicio", "10:00", "horaFin", "11:00"),
+            Map.<String, Object>of("id", "5", "fecha", "invalida", "horaInicio", "10:00", "horaFin", "11:00")
+        );
+        var salida = SugerenciasHuecosService.filtrarCompatibles(candidatas, List.of(clase), inscritas);
+        assertEquals(List.of("2", "4"), salida.stream().map(a -> a.get("id")).toList());
+    }
+    @Test void mantieneBloquesContiguosYDescartaHorasFueraDeJornada() {
+        var candidatas = List.of(
+            Map.<String,Object>of("id", "a", "fecha", "2026-11-02", "horaInicio", "08:00", "horaFin", "09:00"),
+            Map.<String,Object>of("id", "b", "fecha", "2026-11-02", "horaInicio", "20:30", "horaFin", "21:30"),
+            Map.<String,Object>of("id", "c", "fecha", "2026-11-02", "horaInicio", "21:00", "horaFin", "22:00")
+        );
+        assertEquals(List.of("a"), SugerenciasHuecosService.filtrarCompatibles(candidatas,
+            List.of(new BloqueOcupado(1, "09:00", "11:00", "Ocupado")), List.of())
+            .stream().map(a -> a.get("id")).toList());
+    }
 }

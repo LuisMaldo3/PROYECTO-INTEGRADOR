@@ -1,11 +1,12 @@
 package pe.tecsup.vynk.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +30,20 @@ public class SugerenciasHuecosService {
         List<Franja> ocupadas = new ArrayList<>();
         int dia = fecha.getDayOfWeek().getValue();
         for (var b : clases) if (b.dia() == dia) {
-            try { ocupadas.add(new Franja(LocalTime.parse(b.inicio()), LocalTime.parse(b.fin()))); }
-            catch (RuntimeException ignored) {}
+            try {
+                var ini = LocalTime.parse(b.inicio());
+                var fin = LocalTime.parse(b.fin());
+                if (ini.isBefore(fin)) ocupadas.add(new Franja(ini, fin));
+            } catch (RuntimeException ignored) { /* Bloque no válido: no inventar horas. */ }
         }
-        for (var i : inscripciones) if (fecha.toString().equals(i.getFecha())) {
-            try { ocupadas.add(new Franja(LocalTime.parse(i.getHoraInicio()), LocalTime.parse(i.getHoraFin()))); }
-            catch (RuntimeException ignored) {}
+        for (var i : inscripciones) if (fecha.toString().equals(i.getFecha())
+                && !"cancelada".equalsIgnoreCase(i.getEstado())
+                && !"cancelado".equalsIgnoreCase(i.getEstado())) {
+            try {
+                var ini = LocalTime.parse(i.getHoraInicio());
+                var fin = LocalTime.parse(i.getHoraFin());
+                if (ini.isBefore(fin)) ocupadas.add(new Franja(ini, fin));
+            } catch (RuntimeException ignored) { /* Horas inválidas en inscripción. */ }
         }
         ocupadas.sort(Comparator.comparing(Franja::inicio));
         List<Franja> libres = new ArrayList<>();
@@ -54,18 +63,33 @@ public class SugerenciasHuecosService {
             return ini.isBefore(fin) && huecos.stream().anyMatch(h -> !ini.isBefore(h.inicio()) && !fin.isAfter(h.fin()));
         } catch (RuntimeException e) { return false; }
     }
+    /** Las actividades válidas caben enteras en una franja libre del día correspondiente. */
+    public static List<Map<String, Object>> filtrarCompatibles(List<Map<String, Object>> candidatas,
+                                      List<BloqueOcupado> clases, List<Inscripcion> inscripciones) {
+        Map<LocalDate, List<Franja>> huecosPorDia = new HashMap<>();
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
+        for (var actividad : candidatas) {
+            try {
+                String id = String.valueOf(actividad.get("id"));
+                var fecha = LocalDate.parse(String.valueOf(actividad.get("fecha")));
+                var disponibles = huecosPorDia.computeIfAbsent(fecha, d -> huecos(d, clases, inscripciones));
+                if (!"null".equals(id) && ids.add(id) && cabe(actividad, disponibles)) resultado.add(actividad);
+            } catch (RuntimeException ignored) { /* Fecha inválida: no recomendar. */ }
+        }
+        return resultado;
+    }
+
     public Map<String, Object> generar(String usuario) {
         var configuracion = disponibilidad.obtener(usuario);
         if (!configuracion.isConfirmado()) return Map.of("configurado", false, "origen", "sin_horario", "aviso", "Sube tu horario y confirma las horas detectadas para recibir recomendaciones.", "actividades", List.of(), "huecos", List.of());
         var datos = contexto.reunir(usuario);
+        List<BloqueOcupado> clases = configuracion.getBloques() == null ? List.of() : configuracion.getBloques();
         Map<LocalDate, List<Franja>> porFecha = new LinkedHashMap<>();
-        List<Map<String, Object>> elegibles = new ArrayList<>();
-        for (var a : datos.disponibles()) {
-            LocalDate fecha;
-            try { fecha = LocalDate.parse(String.valueOf(a.get("fecha"))); }
-            catch (RuntimeException e) { continue; }
-            List<Franja> huecos = porFecha.computeIfAbsent(fecha, d -> huecos(d, configuracion.getBloques(), datos.inscritas()));
-            if (cabe(a, huecos)) elegibles.add(a);
+        List<Map<String, Object>> elegibles = filtrarCompatibles(datos.disponibles(), clases, datos.inscritas());
+        for (var a : elegibles) {
+            var fecha = LocalDate.parse(String.valueOf(a.get("fecha")));
+            porFecha.computeIfAbsent(fecha, d -> huecos(d, clases, datos.inscritas()));
         }
         var ocupadas = datos.inscritas().stream().map(i -> Map.of("fecha", String.valueOf(i.getFecha()), "inicio", String.valueOf(i.getHoraInicio()), "fin", String.valueOf(i.getHoraFin()))).toList();
         var selecciones = gemini.elegir(datos.intereses(), elegibles, ocupadas);
@@ -77,14 +101,17 @@ public class SugerenciasHuecosService {
             if (actividad != null) { prioridad.add(actividad); motivos.put(eleccion.id(), eleccion.motivo()); }
         }
         boolean usaIa = !prioridad.isEmpty();
-        if (!usaIa) prioridad.addAll(elegibles.stream().sorted(Comparator
+        // Completar la selección de Gemini con opciones compatibles si devolvió pocos IDs.
+        // La validación final es determinista y descarta cruces entre sugerencias.
+        Set<String> seleccionadas = new HashSet<>();
+        prioridad.forEach(a -> seleccionadas.add(String.valueOf(a.get("id"))));
+        elegibles.stream().sorted(Comparator
             .<Map<String, Object>>comparingInt(a -> -AgendaSugeridaService.relevancia(a, datos.intereses()))
-            .thenComparing(a -> String.valueOf(a.get("fecha")))).toList());
+            .thenComparing(a -> String.valueOf(a.get("fecha")))
+            .thenComparing(a -> String.valueOf(a.get("horaInicio"))))
+            .filter(a -> seleccionadas.add(String.valueOf(a.get("id"))))
+            .forEach(prioridad::add);
         var elegidas = AgendaSugeridaService.sinCruces(datos.inscritas(), prioridad, motivos, 6);
-        if (elegidas.isEmpty() && usaIa) {
-            usaIa = false;
-            elegidas = AgendaSugeridaService.sinCruces(datos.inscritas(), elegibles, Map.of(), 6);
-        }
         List<Map<String, Object>> salida = new ArrayList<>();
         for (var a : elegidas) {
             var fecha = LocalDate.parse(String.valueOf(a.get("fecha")));
@@ -94,6 +121,11 @@ public class SugerenciasHuecosService {
             var item = new LinkedHashMap<>(a);
             item.put("huecoInicio", hueco.inicio().toString());
             item.put("huecoFin", hueco.fin().toString());
+            // Solo el backend emite este certificado tras comprobar todos los cruces.
+            item.put("cabeEnHorario", true);
+            item.put("motivo", MotivosHorarioService.explicacion(item, datos.intereses(), fecha,
+                    hueco.inicio(), hueco.fin()));
+            item.put("motivoHorario", MotivosHorarioService.detalle(hueco.inicio(), hueco.fin()));
             salida.add(item);
         }
         List<Map<String, String>> intervalos = new ArrayList<>();
@@ -101,7 +133,8 @@ public class SugerenciasHuecosService {
             for (Franja h : ent.getValue()) if (intervalos.size() < 70)
                 intervalos.add(Map.of("fecha", ent.getKey().toString(), "inicio", h.inicio().toString(), "fin", h.fin().toString()));
         });
-        return Map.of("configurado", true, "origen", salida.isEmpty() ? "sin_actividades" : usaIa ? "ia" : "reglas",
+        boolean algunaIa = usaIa && salida.stream().anyMatch(a -> motivos.containsKey(String.valueOf(a.get("id"))));
+        return Map.of("configurado", true, "origen", salida.isEmpty() ? "sin_actividades" : algunaIa ? "ia" : "reglas",
             "aviso", "Disponibilidad semanal confirmada. Franja de sugerencias: 08:00 a 21:00 (hora de Lima). Verifica tus compromisos adicionales.",
             "actividades", salida, "huecos", intervalos);
     }
