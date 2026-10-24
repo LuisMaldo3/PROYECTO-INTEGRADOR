@@ -1,243 +1,137 @@
-# Proyecto — Sistema de autenticación TECSUP
+# Admin-back (Django) — VYNK
 
-## 1. Descripción
+Backend del administrador. Lee la **misma MongoDB** que `Usuario-back` y valida los
+**JWT que emite Spring Boot** (mismo `JWT_SECRET`). No tiene login propio.
 
-Proyecto compuesto por un backend desarrollado con Spring Boot y Maven, y un frontend desarrollado con React y Vite.
+## Endpoints (US-23)
 
-El sistema valida el acceso con correo institucional de TECSUP (`@tecsup.edu.pe`).
-
-## 2. Estructura del proyecto
-
-```text
-55444/
-├── README.md
-├── Usuario-back/
-│   ├── pom.xml
-│   └── src/
-└── Usuario-fron/
-    ├── package.json
-    ├── package-lock.json
-    ├── .env.example
-    ├── public/
-    └── src/
-```
-
-## 3. Requisitos previos
-
-Instalar los siguientes programas:
-
-* **Git:** para descargar y actualizar el proyecto.
-* **Java JDK:** versión compatible con el proyecto Spring Boot.
-* **Maven:** si el proyecto no incluye el wrapper de Maven.
-* **Node.js LTS y npm:** para instalar y ejecutar el frontend.
-* **Base de datos:** configurar el servicio que utiliza el backend, según los valores de su configuración.
-
-Verificar las instalaciones:
-
-```bash
-git --version
-java -version
-mvn -version
-node -v
-npm -v
-```
-
-## 4. Descargar el proyecto
-
-Si todavía no tienes el repositorio:
-
-```bash
-git clone URL_DEL_REPOSITORIO
-cd 55444
-```
-
-Reemplaza `URL_DEL_REPOSITORIO` por la dirección real del repositorio.
-
-Si ya descargaste el proyecto, entra directamente en la carpeta `55444`.
-
-## 5. Configurar y ejecutar el backend
-
-Entrar en la carpeta:
-
-```bash
-cd Usuario-back
-```
-
-**Paso obligatorio: crear el archivo `.env`.** Está en `.gitignore`, así que *no viene en el repositorio*; sin él el backend no arranca (falta `JWT_SECRET`).
-
-```powershell
-Copy-Item .env.example .env      # Windows (PowerShell)
-```
-```bash
-cp .env.example .env             # Mac / Linux
-```
-
-Abrir `.env` y revisar `MONGODB_URI`:
-
-* **MongoDB local:** debe estar instalado y corriendo (valor por defecto del ejemplo).
-* **MongoDB Atlas:** pedir usuario/clave al dueño del cluster y, en Atlas > Network Access, agregar tu IP. Si no, el backend no puede conectarse.
-
-Ejecutar (requiere JDK 17 o superior):
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Si no hay wrapper pero Maven está instalado: `mvn spring-boot:run`.
-
-El backend queda en **http://localhost:8081**. Comprobación rápida (debe responder 401 o 403, no "connection refused"):
-
-```bash
-curl -i -X POST http://localhost:8081/auth/login-password -H "Content-Type: application/json" -d "{\"correo\":\"a@tecsup.edu.pe\",\"password\":\"x\"}"
-```
-
-## 6. Configurar y ejecutar el frontend
-
-Abrir otra terminal y ejecutar:
-
-```bash
-cd Usuario-fron
-npm install
-```
-
-Si existe `.env.example`, crear una copia local:
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
-Revisar `.env.local` y completar las variables necesarias, como la dirección del backend, utilizando los valores correctos del proyecto.
-
-Después, ejecutar:
-
-```bash
-npm run dev
-```
-
-Abrir en el navegador la dirección que muestre Vite, normalmente:
-
-```text
-http://localhost:5173/
-```
-
-## 7. Configuración manual necesaria
-
-Cada integrante debe revisar y completar:
-
-1. Las variables de entorno requeridas por el frontend.
-2. Las credenciales y la conexión a la base de datos del backend.
-3. Las variables de entorno requeridas por Spring Boot.
-4. Las direcciones y puertos utilizados para conectar el frontend con el backend.
-5. Las credenciales de Google, si la autenticación de Google requiere configuración local.
-
-No copiar credenciales personales de otro integrante.
-
-## 8. Validación del correo institucional
-
-El sistema debe permitir únicamente los correos institucionales autorizados de TECSUP.
-
-Los correos que no cumplan con el dominio `@tecsup.edu.pe` deben ser rechazados por el backend y mostrar un mensaje comprensible en el frontend.
-
-La validación del backend es obligatoria y no debe depender únicamente de la interfaz.
-
-## 8.1 Roles y servicio «quién soy»
-
-**Roles.** Existen tres: `usuario`, `organizador` y `administrador`. Al arrancar, el backend crea la colección `roles` en MongoDB (solo agrega los que faltan, es seguro repetirlo). Todo usuario nuevo entra como `usuario`; el rol se guarda en `usuarios.rol`.
-
-Para cambiar el rol de alguien (por ahora a mano, en Compass o `mongosh`):
-
-```javascript
-use vynk
-db.usuarios.updateOne({ correo: "ana@tecsup.edu.pe" }, { $set: { rol: "organizador" } })
-```
-
-**El rol en la sesión.** El JWT lleva el claim `rol` y la respuesta de login incluye `usuario.rol`. Además, Spring Security lo convierte en autoridad (`organizador` → `ROLE_ORGANIZADOR`), así que un endpoint puede exigirlo con `.hasRole("ORGANIZADOR")` o `@PreAuthorize("hasRole('ADMINISTRADOR')")`.
-
-**«Quién soy».** `GET /auth/me` con `Authorization: Bearer <token>` devuelve los datos *actuales* del usuario, leídos de la base de datos:
-
-```json
-{ "id": "...", "nombre": "Ana Torres", "correo": "ana@tecsup.edu.pe", "rol": "organizador" }
-```
-
-| Caso | Respuesta |
-|---|---|
-| Token válido y cuenta activa | 200 con el usuario |
-| Sin token, token vencido o inválido | 401 |
-| La cuenta ya no existe o está desactivada | 401 `CREDENCIAL_INVALIDA` |
-
-Importante: el rol que viaja dentro del token queda fijo hasta que venza (8 horas). Si un administrador cambia un rol, `/auth/me` ya devuelve el nuevo, y el token anterior sigue con el viejo hasta que la persona vuelva a iniciar sesión.
-
-## 8.2 Cerrar sesión en el servidor (US-06)
-
-`POST /auth/logout` con `Authorization: Bearer <token>` responde **204** y revoca ese token: desde ese momento cualquier petición con él recibe **401**, aunque todavía no haya vencido (las sesiones duran 8 horas).
-
-- Cada token lleva un identificador único (claim `jti`). Al cerrar sesión, ese identificador se guarda en la colección `tokens_revocados` de MongoDB, con la fecha en que el token vencería.
-- El backend consulta esa lista en cada petición autenticada (`ValidadorTokenRevocado`, conectado en `SecurityConfig`).
-- Al cerrar sesión también se borran de la lista los tokens que ya vencieron, así no crece sin límite.
-- Los tokens emitidos **antes** de esta función no traen `jti`: no se pueden revocar y simplemente vencen a su hora.
-- La web llama a este endpoint al pulsar «Cerrar sesión»; si no hay conexión, igual cierra la sesión en el navegador. La app móvil por ahora solo borra su sesión local.
-
-Para probarlo a mano (en PowerShell, el 401 aparece como error):
-
-```powershell
-$r = Invoke-RestMethod -Method Post -Uri http://localhost:8081/auth/login-password -ContentType "application/json" -Body '{"correo":"TU_CORREO@tecsup.edu.pe","password":"TU_CLAVE"}'
-$h = @{ Authorization = "Bearer $($r.token)" }
-Invoke-RestMethod -Uri http://localhost:8081/auth/me -Headers $h                        # funciona
-Invoke-RestMethod -Method Post -Uri http://localhost:8081/auth/logout -Headers $h       # 204, sesión cerrada
-Invoke-RestMethod -Uri http://localhost:8081/auth/me -Headers $h                        # ahora da 401
-```
-
-## 8.3 Intereses del estudiante
-
-Cada estudiante elige los temas que le interesan para recibir recomendaciones. Todos los endpoints exigen `Authorization: Bearer <token>`.
-
-| Método | Ruta | Para qué |
+| Metodo | Ruta | Tarea |
 |---|---|---|
-| GET | `/api/intereses` | los intereses disponibles: `{ total, intereses: [{ id, nombre, descripcion }] }` |
-| GET | `/api/intereses/mios` | lo que eligió la persona: `{ intereses: ["teatro", …], actualizadoEn }` (`[]` y `null` si todavía no eligió) |
-| PUT | `/api/intereses/mios` | guarda lo que eligió (reemplaza lo anterior). Cuerpo: `{ "intereses": ["teatro", "musica"] }` |
+| GET | `/api/usuarios/` | 1 · lista de usuarios |
+| GET | `/api/usuarios/<id>/` | 2 · detalle de un usuario |
+| PATCH | `/api/usuarios/<id>/rol/` | US-24 · cambiar el rol (cuerpo `{"rol": "organizador"}`) |
 
-El `PUT` responde `200` con lo guardado o `400 SELECCION_INVALIDA` con un mensaje: la lista falta, queda vacía («Elige al menos un interés.») o trae un interés que no existe. Se quitan los repetidos y las mayúsculas.
+Todos exigen `Authorization: Bearer <token>` de un usuario **activo con rol `administrador`**.
+Solo devuelven `id, nombre, correo, rol, activo` (nunca `passwordHash`).
 
-- **Colecciones de MongoDB:** `intereses` (los disponibles) e `intereses_usuario` (un documento por persona, con su id de usuario).
-- Al arrancar, el backend crea los 11 intereses que faltan (salen de las actividades del programa del T&C Week: teatro, música, danza, libros, tecnología, inteligencia artificial, emprendimiento, videojuegos, deportes, gastronomía y concursos). Es seguro repetirlo: nunca pisa los que ya existen. Están en `InteresesIniciales.java`.
-- Los ids son texto fijo y legible (`tecnologia`): la web y la app los usan para elegir el ícono de cada interés.
+## Ejecutar (PowerShell)
 
-## 9. Archivos que no deben subirse a Git
+```powershell
+cd Admin-back
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env     # y pon el MISMO JWT_SECRET y MONGODB_URI de Usuario-back
+python manage.py runserver 8000
+```
 
-No subir:
+## Probar (tarea 7)
 
-* `node_modules/`
-* `.env.local`
-* Contraseñas, tokens o claves privadas.
-* Archivos de compilación generados.
-* Configuraciones personales del IDE.
-* Archivos ZIP innecesarios.
+1. Tener un usuario administrador en Mongo:
+   `db.usuarios.updateOne({correo:"tu@tecsup.edu.pe"},{$set:{rol:"administrador"}})`
+2. Pedir token a Spring Boot (el usuario debe tener contraseña definida):
+   ```powershell
+   curl -X POST http://localhost:8081/auth/login-password -H "Content-Type: application/json" -d '{\"correo\":\"tu@tecsup.edu.pe\",\"password\":\"TU_CLAVE\"}'
+   ```
+3. Usar el token:
+   ```powershell
+   curl http://localhost:8000/api/usuarios/ -H "Authorization: Bearer TOKEN"
+   curl http://localhost:8000/api/usuarios/ID/ -H "Authorization: Bearer TOKEN"
+   ```
+   Sin token → 401. Con token de un usuario normal → 403. Id inexistente → 404.
 
-El archivo `.env.example` debe contener únicamente nombres de variables y valores ficticios, nunca credenciales reales.
+## Pruebas automáticas
 
-## 10. App Android (carpeta `App`)
+```powershell
+python manage.py test
+```
+No necesitan MongoDB (usan colecciones falsas). Cubren: sin token (401), token con otro secreto o vencido (401),
+sesión cerrada (401), usuario normal (403), admin desactivado (401), lista sin `passwordHash`, detalle (200 y 404).
 
-1. Abrir `App` con Android Studio y esperar el *Gradle sync*. Hace falta el **Android SDK 37** (Studio ofrece instalarlo).
-2. **Dirección del backend.** Por defecto la app usa `http://10.0.2.2:8081`, que solo sirve en el **emulador**. Para que funcione igual en emulador y celular, agregar en `App/local.properties` (local, no se sube a Git):
+Los errores usan el mismo formato que Usuario-back: `{ "codigo": "...", "mensaje": "..." }`.
 
-   ```properties
-   backend.url=http://localhost:8081
+## Cambio de rol (US-24)
+
+`PATCH /api/usuarios/<id>/rol/` con `{"rol": "usuario" | "organizador" | "administrador"}`.
+Responde `200` con el usuario actualizado (`id, nombre, correo, rol, activo`). Errores:
+`400 JSON_INVALIDO`, `400 ROL_INVALIDO` (rol vacío o fuera de la lista), `401`, `403 SOLO_ADMIN`,
+`404 USUARIO_NO_ENCONTRADO`. Los roles válidos están en `usuarios/roles.py` y deben coincidir con
+`Roles.java` de Usuario-back.
+
+## Actividades (US-25)
+
+Primero, una sola vez (y se puede repetir sin problema), crea las colecciones y las categorías iniciales:
+
+```powershell
+python manage.py preparar_actividades
+```
+
+| Metodo | Ruta | Para qué |
+|---|---|---|
+| GET | `/api/categorias/` | categorías del formulario (`{ categorias: [{ id, nombre }] }`) |
+| GET | `/api/ubicaciones/` | ubicaciones del formulario (`{ ubicaciones: [{ id, nombre }] }`) |
+| GET | `/api/actividades/` | lista de actividades por fecha y hora de inicio |
+| POST | `/api/actividades/` | crea una actividad con `{ "nombre", "descripcion", "categoriaId", "ubicacionId", "fecha", "horaInicio", "horaFin" }` |
+
+Todos exigen token de administrador. `POST` responde `201` con la actividad creada
+(`id, nombre, descripcion, categoria {id, nombre}, ubicacion {id, nombre}, fecha, horaInicio, horaFin, creadaPor, creadaEn`). Si algo no pasa la revisión responde
+`400 DATOS_INVALIDOS` con `errores` por campo (`nombre`, `descripcion`, `categoriaId`, `ubicacionId`, `fecha`, `horaInicio`, `horaFin`);
+límites: nombre 3–80, descripción 10–500 caracteres y categoría existente. Los mismos límites están en la web (`validacionActividad.js`).
+
+### Fecha y horario (US-26)
+
+`fecha` va como `AAAA-MM-DD` (un día real del calendario) y es obligatoria; `horaInicio` como `HH:MM` en 24 h y es
+obligatoria; `horaFin` también `HH:MM`, es opcional y, si viene, debe ser **después** de la de inicio. La lista sale
+ordenada por fecha y hora; las actividades creadas antes de esta versión (sin fecha) quedan al final.
+
+### Ubicación (US-27)
+
+Cada actividad nueva lleva una `ubicacionId` que debe existir en la colección `ubicaciones` (Auditorio, Patio central y
+Polideportivo vienen de `python manage.py preparar_actividades`). En las respuestas sale como `ubicacion: { id, nombre }`;
+las actividades creadas antes de esta versión devuelven `ubicacion: null`. Para agregar más lugares, súmalos a
+`UBICACIONES_INICIALES` en `actividades/ubicaciones.py` y vuelve a correr el comando.
+
+
+## Solucion a HTTP 401 / TOKEN_INVALIDO (Oct 2026)
+
+El login de la web se hace en **Usuario-back (Spring Boot, puerto 8081)**. El JWT
+emitido por Spring Boot es verificado por **Admin-back (Django, puerto 8000)**.
+Ambos deben usar **la misma clave REAL de firma HMAC HS256** (incluido el
+mismo modo de interpretar la clave: texto UTF-8 o Base64).
+
+1. Deja encendidos Usuario-back y Admin-back.
+2. En el backend **Usuario-back** localiza la clave usada realmente para FIRMAR
+   el JWT (`JWT_SECRET`, variable de entorno, application.properties/yml o
+   configuración del proveedor de tokens). Ese archivo NO viene en estos ZIP.
+3. En `Admin-back/.env` configura `JWT_SECRET` para que sea exactamente la
+   MISMA clave en bytes. NO cambies el secreto a ciegas; si la implementacion
+   de Spring Boot decodifica Base64, el código de verificación deberá utilizar
+   ese formato también. No copies ni publiques esta clave en React.
+4. Reinicia Django para que relea su `.env`.
+5. Vuelve a iniciar sesión en la web para obtener un JWT fresco.
+6. En PowerShell, ejecuta:
+
+   ```powershell
+   cd Admin-back
+   .\.venv\Scripts\Activate.ps1
+   python manage.py diagnosticar_token
    ```
 
-   Después de un *Sync*, y con el emulador abierto o el celular conectado por USB, ejecutar `App/conectar-backend.bat` (hace `adb reverse tcp:8081 tcp:8081`). Repetirlo al reiniciar el emulador o reconectar el cable.
-3. **Login con Google.** Google solo acepta la app si el **SHA-1 de tu llave de depuración** está registrado. Cada integrante tiene un SHA-1 distinto: obtenerlo con `Gradle > app > Tasks > android > signingReport` (o `gradlew signingReport`) y agregarlo en Firebase Console > proyecto `vynk-e8ac4` > app `com.tecsup.tcweek` > *Add fingerprint*. Si la pantalla de consentimiento de Google está en modo "Testing", agregar también tu correo como usuario de prueba.
+   Pega el token reciente en la consola **local**; no aparecerá al escribirlo.
+   Puedes copiarlo desde las herramientas de desarrollador de tu navegador,
+   en la respuesta de `POST http://localhost:8081/auth/login-password`.
+   **No lo compartas por chat, repositorios o capturas públicas.**
 
-## 11. Solución de problemas
+   - `La firma NO coincide`: comprueba la clave o la codificación del JWT.
+   - `La firma se valido, pero ... expiro`: inicia sesión nuevamente.
+   - `JWT VALIDO`: la firma y claims son correctos; si la API da 401 después,
+     comprueba el mismo `MONGODB_URI` en ambos backends, el usuario activo, su
+     rol `administrador` y los tokens revocados.
 
-**El backend no arranca con `Could not resolve placeholder 'JWT_SECRET'`:** falta el archivo `.env` (ver sección 5).
+El backend conserva los controles de **firma, expiración, revocación, cuenta
+activa y rol administrador**. Se añadieron mensajes de log para distinguir
+fallos sin mostrar tokens ni secretos. El frontend valida el JWT con Django
+**antes** de mostrar el panel; ya no abre una sesión que Django rechaza.
 
-**El backend tarda y termina con error de MongoDB:** MongoDB local apagado, o tu IP no está permitida en Atlas.
-
-**Error de Java:** verificar que el JDK sea 17 o superior.
-
-**La app dice "No se pudo conectar con el servidor":** el backend no está corriendo, o la dirección es incorrecta (ver punto 2 de la sección 10).
-
-**La app dice "No se pudo abrir el acceso con Google":** casi siempre es el SHA-1 no registrado (punto 3 de la sección 10). Ver el detalle con Logcat filtrando por `LoginViewModel`.
-
-**Error del frontend:** ejecutar `npm install` dentro de `Usuario-fron`.
+**Nota sobre este ZIP:** no incluye `.env` ni `.venv`. Conserva tu `.env` local
+actual al copiar el proyecto; nunca subas credenciales a GitHub.
