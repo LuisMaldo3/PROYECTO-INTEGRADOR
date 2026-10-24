@@ -34,7 +34,7 @@ export function filtrarUsuarios(usuarios, texto = '', rol = '') {
 /** Texto que ve la persona según el estado HTTP que devolvió el servidor. */
 export function mensajeDeEstado(estado, mensajeDelServidor) {
   if (estado === 401) return 'Tu sesión expiró. Vuelve a iniciar sesión.'
-  if (estado === 403) return 'Solo los administradores pueden ver esta información.'
+  if (estado === 403) return mensajeDelServidor || 'Solo los administradores pueden ver esta información.'
   if (estado === 404) return 'No se encontró el usuario.'
   return mensajeDelServidor || 'No se pudo completar la operación. Inténtalo nuevamente.'
 }

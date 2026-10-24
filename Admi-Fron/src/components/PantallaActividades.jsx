@@ -69,7 +69,11 @@ export default function PantallaActividades({ token, onSesionExpirada }) {
           onCancelar={() => setFormularioAbierto(false)}
           onCreada={(actividad) => {
             setFormularioAbierto(false)
-            setAviso(`Actividad «${actividad.nombre}» ${actividadEditando ? 'actualizada' : 'creada'}.`)
+            setAviso(actividadEditando && actividad.cambioHorario
+              ? actividad.avisosError || (actividad.avisarInscritosSolicitado
+                  ? `Horario actualizado. ${actividad.avisosGenerados ?? 0} aviso(s) registrados para inscritos${actividad.destinatariosDetectados === 0 ? ' (sin inscripciones coincidentes en la colección)' : ''}.`
+                  : 'Horario actualizado sin generar avisos.')
+              : `Actividad «${actividad.nombre}» ${actividadEditando ? 'actualizada' : 'creada'}.`)
             setActividadEditando(null)
             setVersion((n) => n + 1)
           }}

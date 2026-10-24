@@ -252,3 +252,29 @@ svg { flex-shrink: 0; }
 .avisos-vacio strong{display:block;color:#334155;margin-bottom:.45rem}
 @media(max-width:980px){.avisos-grid{grid-template-columns:1fr}.avisos-pagina{padding:1.4rem 1rem 3rem}}
 @media(max-width:520px){.avisos-encabezado{align-items:flex-start}.avisos-total{font-size:.7rem}.avisos-tarjeta{padding:1.2rem}.avisos-item-cabecera{display:grid;gap:.3rem}}
+
+/* Búsqueda clara, con controles accesibles en escritorio y móvil. */
+.filtros__titulo { color: var(--suave); font-size: .78rem; font-weight: 650; width: 100%; }
+.filtros[role="search"] { flex-wrap: wrap; }
+.filtros[role="search"] .buscador { flex: 1 1 260px; }
+
+/* Edición profesional de permisos y estado, adaptada al panel lateral. */
+.gestion-permisos,.gestion-estado{display:grid;gap:.85rem;border-top:1px solid var(--borde);padding-top:1.2rem}
+.gestion-permisos__cabecera h3,.gestion-estado h3{font-size:.95rem;font-weight:750;color:var(--marino)}
+.gestion-permisos__cabecera p,.gestion-permisos__ayuda{font-size:.78rem;line-height:1.5;color:var(--suave);margin-top:.25rem}
+.gestion-permisos__lista{display:grid;gap:.3rem}
+.permiso-item{display:flex;justify-content:space-between;gap:.8rem;align-items:center;padding:.65rem .75rem;border:1px solid var(--borde);border-radius:11px;background:#f8fafc;cursor:pointer;min-width:0}
+.permiso-item span{display:grid;gap:.15rem;min-width:0}
+.permiso-item strong{font-size:.8rem;font-weight:650;color:var(--tinta)}
+.permiso-item small{font-size:.7rem;color:var(--suave);overflow-wrap:anywhere}
+.interruptor{appearance:none;width:38px;height:22px;flex-shrink:0;background:#cbd5e1;border-radius:999px;cursor:pointer;position:relative;border:1px solid #94a3b8;transition:background .15s}
+.interruptor:before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:white;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .15s}
+.interruptor:checked{background:var(--azul-osc);border-color:var(--azul-osc)}
+.interruptor:checked:before{transform:translateX(16px)}
+.interruptor:focus-visible{outline:3px solid var(--celeste);outline-offset:2px}
+.resumen-cambios{max-height:260px;overflow:auto;padding:0;list-style:none;display:grid;gap:.5rem}
+.resumen-cambios li{display:flex;justify-content:space-between;gap:1rem;padding:.65rem;border-bottom:1px solid var(--borde);font-size:.85rem}
+.resumen-cambios li strong{white-space:nowrap;color:var(--azul-osc)}
+.confirmacion-icono--azul{background:#e0f2fe;color:#0369a1}
+.usuarios-cargando{padding:1.6rem;text-align:center;color:var(--suave);border:1px dashed var(--borde);border-radius:12px}
+@media(max-width:900px){.gestion-permisos__lista{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}

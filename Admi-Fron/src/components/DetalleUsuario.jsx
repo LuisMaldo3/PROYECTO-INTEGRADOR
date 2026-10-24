@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import Icono from './Iconos'
 import ConfirmarRol from './ConfirmarRol'
 import SelectorRol from './SelectorRol'
+import PermisosUsuario from './PermisosUsuario'
+import EstadoUsuario from './EstadoUsuario'
 import { useCambioRol } from '../hooks/useCambioRol'
 import { obtenerUsuario } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol } from '../services/usuarios'
@@ -81,6 +83,9 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
             <dd className="mono">{usuario.id}</dd>
           </dl>
 
+          <EstadoUsuario token={token} usuario={usuario} onSesionExpirada={onSesionExpirada}
+            onActualizado={(nuevo) => { setEstado({ cargando: false, error: '', usuario: nuevo }); setAviso(nuevo.activo ? 'Cuenta activada.' : 'Cuenta desactivada.'); onRolCambiado?.() }} />
+          <PermisosUsuario token={token} usuario={usuario} onSesionExpirada={onSesionExpirada} onAviso={setAviso} />
           <SelectorRol rolActual={usuario.rol} deshabilitado={cambio.enviando} onElegir={cambio.pedir} />
           {aviso && (
             <p className="aviso aviso--ok" role="status">

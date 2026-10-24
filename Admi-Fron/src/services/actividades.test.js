@@ -9,6 +9,8 @@ test('CUERPO: quita espacios y deja solo los campos de la actividad', () => {
       descripcion: ' Abierto a todos. ',
       categoriaId: 'actividad-cultural',
       ubicacionId: ' patio-central ',
+      organizadorId: ' organizador-1 ',
+      maximoParticipantes: '25',
       fecha: '2026-10-19',
       horaInicio: '11:00',
       horaFin: ' 14:30 ',
@@ -19,6 +21,8 @@ test('CUERPO: quita espacios y deja solo los campos de la actividad', () => {
       descripcion: 'Abierto a todos.',
       categoriaId: 'actividad-cultural',
       ubicacionId: 'patio-central',
+      organizadorId: 'organizador-1',
+      maximoParticipantes: 25,
       fecha: '2026-10-19',
       horaInicio: '11:00',
       horaFin: '14:30',
@@ -31,7 +35,7 @@ test('CUERPO: sin hora de fin se envía vacía', () => {
 })
 
 test('CUERPO: lo que falta o no es texto queda vacío', () => {
-  const vacio = { nombre: '', descripcion: '', categoriaId: '', ubicacionId: '', fecha: '', horaInicio: '', horaFin: '' }
+  const vacio = { nombre: '', descripcion: '', categoriaId: '', ubicacionId: '', organizadorId: '', fecha: '', horaInicio: '', horaFin: '', maximoParticipantes: NaN }
   assert.deepEqual(armarCuerpo(), vacio)
   assert.deepEqual(armarCuerpo({ nombre: 5, descripcion: null, fecha: 20261019 }), vacio)
 })

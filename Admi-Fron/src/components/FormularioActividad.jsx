@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos'
+import ConfirmarAvisoHorario from './ConfirmarAvisoHorario'
 import { datosEdicionActividad } from '../services/datosEdicionActividad'
 import SelectorUbicacion from './SelectorUbicacion'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
@@ -12,6 +13,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
   const f = useFormularioActividad(actividad ? datosEdicionActividad(actividad) : null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
+  const [confirmandoHorario, setConfirmandoHorario] = useState(false)
 
   // Escape cierra la ventana, salvo mientras se está guardando.
   useEffect(() => {
@@ -20,13 +22,15 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
     return () => document.removeEventListener('keydown', alTeclear)
   }, [enviando, onCancelar])
 
-  async function enviar(evento) {
-    evento.preventDefault()
-    setError('')
-    if (!f.revisar()) return
+  async function guardar(avisarInscritos = false) {
     setEnviando(true)
     try {
-      onCreada(await (actividad ? modificarActividad(token, actividad.id, f.valores) : crearActividad(token, f.valores)))
+      const guardada = actividad
+        ? await modificarActividad(token, actividad.id, f.valores, { avisarInscritos })
+        : await crearActividad(token, f.valores)
+      setConfirmandoHorario(false)
+      onCreada(guardada)
+
     } catch (e) {
       if (e.estado === 401) return onSesionExpirada(e.detalle)
       if (e.errores && Object.keys(e.errores).length > 0) f.errorDelServidor(e.errores)
@@ -34,6 +38,19 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
     } finally {
       setEnviando(false)
     }
+  }
+
+  async function enviar(evento) {
+    evento.preventDefault()
+    setError('')
+    if (!f.revisar()) return
+    if (actividad && ['fecha', 'horaInicio', 'horaFin'].some(
+      (clave) => (actividad[clave] ?? '') !== (f.valores[clave] ?? ''),
+    )) {
+      setConfirmandoHorario(true)
+      return
+    }
+    await guardar(false)
   }
 
   const { valores, errores, limites } = f
@@ -150,6 +167,8 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </button>
         </div>
       </form>
+      {confirmandoHorario && <ConfirmarAvisoHorario actividad={actividad} enviando={enviando}
+        onCancelar={() => setConfirmandoHorario(false)} onElegir={(avisar) => guardar(avisar)} />}
     </div>
   )
 }

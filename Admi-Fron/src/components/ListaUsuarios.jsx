@@ -13,7 +13,8 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
   useEffect(() => {
     let cancelado = false
     setEstado((e) => ({ ...e, cargando: true, error: '' }))
-    listarUsuarios(token)
+    const temporizador = setTimeout(() => {
+      listarUsuarios(token, texto)
       .then((usuarios) => {
         if (!cancelado) setEstado({ cargando: false, error: '', usuarios })
       })
@@ -22,12 +23,14 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         if (e.estado === 401) return onSesionExpirada(e.detalle)
         setEstado({ cargando: false, error: e.message, usuarios: [] })
       })
+    }, texto.trim() ? 280 : 0)
     return () => {
       cancelado = true
+      clearTimeout(temporizador)
     }
-  }, [token, recarga, version, onSesionExpirada])
+  }, [token, texto, recarga, version, onSesionExpirada])
 
-  const visibles = useMemo(() => filtrarUsuarios(estado.usuarios, texto, rol), [estado.usuarios, texto, rol])
+  const visibles = useMemo(() => filtrarUsuarios(estado.usuarios, '', rol), [estado.usuarios, texto, rol])
 
   return (
     <section className="lista">
@@ -35,7 +38,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         <div>
           <h1>Usuarios</h1>
           <p className="suave">
-            {estado.cargando ? 'Cargando…' : `${visibles.length} de ${estado.usuarios.length} usuarios`}
+            {estado.cargando ? 'Buscando usuarios…' : `${visibles.length} cuentas encontradas`}
           </p>
         </div>
         <button type="button" className="boton boton--claro" onClick={() => setRecarga((n) => n + 1)}>
@@ -43,7 +46,8 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         </button>
       </header>
 
-      <div className="filtros">
+      <div className="filtros" role="search" aria-label="Buscar usuarios">
+        <span className="filtros__titulo">Encuentra una cuenta por nombre o correo</span>
         <span className="buscador">
           <Icono nombre="buscar" tam={18} />
           <input
@@ -52,8 +56,10 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             aria-label="Buscar usuarios"
+            maxLength={100}
           />
         </span>
+        {texto && <button type="button" className="boton boton--claro" onClick={() => setTexto('')} aria-label="Limpiar búsqueda">Limpiar</button>}
         <select value={rol} onChange={(e) => setRol(e.target.value)} aria-label="Filtrar por rol">
           <option value="">Todos los roles</option>
           <option value="usuario">Usuario</option>
@@ -68,6 +74,8 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         </p>
       )}
 
+      {estado.cargando && <div className="usuarios-cargando" role="status">Buscando cuentas en el servidor…</div>}
+
       {!estado.cargando && !estado.error && visibles.length === 0 && (
         <div className="vacio">
           <Icono nombre="usuarios" tam={40} />
@@ -75,7 +83,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         </div>
       )}
 
-      {visibles.length > 0 && (
+      {!estado.cargando && visibles.length > 0 && (
         <div className="tabla-envoltura">
           <table className="tabla">
             <thead>

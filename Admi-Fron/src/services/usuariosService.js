@@ -1,5 +1,5 @@
-import { ADMIN_URL } from '../config'
-import { mensajeDeEstado } from './usuarios'
+import { ADMIN_URL } from '../config.js'
+import { mensajeDeEstado } from './usuarios.js'
 
 /** Error al hablar con Admin-back. `estado` es el código HTTP (0 si no hubo conexión). */
 export class ApiError extends Error {
@@ -30,8 +30,10 @@ export async function pedir(ruta, token, opciones = {}) {
 }
 
 /** Tarea 3 · GET /api/usuarios/ → arreglo de { id, nombre, correo, rol, activo }. */
-export async function listarUsuarios(token) {
-  const datos = await pedir('/api/usuarios/', token)
+export async function listarUsuarios(token, busqueda = '') {
+  const q = String(busqueda).trim().slice(0, 100)
+  const ruta = q ? `/api/usuarios/?q=${encodeURIComponent(q)}` : '/api/usuarios/'
+  const datos = await pedir(ruta, token)
   return datos?.usuarios ?? []
 }
 
@@ -46,5 +48,24 @@ export function cambiarRol(token, id, rol) {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rol }),
+  })
+}
+
+
+/** GET/PUT /api/usuarios/<id>/permisos/ */
+export function obtenerPermisos(token, id) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/permisos/`, token)
+}
+
+export function guardarPermisos(token, id, permisos) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/permisos/`, token, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ permisos }),
+  })
+}
+
+/** PATCH /api/usuarios/<id>/estado/ */
+export function cambiarEstado(token, id, activo) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/estado/`, token, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ activo }),
   })
 }

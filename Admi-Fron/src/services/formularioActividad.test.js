@@ -16,7 +16,7 @@ test('FORMULARIO: el error de un campo solo aparece cuando se toca', () => {
 })
 
 test('FORMULARIO: tocarTodo muestra los errores de todos los campos', () => {
-  assert.deepEqual(Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(), ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'nombre', 'ubicacionId'])
+  assert.deepEqual(Object.keys(erroresVisibles(aplicar({ tipo: 'tocarTodo' }))).sort(), ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'maximoParticipantes', 'nombre', 'organizadorId', 'ubicacionId'])
 })
 
 test('FORMULARIO: el error desaparece al corregir el campo', () => {
@@ -33,6 +33,8 @@ test('FORMULARIO: puede enviarse solo con todo correcto', () => {
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'deportes' },
     { tipo: 'cambiar', campo: 'ubicacionId', valor: 'auditorio' },
+    { tipo: 'cambiar', campo: 'organizadorId', valor: 'organizador-1' },
+    { tipo: 'cambiar', campo: 'maximoParticipantes', valor: '30' },
     { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
     { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
   )
@@ -45,6 +47,8 @@ test('FORMULARIO: el error del servidor se muestra y se borra al editar ese camp
     { tipo: 'cambiar', campo: 'descripcion', valor: 'Campeonato abierto.' },
     { tipo: 'cambiar', campo: 'categoriaId', valor: 'borrada' },
     { tipo: 'cambiar', campo: 'ubicacionId', valor: 'auditorio' },
+    { tipo: 'cambiar', campo: 'organizadorId', valor: 'organizador-1' },
+    { tipo: 'cambiar', campo: 'maximoParticipantes', valor: '30' },
     { tipo: 'cambiar', campo: 'fecha', valor: '2026-10-19' },
     { tipo: 'cambiar', campo: 'horaInicio', valor: '11:00' },
   )

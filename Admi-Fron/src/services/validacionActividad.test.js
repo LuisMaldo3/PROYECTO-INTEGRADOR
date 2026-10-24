@@ -7,6 +7,8 @@ const OK = {
   descripcion: 'Campeonato abierto para todos.',
   categoriaId: 'deportes',
   ubicacionId: 'auditorio',
+  organizadorId: 'organizador-1',
+  maximoParticipantes: '30',
   fecha: '2026-10-19',
   horaInicio: '11:00',
   horaFin: '14:30',
@@ -17,7 +19,7 @@ test('REVISIÓN: datos correctos no dan errores', () => {
 })
 
 test('REVISIÓN: todo vacío marca los campos obligatorios (la hora de fin no lo es)', () => {
-  const obligatorios = ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'nombre', 'ubicacionId']
+  const obligatorios = ['categoriaId', 'descripcion', 'fecha', 'horaInicio', 'maximoParticipantes', 'nombre', 'organizadorId', 'ubicacionId']
   assert.deepEqual(Object.keys(validarActividad({})).sort(), obligatorios)
   assert.deepEqual(Object.keys(validarActividad()).sort(), obligatorios)
 })
@@ -44,7 +46,7 @@ test('REVISIÓN: límites de la descripción (10 a 500)', () => {
 })
 
 test('REVISIÓN: valores que no son texto no rompen nada', () => {
-  assert.equal(Object.keys(validarActividad({ nombre: 5, descripcion: ['x'], categoriaId: null, ubicacionId: 3, fecha: 7, horaInicio: {}, horaFin: [] })).length, 6)
+  assert.equal(Object.keys(validarActividad({ nombre: 5, descripcion: ['x'], categoriaId: null, ubicacionId: 3, fecha: 7, horaInicio: {}, horaFin: [] })).length, 8)
 })
 
 test('FECHA: obligatoria y un día real del calendario', () => {
