@@ -4,12 +4,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from usuarios.auth import exigir_admin
+from usuarios.permisos import exigir_permiso
 
 from . import servicio, organizadores, avisos as servicio_avisos
 
 
 @require_http_methods(["GET", "POST"])
 @exigir_admin
+@exigir_permiso("actividades.gestionar")
 def actividades(request):
     """GET: lista de actividades. POST: crea una ({nombre, descripcion, categoriaId})."""
     if request.method == "GET":
@@ -50,6 +52,7 @@ def listar_organizadores(request):
 
 @require_http_methods(["PUT", "PATCH"])
 @exigir_admin
+@exigir_permiso("actividades.gestionar")
 def editar_actividad(request, actividad_id):
     try:
         cuerpo = json.loads(request.body or b"{}")
@@ -58,7 +61,7 @@ def editar_actividad(request, actividad_id):
     if not isinstance(cuerpo, dict):
         return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "Se espera un objeto JSON."}, status=400)
     try:
-        actividad = servicio.modificar_actividad(actividad_id, cuerpo)
+        actividad = servicio.modificar_actividad(actividad_id, cuerpo, request.admin_id)
     except LookupError:
         return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Actividad no encontrada."}, status=404)
     except servicio.DatosInvalidos as error:
@@ -68,6 +71,7 @@ def editar_actividad(request, actividad_id):
 
 @require_http_methods(["PATCH"])
 @exigir_admin
+@exigir_permiso("actividades.gestionar")
 def cancelar_actividad(request, actividad_id):
     try:
         actividad = servicio.cancelar_actividad(actividad_id)
@@ -84,6 +88,10 @@ def avisos(request):
     if request.method == "GET":
         lista = servicio_avisos.listar_avisos()
         return JsonResponse({"total": len(lista), "avisos": lista})
+    # La consulta del historial sigue disponible; publicar requiere privilegio granular.
+    from usuarios.permisos import permisos_de
+    if not permisos_de(request.admin_id, "administrador").get("avisos.publicar", False):
+        return JsonResponse({"codigo": "PERMISO_DENEGADO", "mensaje": "No tienes permiso para publicar avisos."}, status=403)
     try:
         cuerpo = json.loads(request.body or b"{}")
     except ValueError:

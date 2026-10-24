@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from . import mongo
 from .horario import validar_horario
+from .cambios_horario import detectar_cambios_horario
 from usuarios import mongo as mongo_usuarios
 from usuarios.vistas_util import buscar_por_id
 
@@ -142,7 +143,7 @@ def crear_actividad(datos, admin_id):
     return a_json(doc, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
 
 
-def modificar_actividad(actividad_id, datos):
+def modificar_actividad(actividad_id, datos, admin_id=None):
     """Edita campos permitidos sin modificar inscripciones ni metadatos de creación."""
     actual = mongo.actividades().find_one({"_id": actividad_id})
     if actual is None:
@@ -160,11 +161,31 @@ def modificar_actividad(actividad_id, datos):
     # La condición evita reducir cupos si se inscribieron más personas durante la edición.
     filtro = {"_id": actividad_id, "estado": {"$ne": "cancelada"}, "$or": [{"participantesInscritos": {"$lte": maximo}},
                                             {"participantesInscritos": {"$exists": False}}]}
+    # Evita aplicar un segundo aviso si otro editor modificó el horario
+    # mientras validábamos esta edición.
+    cambios_horario = detectar_cambios_horario(actual, cambios)
+    if cambios_horario:
+        for campo in ("fecha", "horaInicio", "horaFin"):
+            filtro[campo] = actual.get(campo)
     resultado = mongo.actividades().update_one(filtro, {"$set": cambios})
     if not resultado.matched_count:
         raise DatosInvalidos({"maximoParticipantes": "Se registraron nuevas inscripciones. Actualiza y vuelve a intentar."})
     actualizado = mongo.actividades().find_one({"_id": actividad_id})
-    return a_json(actualizado, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
+    respuesta = a_json(actualizado, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
+    respuesta["cambioHorario"] = bool(cambios_horario)
+    respuesta["avisosGenerados"] = 0
+    respuesta["avisarInscritosSolicitado"] = bool(cambios_horario and datos.get("avisarInscritos") is True)
+    if respuesta["avisarInscritosSolicitado"]:
+        from .avisos_horario import crear_avisos_inscritos
+        from pymongo.errors import PyMongoError
+        try:
+            cantidad, inscritos = crear_avisos_inscritos(actividad_id, nombre, cambios_horario, admin_id)
+            respuesta["avisosGenerados"] = cantidad
+            respuesta["destinatariosDetectados"] = inscritos
+        except PyMongoError:
+            respuesta["avisosError"] = "Se guardó el horario, pero falló el registro de notificaciones."
+
+    return respuesta
 
 
 def listar_actividades():

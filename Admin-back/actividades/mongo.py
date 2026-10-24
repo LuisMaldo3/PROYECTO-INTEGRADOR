@@ -16,3 +16,11 @@ def avisos():
 
 def ubicaciones():
     return base.db()["ubicaciones"]
+
+
+def inscripciones():
+    return base.db()["inscripciones"]
+
+
+def notificaciones():
+    return base.db()["notificaciones"]

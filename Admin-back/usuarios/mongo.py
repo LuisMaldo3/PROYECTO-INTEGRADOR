@@ -25,3 +25,7 @@ def usuarios():
 
 def tokens_revocados():
     return db()["tokens_revocados"]
+
+
+def permisos_usuarios():
+    return db()["permisos_usuarios"]

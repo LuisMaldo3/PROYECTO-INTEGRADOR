@@ -55,9 +55,12 @@ class ValidarHorarioTests(SimpleTestCase):
         self.assertEqual(sorted(validar_horario([1, 2])[1]), ["fecha", "horaInicio"])
 
 
+ORGANIZADOR_ID = ObjectId("111111111111111111111111")
+ORGANIZADOR = {"_id": ORGANIZADOR_ID, "nombre": "Rita Organizadora", "rol": "organizador", "activo": True}
+
 @override_settings(JWT_SECRET=base.SECRETO)
 class EndpointHorarioTests(SimpleTestCase):
-    VALIDA = {"nombre": "Feria Global Day", "descripcion": "Conferencias y stands en el patio.", "categoriaId": "actividad-cultural", "ubicacionId": "auditorio", **OK}
+    VALIDA = {"nombre": "Feria Global Day", "descripcion": "Conferencias y stands en el patio.", "categoriaId": "actividad-cultural", "ubicacionId": "auditorio", "organizadorId": str(ORGANIZADOR_ID), "maximoParticipantes": 30, **OK}
 
     def setUp(self):
         self.actividades = tablas.Coleccion()
@@ -65,8 +68,9 @@ class EndpointHorarioTests(SimpleTestCase):
             "actividades.servicio.mongo.categorias": tablas.Coleccion([{"_id": "actividad-cultural", "nombre": "Actividad cultural"}]),
             "actividades.servicio.mongo.actividades": self.actividades,
             "actividades.servicio.mongo.ubicaciones": tablas.Coleccion([{"_id": "auditorio", "nombre": "Auditorio"}]),
-            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS),
+            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS + [ORGANIZADOR]),
             "usuarios.auth.mongo.tokens_revocados": base.ColeccionFalsa([]),
+            "usuarios.permisos.mongo.permisos_usuarios": base.ColeccionFalsa([]),
         }
         for objetivo, coleccion in parches.items():
             p = mock.patch(objetivo, return_value=coleccion)

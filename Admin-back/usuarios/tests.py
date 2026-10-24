@@ -72,6 +72,9 @@ class ListaYDetalleUsuariosTests(SimpleTestCase):
         p = mock.patch("usuarios.auth.mongo.tokens_revocados", return_value=self.revocados)
         p.start()
         self.addCleanup(p.stop)
+        p = mock.patch("usuarios.permisos.mongo.permisos_usuarios", return_value=ColeccionFalsa([]))
+        p.start()
+        self.addCleanup(p.stop)
         self.rf = RequestFactory()
 
     def _get(self, vista, token_=None, **kw):

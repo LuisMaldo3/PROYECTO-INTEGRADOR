@@ -19,11 +19,15 @@ UBICACIONES = [
     {"_id": "polideportivo", "nombre": "Polideportivo"},
     {"_id": "auditorio", "nombre": "Auditorio"},
 ]
+ORGANIZADOR_ID = ObjectId("111111111111111111111111")
+ORGANIZADOR = {"_id": ORGANIZADOR_ID, "nombre": "Rita Organizadora", "rol": "organizador", "activo": True}
 VALIDA = {
     "nombre": "Torneo de fútbol",
     "descripcion": "Campeonato abierto para todos los ciclos.",
     "categoriaId": "deportes",
     "ubicacionId": "polideportivo",
+    "organizadorId": str(ORGANIZADOR_ID),
+    "maximoParticipantes": 30,
     "fecha": "2026-10-19",
     "horaInicio": "15:00",
     "horaFin": "16:30",
@@ -39,8 +43,9 @@ class ActividadesTests(SimpleTestCase):
             "actividades.servicio.mongo.categorias": self.categorias,
             "actividades.servicio.mongo.actividades": self.actividades,
             "actividades.servicio.mongo.ubicaciones": tablas.Coleccion(UBICACIONES),
-            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS),
+            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS + [ORGANIZADOR]),
             "usuarios.auth.mongo.tokens_revocados": base.ColeccionFalsa([]),
+            "usuarios.permisos.mongo.permisos_usuarios": base.ColeccionFalsa([]),
         }
         for objetivo, coleccion in parches.items():
             p = mock.patch(objetivo, return_value=coleccion)
@@ -95,7 +100,7 @@ class ActividadesTests(SimpleTestCase):
     # --- revisiones ------------------------------------------------------
     def test_todo_vacio_marca_los_campos_obligatorios(self):
         errores = self._errores(self._post({}))
-        self.assertEqual(sorted(errores), ["categoriaId", "descripcion", "fecha", "horaInicio", "nombre", "ubicacionId"])
+        self.assertEqual(sorted(errores), ["categoriaId", "descripcion", "fecha", "horaInicio", "maximoParticipantes", "nombre", "organizadorId", "ubicacionId"])
         self.assertEqual(self.actividades.docs, [])
 
     def test_solo_espacios_cuenta_como_vacio(self):

@@ -16,11 +16,15 @@ UBICACIONES = [
     {"_id": "patio-central", "nombre": "Patio central"},
     {"_id": "auditorio", "nombre": "Auditorio"},
 ]
+ORGANIZADOR_ID = ObjectId("111111111111111111111111")
+ORGANIZADOR = {"_id": ORGANIZADOR_ID, "nombre": "Rita Organizadora", "rol": "organizador", "activo": True}
 VALIDA = {
     "nombre": "Charla TEC",
     "descripcion": "Emprendimiento e innovación con sentido.",
     "categoriaId": "actividad-cultural",
     "ubicacionId": "auditorio",
+    "organizadorId": str(ORGANIZADOR_ID),
+    "maximoParticipantes": 30,
     "fecha": "2026-10-20",
     "horaInicio": "10:00",
     "horaFin": "",
@@ -61,8 +65,9 @@ class UbicacionDeUnaActividadTests(SimpleTestCase):
             "actividades.servicio.mongo.categorias": tablas.Coleccion([{"_id": "actividad-cultural", "nombre": "Actividad cultural"}]),
             "actividades.servicio.mongo.ubicaciones": tablas.Coleccion(UBICACIONES),
             "actividades.servicio.mongo.actividades": self.actividades,
-            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS),
+            "usuarios.auth.mongo.usuarios": base.ColeccionFalsa(base.USUARIOS + [ORGANIZADOR]),
             "usuarios.auth.mongo.tokens_revocados": base.ColeccionFalsa([]),
+            "usuarios.permisos.mongo.permisos_usuarios": base.ColeccionFalsa([]),
         }
         for objetivo, coleccion in parches.items():
             p = mock.patch(objetivo, return_value=coleccion)
