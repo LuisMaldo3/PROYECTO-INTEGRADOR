@@ -97,15 +97,19 @@ def avisos(request):
     except ValueError:
         return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "JSON no válido."}, status=400)
     try:
-        titulo, mensaje = servicio_avisos.validar_aviso(cuerpo)
+        aviso = servicio_avisos.crear_aviso(cuerpo, request.admin_id)
     except servicio_avisos.AvisoInvalido as error:
         return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(error), "errores": error.errores}, status=400)
-    from datetime import datetime, timezone
-    doc = {"titulo": titulo, "mensaje": mensaje, "autorId": request.admin_id,
-           "creadoEn": datetime.now(timezone.utc)}
-    resultado = servicio_avisos.mongo.avisos().insert_one(doc)
-    doc["_id"] = resultado.inserted_id
-    return JsonResponse(servicio_avisos.a_json(doc), status=201)
+    return JsonResponse(aviso, status=201)
+
+
+@require_GET
+def avisos_publicados(request):
+    """Solo comunicados ya visibles; nunca expone avisos programados."""
+    lista = servicio_avisos.listar_publicados()
+    # La página pública no necesita revelar quién redactó cada aviso.
+    publicados = [{clave: valor for clave, valor in aviso.items() if clave != "autorId"} for aviso in lista]
+    return JsonResponse({"total": len(publicados), "avisos": publicados})
 
 
 @require_GET
