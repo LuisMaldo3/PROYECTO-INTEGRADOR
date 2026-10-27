@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from . import mongo
 from .horario import validar_horario
 from .cambios_horario import detectar_cambios_horario
+from .cambios_ubicacion import detectar_cambio_ubicacion
 from usuarios import mongo as mongo_usuarios
 from usuarios.vistas_util import buscar_por_id
 
@@ -145,9 +146,12 @@ def crear_actividad(datos, admin_id):
 
 def modificar_actividad(actividad_id, datos, admin_id=None):
     """Edita campos permitidos sin modificar inscripciones ni metadatos de creación."""
-    actual = mongo.actividades().find_one({"_id": actividad_id})
+    # Las actividades nuevas tienen ObjectId en Mongo, aunque el URL trae texto.
+    # Reutilizar el mismo conversor seguro que el endpoint de cancelación.
+    actual = buscar_por_id(mongo.actividades(), actividad_id)
     if actual is None:
         raise LookupError("Actividad no encontrada.")
+    actividad_id = actual["_id"]
     if actual.get("estado", "programada") == "cancelada":
         raise DatosInvalidos({"estado": "No se puede editar una actividad cancelada."})
     nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
@@ -164,8 +168,9 @@ def modificar_actividad(actividad_id, datos, admin_id=None):
     # Evita aplicar un segundo aviso si otro editor modificó el horario
     # mientras validábamos esta edición.
     cambios_horario = detectar_cambios_horario(actual, cambios)
-    if cambios_horario:
-        for campo in ("fecha", "horaInicio", "horaFin"):
+    cambio_ubicacion = detectar_cambio_ubicacion(actual, cambios)
+    if cambios_horario or cambio_ubicacion:
+        for campo in (*cambios_horario, *cambio_ubicacion):
             filtro[campo] = actual.get(campo)
     resultado = mongo.actividades().update_one(filtro, {"$set": cambios})
     if not resultado.matched_count:
@@ -173,17 +178,29 @@ def modificar_actividad(actividad_id, datos, admin_id=None):
     actualizado = mongo.actividades().find_one({"_id": actividad_id})
     respuesta = a_json(actualizado, {categoria["_id"]: categoria["nombre"]}, {ubicacion["_id"]: ubicacion["nombre"]})
     respuesta["cambioHorario"] = bool(cambios_horario)
+    respuesta["cambioUbicacion"] = bool(cambio_ubicacion)
     respuesta["avisosGenerados"] = 0
-    respuesta["avisarInscritosSolicitado"] = bool(cambios_horario and datos.get("avisarInscritos") is True)
+    respuesta["avisarInscritosSolicitado"] = bool((cambios_horario or cambio_ubicacion) and datos.get("avisarInscritos") is True)
     if respuesta["avisarInscritosSolicitado"]:
         from .avisos_horario import crear_avisos_inscritos
         from pymongo.errors import PyMongoError
         try:
-            cantidad, inscritos = crear_avisos_inscritos(actividad_id, nombre, cambios_horario, admin_id)
+            cantidad, inscritos = (0, 0)
+            if cambios_horario:
+                cantidad, inscritos = crear_avisos_inscritos(actividad_id, nombre, cambios_horario, admin_id)
+            if cambio_ubicacion:
+                from .notificaciones_inscritos import notificar_cambio_ubicacion
+                anterior_id = actual.get("ubicacionId")
+                anterior = mongo.ubicaciones().find_one({"_id": anterior_id}) if anterior_id else None
+                cuantos, destinatarios = notificar_cambio_ubicacion(
+                    actividad_id, nombre, anterior.get("nombre", "ubicación anterior") if anterior else "ubicación anterior",
+                    ubicacion["nombre"], admin_id)
+                cantidad += cuantos
+                inscritos = max(inscritos, destinatarios)
             respuesta["avisosGenerados"] = cantidad
             respuesta["destinatariosDetectados"] = inscritos
         except PyMongoError:
-            respuesta["avisosError"] = "Se guardó el horario, pero falló el registro de notificaciones."
+            respuesta["avisosError"] = "Cambios guardados, pero falló el registro de notificaciones."
 
     return respuesta
 
@@ -209,7 +226,7 @@ def listar_ubicaciones():
     return [{"id": u["_id"], "nombre": u["nombre"]} for u in docs]
 
 
-def cancelar_actividad(actividad_id):
+def cancelar_actividad(actividad_id, admin_id=None):
     """Cancela sin borrar inscripciones; idempotente y con actualización atómica."""
     coleccion = mongo.actividades()
     from usuarios.vistas_util import buscar_por_id
@@ -228,4 +245,17 @@ def cancelar_actividad(actividad_id):
     doc = coleccion.find_one({"_id": actividad_id})
     categorias = {c["_id"]: c["nombre"] for c in mongo.categorias().find({})}
     ubicaciones = {u["_id"]: u["nombre"] for u in mongo.ubicaciones().find({})}
-    return a_json(doc, categorias, ubicaciones)
+    respuesta = a_json(doc, categorias, ubicaciones)
+    respuesta["avisosGenerados"] = 0
+    try:
+        from .notificaciones_inscritos import notificar_cancelacion
+        cantidad, destinatarios = notificar_cancelacion(actividad_id, doc.get("nombre", "Actividad"), admin_id)
+        respuesta["avisosGenerados"] = cantidad
+        respuesta["destinatariosDetectados"] = destinatarios
+    except Exception as error:
+        # No revertir una cancelación ya guardada cuando el envío falla.
+        from pymongo.errors import PyMongoError
+        if not isinstance(error, PyMongoError):
+            raise
+        respuesta["avisosError"] = "Actividad cancelada; no se pudieron registrar las notificaciones."
+    return respuesta

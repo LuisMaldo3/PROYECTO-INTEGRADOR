@@ -74,7 +74,7 @@ def editar_actividad(request, actividad_id):
 @exigir_permiso("actividades.gestionar")
 def cancelar_actividad(request, actividad_id):
     try:
-        actividad = servicio.cancelar_actividad(actividad_id)
+        actividad = servicio.cancelar_actividad(actividad_id, request.admin_id)
     except LookupError:
         return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Actividad no encontrada."}, status=404)
     except servicio.DatosInvalidos as error:
