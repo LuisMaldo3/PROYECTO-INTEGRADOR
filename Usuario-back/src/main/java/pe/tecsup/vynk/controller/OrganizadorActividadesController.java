@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.tecsup.vynk.service.OrganizadorDetalleService;
 import pe.tecsup.vynk.service.OrganizadorHorarioService;
 import pe.tecsup.vynk.service.OrganizadorAccessService;
-import pe.tecsup.vynk.repository.InscripcionRepository;
+import pe.tecsup.vynk.service.OrganizadorCuposService;
 
 @RestController
 @RequestMapping("/api/organizador/actividades")
 public class OrganizadorActividadesController {
     private final OrganizadorAccessService acceso;
-    private final InscripcionRepository inscripciones;
+    private final OrganizadorCuposService cupos;
     private final OrganizadorDetalleService detalles;
     private final OrganizadorHorarioService horario;
 
-    public OrganizadorActividadesController(OrganizadorAccessService acceso, InscripcionRepository inscripciones, OrganizadorDetalleService detalles, OrganizadorHorarioService horario) {
+    public OrganizadorActividadesController(OrganizadorAccessService acceso, OrganizadorCuposService cupos, OrganizadorDetalleService detalles, OrganizadorHorarioService horario) {
         this.acceso = acceso;
-        this.inscripciones = inscripciones;
+        this.cupos = cupos;
         this.detalles = detalles;
         this.horario = horario;
     }
@@ -34,10 +34,7 @@ public class OrganizadorActividadesController {
         var usuario = acceso.exigirOrganizador(jwt);
         var items = acceso.misActividades(usuario).stream().map(doc -> {
             Map<String, Object> item = new LinkedHashMap<>(acceso.resumen(doc));
-            long inscritos = inscripciones.findByActividadId(String.valueOf(doc.get("_id"))).stream()
-                    .filter(i -> "inscrita".equalsIgnoreCase(i.getEstado())).count();
-            item.put("inscritosRegistrados", inscritos);
-            return horario.enriquecer(item);
+            return horario.enriquecer(cupos.enriquecer(item));
         }).toList();
         horario.marcarProxima(items);
         return Map.of("total", items.size(), "actividades", items);

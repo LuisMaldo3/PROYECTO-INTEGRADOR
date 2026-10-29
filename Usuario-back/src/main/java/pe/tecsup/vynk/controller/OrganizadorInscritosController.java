@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,9 +13,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.tecsup.vynk.model.Asistencia;
 import pe.tecsup.vynk.model.Usuario;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import pe.tecsup.vynk.repository.AsistenciaRepository;
 import pe.tecsup.vynk.repository.InscripcionRepository;
 import pe.tecsup.vynk.repository.UsuarioRepository;
@@ -34,9 +39,12 @@ public class OrganizadorInscritosController {
         this.asistencia = asistencia;
     }
     @GetMapping
-    public Map<String, Object> listar(@AuthenticationPrincipal Jwt jwt, @PathVariable String actividadId) {
+    public Map<String, Object> listar(@AuthenticationPrincipal Jwt jwt, @PathVariable String actividadId,
+                                      @RequestParam(name = "buscar", defaultValue = "") String buscar) {
         Usuario responsable = acceso.exigirOrganizador(jwt);
         var actividad = acceso.exigirActividadPropia(responsable, actividadId);
+        if (buscar.length() > 100) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La búsqueda supera 100 caracteres");
+        String filtro = normalizar(buscar.trim());
         Map<String, Asistencia> marcas = new HashMap<>();
         for (Asistencia a : asistencia.findByActividadId(actividadId)) marcas.put(a.getEstudianteId(), a);
         var inscritos = inscripciones.findByActividadId(actividadId);
@@ -54,7 +62,18 @@ public class OrganizadorInscritosController {
             dato.put("presente", marca == null ? null : marca.isPresente());
             resultado.add(dato);
         }
-        resultado.sort(Comparator.comparing(a -> String.valueOf(a.get("nombre")).toLowerCase()));
-        return Map.of("actividad", acceso.resumen(actividad), "total", resultado.size(), "inscritos", resultado);
+        resultado.sort(Comparator.comparing(a -> normalizar(String.valueOf(a.get("nombre")))));
+        int totalInscritos = resultado.size();
+        if (!filtro.isBlank()) {
+            resultado.removeIf(a -> !normalizar(String.valueOf(a.get("nombre"))).contains(filtro)
+                    && !normalizar(String.valueOf(a.get("correo"))).contains(filtro));
+        }
+        return Map.of("actividad", acceso.resumen(actividad), "total", resultado.size(),
+                "totalInscritos", totalInscritos, "inscritos", resultado);
+    }
+
+    private static String normalizar(String valor) {
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT);
     }
 }
