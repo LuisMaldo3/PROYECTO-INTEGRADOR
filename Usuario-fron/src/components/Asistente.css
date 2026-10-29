@@ -9,45 +9,8 @@
   background: #f9fbff;
 }
 .shell--asistente .shell-contenido { background: #fbfdff; }
-.shell--asistente .shell-cabecera { display: none; }
-.shell--asistente .shell-main { padding: 14px clamp(14px, 1.45vw, 30px) 25px; }
 
-/* El menú ancho solo se utiliza en Asistente; no cambia las otras pantallas. */
-@media (min-width: 761px) {
-  .shell--asistente { --lateral: 194px; }
-  .shell--asistente .shell-lateral {
-    background: linear-gradient(160deg,#061938 5%,#071e45 72%,#082653 100%);
-    isolation: isolate;
-    overflow: hidden;
-  }
-  .shell--asistente .shell-marca { justify-content: flex-start; padding: 26px 23px 34px; z-index: 1; }
-  .shell--asistente .shell-marca .logo { font-size: 1.7rem; letter-spacing: .02em; font-weight: 900; }
-  .shell--asistente .shell-menu { z-index: 1; }
-  .shell--asistente .shell-menu ul { gap: 8px; padding: 0 11px; }
-  .shell--asistente .shell-menu a {
-    flex-direction: row; justify-content: flex-start; gap: 16px;
-    border-radius: 12px; min-height: 58px; padding: 11px 17px;
-    font-size: 14px; text-align: left; color: #e5edff;
-  }
-  .shell--asistente .shell-menu a[aria-current='page'] {
-    color: #fff; background: linear-gradient(115deg,#0757e4,#096cff);
-    box-shadow: 0 8px 24px #0055d63b;
-  }
-  .shell--asistente .shell-menu svg { width: 23px; height: 23px; flex: 0 0 23px; }
-  .shell--asistente .shell-lateral::before {
-    content: ''; position: absolute; z-index: 0; pointer-events: none;
-    left: -82px; bottom: 58px; width: 290px; height: 210px;
-    background: radial-gradient(ellipse at 15% 15%,#0066ff 5%,#0046a5 33%,transparent 67%),
-                radial-gradient(ellipse at 78% 68%,#04b5d6 5%,#0563d0 34%,transparent 67%);
-    opacity: .85; border-radius: 45% 60% 35% 65%; transform: rotate(-17deg);
-  }
-  .shell--asistente .shell-lateral::after {
-    content: 'Conecta\A Aprende\A Vive tu T&C'; white-space: pre;
-    position: absolute; bottom: 24px; left: 24px;
-    color: #dbe9ff; font-size: 15px; font-style: italic; line-height: 1.38;
-    letter-spacing: .02em;
-  }
-}
+/* El menú lateral es el mismo en todas las pantallas (ver Tema.css). */
 
 .v-asistente { width: 100%; max-width: 1720px; margin-inline: auto; color: var(--v-texto); }
 .v-asistente-hero {
@@ -127,8 +90,6 @@
   .v-asistente-fuente { margin-top:0; }
 }
 @media (max-width: 760px) {
-  .shell--asistente .shell-cabecera { display:none; }
-  .shell--asistente .shell-main { padding:14px 13px 24px; }
   .v-asistente-hero { min-height:160px; }
   .v-asistente-hero__contenido { max-width:100%; padding:19px 18px; }
   .v-asistente-hero__simbolo { display:none; }

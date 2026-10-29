@@ -17,6 +17,11 @@ export function Shell({ rol, rutaActual, titulo, descripcion, children }) {
         </a>
 
         <Menu rol={rol} rutaActual={rutaActual} />
+
+        <div className="shell-pie">
+          <strong>Conecta · Aprende · Vive tu T&amp;C</strong>
+          © {new Date().getFullYear()} VYNK, Tecsup
+        </div>
       </aside>
 
       <div className="shell-contenido">
