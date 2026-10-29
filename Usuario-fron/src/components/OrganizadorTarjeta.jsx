@@ -16,28 +16,29 @@ export function OrganizadorTarjeta({ actividad }) {
   const progreso = maximo ? Math.min(100, Math.round((inscritos / maximo) * 100)) : 0
   const estado = String(a.estado || 'programada').toLowerCase()
   return (
-    <article className="org-tarjeta">
+    <article className={`org-tarjeta${a.proxima ? ' org-tarjeta--proxima' : ''}`}>
       <div className="org-tarjeta__arriba">
         <span className={`org-estado ${estado === 'cancelada' ? 'org-estado--cancelada' : ''}`}>
           <span className="org-punto" aria-hidden="true" />{estadoTexto[estado] || estado}
         </span>
-        <span className="org-tarjeta__id">ACTIVIDAD</span>
+        <span className="org-tarjeta__id">{a.proxima ? 'PRÓXIMA ACTIVIDAD' : 'ACTIVIDAD'}</span>
       </div>
       <h3>{a.nombre || 'Actividad sin nombre'}</h3>
       <p className="org-tarjeta__descripcion">{a.descripcion || 'Consulta los detalles y gestiona los participantes de tu actividad.'}</p>
       <div className="org-metadatos">
         <span>◷ {formatoFecha(a.fecha)}</span>
         <span>◴ {a.horaInicio || '—'}{a.horaFin ? ` – ${a.horaFin}` : ''}</span>
-        <span>⌖ {a.ubicacionId || 'Lugar por confirmar'}</span>
+        <span>⌖ {a.ubicacion || 'Ubicación por confirmar'}</span>
       </div>
       <div className="org-capacidad">
         <div><strong>{inscritos}</strong> <span>inscritos {maximo ? `/ ${maximo} cupos` : ''}</span></div>
         {maximo > 0 && <div className="org-barra"><span style={{ width: `${progreso}%` }} /></div>}
       </div>
       <div className="org-tarjeta__acciones">
-        <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-inscritos', a.id)}>
-          Ver estudiantes <span aria-hidden="true">↗</span>
+        <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-detalle', a.id)}>
+          Ver detalles <span aria-hidden="true">→</span>
         </a>
+        <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-inscritos', a.id)}>Inscritos</a>
         <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-asistencia', a.id)}>Asistencia</a>
         <a className="org-boton org-boton--simple" href={rutaOrganizador('organizador-reporte', a.id)}>Reportar</a>
       </div>

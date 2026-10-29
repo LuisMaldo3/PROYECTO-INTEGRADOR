@@ -6,6 +6,7 @@ import { Inicio } from './components/Inicio'
 import { Intereses } from './components/Intereses'
 import { Recomendaciones } from './components/Recomendaciones'
 import { OrganizadorActividades } from './components/OrganizadorActividades'
+import { OrganizadorDetalle } from './components/OrganizadorDetalle'
 import { OrganizadorInscritos } from './components/OrganizadorInscritos'
 import { OrganizadorAsistencia } from './components/OrganizadorAsistencia'
 import { OrganizadorReporte } from './components/OrganizadorReporte'
@@ -15,13 +16,14 @@ import { PantallaVacia } from './components/PantallaVacia'
 import { Perfil } from './components/Perfil'
 import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
+import './components/VynkPolish.css'
 import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
 import { normalizarRol, resolverRuta, pantallaDe } from './services/permisos'
 import { consultarEstadoIntereses, omitirIntereses } from './services/interesesService'
 import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-inscritos': OrganizadorInscritos, 'organizador-asistencia': OrganizadorAsistencia, 'organizador-reporte': OrganizadorReporte }
+const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-inscritos': OrganizadorInscritos, 'organizador-asistencia': OrganizadorAsistencia, 'organizador-reporte': OrganizadorReporte }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)

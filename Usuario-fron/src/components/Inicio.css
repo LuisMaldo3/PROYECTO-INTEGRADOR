@@ -1,0 +1,36 @@
+.inicio-panel{max-width:1280px;margin:0 auto;color:#152945}
+.inicio-panel__hero{display:flex;justify-content:space-between;align-items:center;gap:18px;background:linear-gradient(117deg,#0b2352,#1551a4 77%,#2c80ce);border-radius:24px;color:white;min-height:285px;padding:38px 42px;overflow:hidden;position:relative}
+.inicio-panel__hero-texto{position:relative;z-index:1;max-width:700px}
+.inicio-panel__eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.14em;color:#1b61cc}
+.inicio-panel__hero .inicio-panel__eyebrow{color:#b6d8ff}
+.inicio-panel__hero h2{font-size:clamp(1.6rem,3vw,2.8rem);font-weight:850;line-height:1.15;letter-spacing:-.055em;margin:12px 0;max-width:560px}
+.inicio-panel__hero p{line-height:1.7;color:#d5e3f7;font-size:.91rem;max-width:490px}
+.inicio-panel__acciones{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:24px}
+.inicio-panel__btn{display:inline-flex;align-items:center;gap:14px;border-radius:11px;background:white;color:#124c9f!important;padding:13px 19px;text-decoration:none;font-size:.85rem;font-weight:800;box-shadow:0 9px 25px #050e2222}
+.inicio-panel__btn:hover{background:#eff5ff}
+.inicio-panel__link{color:#fff!important;font-size:.85rem;font-weight:750;text-decoration:none}
+.inicio-panel__hero-figura{display:grid;place-items:center;min-width:195px;width:215px;height:215px;border-radius:52px;transform:rotate(-12deg);border:1px solid #ffffff48;background:linear-gradient(150deg,#ffffff25,#ffffff08);box-shadow:0 0 0 25px #ffffff08;font-weight:900;font-size:8rem;color:#ffffffa0}
+.inicio-panel__hero-figura span:last-child{position:absolute;font-size:3rem;right:-9px;top:-10px;color:#8fdbff}
+.inicio-panel__metricas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0 35px}
+.inicio-panel__metricas>div{background:#fff;border:1px solid #e2e9f4;border-radius:17px;padding:20px 23px;display:grid;gap:6px;box-shadow:0 4px 24px #172d5109}
+.inicio-panel__metricas span{font-size:.83rem;font-weight:650;color:#586b85}
+.inicio-panel__metricas strong{font-size:2.2rem;letter-spacing:-.055em;line-height:1.2;color:#122d5a}
+.inicio-panel__metricas small{font-size:.76rem;color:#8a99aa}
+.inicio-panel__seccion{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:18px}
+.inicio-panel__seccion h2{font-size:1.5rem;font-weight:800;margin:7px 0 0;letter-spacing:-.04em}
+.inicio-panel__seccion>a,.inicio-panel__vacio>a{font-size:.83rem;color:#1761cf;font-weight:800;text-decoration:none}
+.inicio-panel__eventos{display:grid;gap:10px}
+.inicio-panel__evento{display:flex;align-items:center;gap:18px;padding:17px 20px;border-radius:15px;border:1px solid #e2e9f4;background:#fff}
+.inicio-panel__fecha{display:grid;place-items:center;gap:2px;min-width:62px;height:65px;padding:8px;border-radius:11px;background:#eaf2ff;color:#1a55af;font-size:1.55rem;font-weight:850}
+.inicio-panel__fecha small{font-size:.7rem;letter-spacing:.08em}
+.inicio-panel__evento>div{min-width:0;flex:1}
+.inicio-panel__evento>div>span{font-size:.76rem;color:#627792}
+.inicio-panel__evento h3{font-size:.96rem;color:#213a61;margin:5px 0}
+.inicio-panel__evento p{font-size:.82rem;color:#8796a8}
+.inicio-panel__estado{background:#e6f8ee;color:#1c7b4c;padding:8px 12px;border-radius:24px;font-size:.75rem;font-weight:800}
+.inicio-panel__vacio{padding:42px 24px;border:1px dashed #cbd7e7;border-radius:17px;text-align:center;color:#71829b}
+.inicio-panel__vacio h3{margin:0 0 9px;font-size:1rem;color:#1f3557}
+.inicio-panel__vacio p{font-size:.87rem;line-height:1.6;margin-bottom:13px}
+.inicio-panel__error{background:#fff0f0;border:1px solid #ffc7c7;color:#973d3d;padding:15px;border-radius:12px;margin-bottom:20px;font-size:.86rem}
+.inicio-panel__error button{border:0;background:none;font-weight:800;color:inherit;text-decoration:underline;cursor:pointer}
+@media(max-width:680px){.inicio-panel__hero{padding:29px 23px;min-height:250px}.inicio-panel__hero-figura{display:none}.inicio-panel__metricas{gap:9px}.inicio-panel__metricas>div{padding:15px}.inicio-panel__metricas strong{font-size:1.6rem}.inicio-panel__metricas span{font-size:.75rem}.inicio-panel__metricas small{display:none}.inicio-panel__seccion{align-items:start}.inicio-panel__seccion h2{font-size:1.15rem}.inicio-panel__evento{gap:11px;padding:13px}.inicio-panel__estado{display:none}}

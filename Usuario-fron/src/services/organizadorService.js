@@ -37,6 +37,11 @@ export async function obtenerMisActividades(token, signal) {
   return Array.isArray(datos?.actividades) ? datos.actividades : []
 }
 
+export async function obtenerDetalleActividad(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona primero una actividad.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}`, token, { signal })
+}
+
 export async function obtenerInscritos(token, actividadId, signal) {
   if (!actividadId) throw new Error('Selecciona primero una actividad.')
   const datos = await peticion(`${BASE}/${encodeURIComponent(actividadId)}/inscritos`, token, { signal })

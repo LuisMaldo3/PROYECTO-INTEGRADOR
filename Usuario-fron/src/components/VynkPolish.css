@@ -1,0 +1,40 @@
+/* Refinamientos visuales compartidos. No modifica rutas, servicios ni la estructura DOM existente. */
+:root{--azul:#185bcc;--azul-oscuro:#1147a8;--marino:#0b2147;--texto:#162b4b;--texto-suave:#60708a;--borde:#e2e9f3}
+body{background:#f5f7fb;color:var(--texto);font-feature-settings:'ss01' on}
+button,a,input,textarea,select{ -webkit-tap-highlight-color:transparent }
+:where(button,a,input,textarea,select):focus-visible{outline:3px solid #70a6f6;outline-offset:3px}
+.shell{--margen:clamp(20px,3vw,54px);--lateral:104px;background:#f6f8fc}
+.shell-lateral{background:linear-gradient(180deg,#081c41 0%,#0d2c61 100%);box-shadow:3px 0 24px #071a3e14}
+.shell-marca{padding-top:26px;padding-bottom:35px}
+.shell-menu ul{gap:6px;padding:0 7px 20px}
+.shell-menu a{border-radius:14px;min-height:76px;padding:13px 6px;transition:background .2s,color .2s,transform .2s}
+.shell-menu a:hover{background:#ffffff1c;transform:translateY(-1px)}
+.shell-menu a[aria-current='page']{background:#f4f8ff;color:#0d51af;box-shadow:0 4px 16px #03132e2a}
+.shell-menu svg{width:23px;height:23px}
+.shell-cabecera{background:#fff;border-bottom:1px solid #e6ecf4}
+.shell-cabecera-in{padding-top:29px;padding-bottom:25px}
+.shell-cabecera h1{font-size:clamp(1.45rem,2vw,1.95rem);letter-spacing:-.04em}
+.shell-cabecera p{margin-top:7px;color:#667995;font-size:.9rem}
+.shell-main{padding-top:31px}
+.catalogo,.agenda,.recomendaciones,.asistente,.perfil-contenido{max-width:1320px;margin-left:auto;margin-right:auto}
+.catalogo__grid{gap:19px}
+.actividad{border-radius:18px;border-color:#e2eaf4;padding:24px;gap:14px;box-shadow:0 3px 20px #16315807;transition:transform .2s,border-color .2s,box-shadow .2s}
+.actividad:hover{transform:translateY(-3px);border-color:#a8c5ef;box-shadow:0 16px 40px #15345812}
+.actividad h3{font-size:1.12rem;letter-spacing:-.025em}
+.actividad__descripcion{line-height:1.7}
+.dia{margin-bottom:34px}
+.dia__cabecera{padding-bottom:14px;margin-bottom:18px}
+.dia__cabecera h2{font-size:1.13rem}
+.agenda-item{border-radius:16px;padding:21px;box-shadow:0 3px 18px #102c4706}
+.agenda-item h3{letter-spacing:-.025em}
+.perfil-datos,.perfil-password{border-radius:16px!important;border:1px solid #dfe8f5;background:#fff;box-shadow:0 3px 20px #0e2c4b08}
+.perfil-password{padding:23px}
+.lista-barra{margin-bottom:23px}
+.lista-barra .boton-secundario,.shell-main .btn-secundario{border-radius:10px}
+.org-tarjeta{transition:transform .2s,box-shadow .2s}
+.org-tarjeta:hover{transform:translateY(-2px);box-shadow:0 17px 42px #14345912}
+.org-tarjeta__acciones{margin-top:auto}
+.org-pagina .org-buscar:focus-within{border-color:#609ced;box-shadow:0 0 0 4px #1760e511}
+.org-alumno:hover{background:#f9fbff}
+@media(max-width:760px){.shell{padding-bottom:86px}.shell-lateral{height:62px}.shell-marca{padding:0}.shell-menu{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.shell-menu ul{min-width:max-content;padding:4px 6px 6px;gap:3px}.shell-menu li{flex:0 0 78px}.shell-menu a{min-height:58px;border-radius:10px;padding:6px 3px;font-size:.62rem}.shell-menu a[aria-current='page']{box-shadow:none;background:#edf5ff}.shell-menu svg{width:42px;height:26px;padding:3px 10px}.shell-main{padding-top:22px}.shell-cabecera-in{padding-top:20px;padding-bottom:18px}.actividad{padding:19px}.catalogo__grid{gap:12px}.agenda-item{padding:16px}}
+@media(prefers-reduced-motion:reduce){.actividad,.org-tarjeta,.shell-menu a{transition:none}.actividad:hover,.org-tarjeta:hover,.shell-menu a:hover{transform:none}}

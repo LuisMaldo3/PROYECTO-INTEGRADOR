@@ -39,6 +39,7 @@ export const PANTALLAS = [
   { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
   // US-46 / US-51 / US-55 / US-50: solo el rol organizador puede abrir estas rutas.
   { ruta: 'organizador-actividades', titulo: 'Mis actividades asignadas', descripcion: 'Gestiona tus actividades como organizador.', tituloMenu: 'Mis actividades', roles: [ROLES.ORGANIZADOR] },
+  { ruta: 'organizador-detalle', titulo: 'Detalle de actividad', descripcion: 'Información de tu actividad asignada.', tituloMenu: 'Detalle', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-inscritos', titulo: 'Estudiantes inscritos', descripcion: 'Participantes de una actividad asignada.', tituloMenu: 'Inscritos', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-asistencia', titulo: 'Control de asistencia', descripcion: 'Registra la asistencia de los estudiantes.', tituloMenu: 'Asistencia', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-reporte', titulo: 'Reportar un problema', descripcion: 'Informa incidencias sobre la actividad.', tituloMenu: 'Reportar', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
