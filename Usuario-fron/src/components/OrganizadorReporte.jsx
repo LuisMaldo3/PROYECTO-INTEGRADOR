@@ -50,7 +50,7 @@ export function OrganizadorReporte({ token }) {
 
   return <div className="org-pagina">
     <a className="org-regresar" href="#/organizador-actividades">← Volver a mis actividades</a>
-    <div className="org-interior-hero org-interior-hero--reporte"><span className="org-eyebrow">US-50 · INCIDENCIAS</span><h2>Reportar un problema</h2><p>Comunica una incidencia para que el equipo responsable pueda revisarla.</p></div>
+    <div className="org-interior-hero org-interior-hero--reporte"><span className="org-eyebrow">GESTIÓN · INCIDENCIAS</span><h2>Reportar un problema</h2><p>Comunica una incidencia para que el equipo responsable pueda revisarla.</p></div>
     {errorActividad && <div className="org-alerta" role="alert">{errorActividad}</div>}
     {reporte ? <div className="org-confirmacion" role="status"><span className="org-confirmacion__marca">✓</span><h3>Reporte enviado correctamente</h3><p>Tu incidencia ha quedado registrada en el sistema. Puedes utilizar este identificador como referencia:</p><code>{reporte.id}</code><div><a href="#/organizador-actividades" className="org-boton org-boton--primario">Volver a mis actividades</a><button type="button" className="org-boton org-boton--suave" onClick={() => setReporte(null)}>Enviar otro reporte</button></div></div> : <div className="org-formulario-layout">
       <form className="org-formulario" onSubmit={enviar}>

@@ -48,8 +48,9 @@ export function OrganizadorDetalle({ token }) {
           <aside className="org-detalle__lateral">
             <div className="org-detalle__panel">
               <span className="org-eyebrow">PARTICIPACIÓN</span>
-              <strong className="org-detalle__cifra">{a.inscritosRegistrados ?? '—'}</strong>
+              <strong className="org-detalle__cifra">{a.cuposOcupados ?? a.inscritosRegistrados ?? '—'}</strong>
               <p>Estudiantes inscritos actualmente</p>
+              <div className="org-detalle__cupos"><span>Cupos disponibles</span><strong>{a.cuposDisponibles == null ? 'Por confirmar' : a.cuposDisponibles}</strong></div>
               <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-inscritos', a.id)}>Consultar participantes →</a>
             </div>
             <div className="org-detalle__panel">

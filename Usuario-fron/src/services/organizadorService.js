@@ -42,10 +42,18 @@ export async function obtenerDetalleActividad(token, actividadId, signal) {
   return peticion(`${BASE}/${encodeURIComponent(actividadId)}`, token, { signal })
 }
 
-export async function obtenerInscritos(token, actividadId, signal) {
+export async function obtenerInscritos(token, actividadId, signal, buscar = '') {
   if (!actividadId) throw new Error('Selecciona primero una actividad.')
-  const datos = await peticion(`${BASE}/${encodeURIComponent(actividadId)}/inscritos`, token, { signal })
-  return { actividad: datos?.actividad || null, inscritos: Array.isArray(datos?.inscritos) ? datos.inscritos : [] }
+  const termino = String(buscar).trim()
+  if (termino.length > 100) throw new Error('La búsqueda no debe superar 100 caracteres.')
+  const consulta = termino ? `?buscar=${encodeURIComponent(termino)}` : ''
+  const datos = await peticion(`${BASE}/${encodeURIComponent(actividadId)}/inscritos${consulta}`, token, { signal })
+  const inscritos = Array.isArray(datos?.inscritos) ? datos.inscritos : []
+  return {
+    actividad: datos?.actividad || null,
+    inscritos,
+    ...(datos?.totalInscritos === undefined ? {} : { totalInscritos: datos.totalInscritos }),
+  }
 }
 
 export async function guardarAsistencia(token, actividadId, marcas) {

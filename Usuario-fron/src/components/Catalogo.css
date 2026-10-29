@@ -20,3 +20,15 @@
 @keyframes actividad-pulso { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
 @media (max-width: 760px) { .catalogo__grid { grid-template-columns: 1fr; } }
+
+/* Búsqueda del catálogo: intuitiva, ligera y accesible en móvil. */
+.catalogo__filtros{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:4px 0 26px}
+.catalogo__buscar{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dce6f2;border-radius:12px;padding:0 15px;min-height:48px;max-width:530px;flex:1;color:#7891b2}
+.catalogo__buscar:focus-within{border-color:#6aa6ef;box-shadow:0 0 0 4px #1760e514}
+.catalogo__buscar>span{font-size:1.65rem}
+.catalogo__buscar input{width:100%;min-width:0;outline:none;border:0;background:transparent;color:#203956;font:inherit;font-size:.88rem}
+.catalogo__resultado{color:#778aa3;font-size:.8rem;font-weight:700}
+.catalogo__sin-resultados{text-align:center;background:white;border:1px dashed #c8d7e8;border-radius:17px;padding:50px 20px;color:#667d99}
+.catalogo__sin-resultados h3{margin:0 0 9px;font-size:1.07rem;color:#1a375f}
+.catalogo__sin-resultados p{font-size:.87rem;margin-bottom:16px}
+@media(max-width:620px){.catalogo__buscar{max-width:100%;min-width:100%}}

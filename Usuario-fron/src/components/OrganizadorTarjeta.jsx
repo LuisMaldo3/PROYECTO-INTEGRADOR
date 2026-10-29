@@ -11,9 +11,10 @@ function formatoFecha(fecha) {
 
 export function OrganizadorTarjeta({ actividad }) {
   const a = actividad
-  const inscritos = Number(a.inscritosRegistrados || 0)
-  const maximo = Number(a.maximoParticipantes) || 0
-  const progreso = maximo ? Math.min(100, Math.round((inscritos / maximo) * 100)) : 0
+  const inscritos = Number(a.cuposOcupados ?? a.inscritosRegistrados ?? 0)
+  const maximo = a.maximoParticipantes == null ? null : Number(a.maximoParticipantes)
+  const progreso = maximo > 0 ? Math.min(100, Math.round((inscritos / maximo) * 100)) : 0
+  const disponibles = a.cuposDisponibles
   const estado = String(a.estado || 'programada').toLowerCase()
   return (
     <article className={`org-tarjeta${a.proxima ? ' org-tarjeta--proxima' : ''}`}>
@@ -31,8 +32,8 @@ export function OrganizadorTarjeta({ actividad }) {
         <span>⌖ {a.ubicacion || 'Ubicación por confirmar'}</span>
       </div>
       <div className="org-capacidad">
-        <div><strong>{inscritos}</strong> <span>inscritos {maximo ? `/ ${maximo} cupos` : ''}</span></div>
-        {maximo > 0 && <div className="org-barra"><span style={{ width: `${progreso}%` }} /></div>}
+        <div className="org-capacidad__encabezado"><span><strong>{inscritos}</strong> inscritos {maximo != null ? `de ${maximo}` : ''}</span><span className={disponibles === 0 ? 'org-cupos--llenos' : 'org-cupos--libres'}>{disponibles == null ? 'Cupos por confirmar' : disponibles === 0 ? 'Sin cupos' : `${disponibles} disponibles`}</span></div>
+        {maximo != null && maximo > 0 && <div className="org-barra" role="progressbar" aria-label="Cupos ocupados" aria-valuenow={Math.min(inscritos, maximo)} aria-valuemin={0} aria-valuemax={maximo}><span style={{ width: `${progreso}%` }} /></div>}
       </div>
       <div className="org-tarjeta__acciones">
         <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-detalle', a.id)}>

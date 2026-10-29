@@ -147,3 +147,12 @@
 .org-detalle__ubicacion{margin-top:22px;border-radius:13px;background:#eef5ff;border:1px solid #dbe8fc;padding:16px 18px;color:#234a7d}
 .org-detalle__ubicacion strong{font-size:.84rem}
 .org-detalle__ubicacion p{font-size:.84rem;line-height:1.6;color:#506c91;margin:7px 0 0}
+.org-capacidad__encabezado{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.org-capacidad__encabezado>span{font-size:.82rem;color:#6d7e95}
+.org-capacidad__encabezado .org-cupos--libres{color:#11724d;font-weight:800}
+.org-capacidad__encabezado .org-cupos--llenos{color:#b14747;font-weight:800}
+.org-detalle__cupos{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:17px;padding-top:16px;border-top:1px solid #ebeff7;font-size:.85rem;color:#6c7d94}
+.org-detalle__cupos strong{font-size:1.12rem;color:#1d6d51}
+.org-inscritos__filtros{margin:0 0 20px}
+.org-inscritos__filtros .org-buscar{max-width:610px}
+.org-inscritos__filtros input[type=search]{appearance:none}

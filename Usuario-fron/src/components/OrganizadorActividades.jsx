@@ -16,6 +16,14 @@ export function OrganizadorActividades({ token }) {
     return () => ctrl.abort()
   }, [token, revision])
 
+  // Actualizar cupos mientras la pantalla está visible, sin conservar intervalos al salir.
+  useEffect(() => {
+    const actualizar = () => { if (document.visibilityState === 'visible') setRevision(n => n + 1) }
+    const intervalo = window.setInterval(actualizar, 30000)
+    window.addEventListener('focus', actualizar)
+    return () => { window.clearInterval(intervalo); window.removeEventListener('focus', actualizar) }
+  }, [])
+
   const { items, cargando, error } = estado
   const visibles = useMemo(() => items.filter(a => {
     const texto = `${a.nombre || ''} ${a.descripcion || ''}`.toLocaleLowerCase('es-PE')
@@ -34,7 +42,7 @@ export function OrganizadorActividades({ token }) {
       </section>
       <div className="org-indicadores">
         <div><span>Actividades asignadas</span><strong>{cargando ? '—' : items.length}</strong><small>En tu cuenta</small></div>
-        <div><span>Estudiantes inscritos</span><strong>{cargando ? '—' : inscritos}</strong><small>Inscripciones registradas</small></div>
+        <div><span>Estudiantes inscritos</span><strong aria-live="polite">{cargando ? '—' : inscritos}</strong><small>Inscripciones registradas</small></div>
         <div><span>Próximas / programadas</span><strong>{cargando ? '—' : items.filter(a => a.estado === 'programada').length}</strong><small>Por gestionar</small></div>
       </div>
       <div className="org-seccion-titulo">

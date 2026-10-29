@@ -49,7 +49,7 @@ export function OrganizadorAsistencia({ token }) {
 
   return <div className="org-pagina">
     <a className="org-regresar" href={rutaOrganizador('organizador-inscritos', actividadId)}>← Volver a inscritos</a>
-    <div className="org-interior-hero org-interior-hero--asistencia"><span className="org-eyebrow">US-55 · CONTROL DE PARTICIPACIÓN</span><h2>Registrar asistencia</h2><p>{datos.actividad?.nombre || 'Marca a cada estudiante como presente o ausente y guarda los cambios.'}</p></div>
+    <div className="org-interior-hero org-interior-hero--asistencia"><span className="org-eyebrow">CONTROL · CONTROL DE PARTICIPACIÓN</span><h2>Registrar asistencia</h2><p>{datos.actividad?.nombre || 'Marca a cada estudiante como presente o ausente y guarda los cambios.'}</p></div>
     {datos.cargando && <div className="org-cargando" role="status">Cargando estudiantes y marcas existentes…</div>}
     {datos.error && <div className="org-alerta" role="alert">{datos.error}<p><button type="button" onClick={() => setRevision(n => n + 1)}>Reintentar</button></p></div>}
     {!datos.cargando && !datos.error && total === 0 && <OrganizadorSinInscritos />}
