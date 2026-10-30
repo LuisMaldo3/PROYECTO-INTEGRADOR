@@ -18,6 +18,8 @@ import { Shell } from './components/Shell'
 import { useHash } from './hooks/useHash'
 import './components/VynkPolish.css'
 import './components/Tema.css'
+import './components/Institucional.css'
+import './components/VynkCampus2026.css'
 import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
 import { normalizarRol, resolverRuta, pantallaDe } from './services/permisos'
 import { consultarEstadoIntereses, omitirIntereses } from './services/interesesService'
@@ -144,13 +146,14 @@ function App() {
     contenido = <Perfil usuario={sesion.usuario} rol={rol} token={sesion.token} onSalir={salir} />
   } else {
     const Seccion = SECCIONES[ruta]
-    contenido = Seccion ? <Seccion token={sesion.token} correo={sesion.usuario.correo} /> : <PantallaVacia />
+    contenido = Seccion ? <Seccion token={sesion.token} correo={sesion.usuario.correo} usuario={sesion.usuario} /> : <PantallaVacia />
   }
 
   const permitida = revisando || primeraVez || estado === 'permitida'
 
   return (
     <Shell
+      usuario={sesion.usuario}
       rol={rol}
       rutaActual={pantallaVisible?.menuActivo ?? rutaVisible}
       titulo={revisando ? 'Preparando tu experiencia' : permitida ? pantallaVisible?.titulo : undefined}

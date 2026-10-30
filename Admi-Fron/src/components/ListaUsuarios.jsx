@@ -47,12 +47,12 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
       </header>
 
       <div className="metricas-usuarios" aria-label="Resumen de cuentas">
-        <div className="metrica"><span>Resultados</span><strong>{visibles.length}</strong><small>En la vista actual</small></div>
-        <div className="metrica"><span>Organizadores</span><strong>{visibles.filter((u) => u.rol === 'organizador').length}</strong><small>Dentro de los resultados</small></div>
-        <div className="metrica"><span>Cuentas activas</span><strong>{visibles.filter((u) => u.activo !== false).length}</strong><small>Dentro de los resultados</small></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="usuarios" tam={20}/></span><strong>{visibles.length}</strong><span>Usuarios encontrados</span></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><strong>{visibles.filter((u) => u.rol === 'organizador').length}</strong><span>Organizadores</span></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><strong>{visibles.filter((u) => u.activo !== false).length}</strong><span>Cuentas activas</span></div>
       </div>
       <div className="filtros" role="search" aria-label="Buscar usuarios">
-        <span className="filtros__titulo">Encuentra una cuenta por nombre o correo</span>
+        <span className="filtros__titulo">Filtrar usuarios</span>
         <span className="buscador">
           <Icono nombre="buscar" tam={18} />
           <input
@@ -93,10 +93,10 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
           <table className="tabla tabla--usuarios">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
+                <th>Usuario</th>
                 <th>Rol</th>
                 <th>Estado</th>
+                <th className="tabla__acciones-titulo">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +105,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
                   key={u.id}
                   className={u.id === seleccionadoId ? 'fila fila--activa' : 'fila'}
                   onClick={() => onSeleccionar(u.id)}
-                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSeleccionar(u.id)}
+                  onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSeleccionar(u.id) } }}
                   tabIndex={0}
                 >
                   <td>
@@ -113,15 +113,19 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
                       <span className="avatar avatar--mini" aria-hidden="true">
                         {(u.nombre ?? u.correo ?? '?').trim().charAt(0).toUpperCase()}
                       </span>
-                      {u.nombre ?? '—'}
+                      <span className="persona__datos"><strong>{u.nombre || 'Sin nombre'}</strong><small>{u.correo}</small></span>
                     </span>
                   </td>
-                  <td>{u.correo}</td>
                   <td>
                     <span className={`etiqueta etiqueta--${etiquetaRol(u.rol).toLowerCase()}`}>{etiquetaRol(u.rol)}</span>
                   </td>
                   <td>
                     <span className={`punto punto--${u.activo === false ? 'off' : 'on'}`} /> {etiquetaEstado(u.activo)}
+                  </td>
+                  <td className="tabla__acciones-celda">
+                    <button type="button" className="boton-perfil" onClick={(evento) => { evento.stopPropagation(); onSeleccionar(u.id) }} aria-label={`Ver perfil de ${u.nombre || u.correo}`}>
+                      Ver perfil <Icono nombre="flecha-derecha" tam={16} />
+                    </button>
                   </td>
                 </tr>
               ))}

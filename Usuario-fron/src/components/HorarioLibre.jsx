@@ -10,6 +10,7 @@ const bloqueNuevo = () => ({ dia: 1, inicio: '08:00', fin: '09:00', nombre: 'Cla
 
 export default function HorarioLibre() {
   const [bloques, setBloques] = useState([])
+  const [mostrarHorario, setMostrarHorario] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
   const [pendiente, setPendiente] = useState(false)
   const [cargando, setCargando] = useState(true)
@@ -24,10 +25,10 @@ export default function HorarioLibre() {
 
   useEffect(() => {
     const controller = new AbortController()
-    if (!token) { queueMicrotask(() => { setError('Inicia sesión para gestionar tu disponibilidad.'); setCargando(false) }); return () => controller.abort() }
+    if (!token) { queueMicrotask(() => { setError('Inicia sesión para gestionar tu disponibilidad.'); setMostrarHorario(true); setCargando(false) }); return () => controller.abort() }
     obtenerDisponibilidad(token, controller.signal)
-      .then((r) => { if (!controller.signal.aborted) { setBloques(r.bloques || []); setConfirmado(Boolean(r.confirmado)); setPendiente(false) } })
-      .catch((e) => { if (!controller.signal.aborted) setError(e.message) })
+      .then((r) => { if (!controller.signal.aborted) { setBloques(r.bloques || []); setMostrarHorario(!(r.bloques || []).length); setConfirmado(Boolean(r.confirmado)); setPendiente(false) } })
+      .catch((e) => { if (!controller.signal.aborted) { setError(e.message); setMostrarHorario(true) } })
       .finally(() => { if (!controller.signal.aborted) setCargando(false) })
     return () => controller.abort()
   }, [token])
@@ -54,6 +55,7 @@ export default function HorarioLibre() {
     try {
       const datos = await interpretarHorario(token, imagen)
       setBloques(Array.isArray(datos.bloques) ? datos.bloques : [])
+      setMostrarHorario(true)
       setAvisos(Array.isArray(datos.advertencias) ? datos.advertencias : [])
       setPendiente(true)
       setSugerencias(null)
@@ -69,6 +71,7 @@ export default function HorarioLibre() {
       setBloques(r.bloques || [])
       setConfirmado(true)
       setPendiente(false)
+      setMostrarHorario(false)
       setVersion((n) => n + 1)
     } catch (e) { setError(e.message) }
     finally { setGuardando(false) }
@@ -76,21 +79,29 @@ export default function HorarioLibre() {
   return (
     <section className="horario-libre">
       <div className="horario-libre__hero">
-        <div><span className="horario-libre__eyebrow">MI DISPONIBILIDAD · IA</span><h2>Encuentra planes en tus horas libres</h2>
-          <p>Sube una foto de tu horario. Gemini identificará tus clases y tú podrás corregir cada bloque antes de guardarlo.</p></div>
+        <div><span className="horario-libre__eyebrow">DISPONIBILIDAD PERSONAL</span><h2>Tus clases, sin ocupar toda la pantalla</h2>
+          <p>Guarda tus horas ocupadas una vez y encuentra actividades que no se crucen con tus clases. Puedes ocultar o editar el horario cuando quieras.</p></div>
         <div className="horario-libre__icon"><Icono nombre="calendario" tamano={35} /></div>
       </div>
-      <div className="horario-libre__pasos"><span>1. Sube tu horario</span><span>2. Revísalo y corrige</span><span>3. Confirma y descubre actividades</span></div>
+
       <div className="horario-libre__tarjeta">
-        <div className="horario-libre__cabecera"><div><h3>Tu horario semanal</h3><p>Solo se guardarán los intervalos confirmados. La foto no se conserva.</p></div>
-          <span className={`horario-libre__estado ${confirmado && !pendiente ? 'horario-libre__estado--ok' : ''}`}>{confirmado && !pendiente ? 'Confirmado' : pendiente ? 'Pendiente de confirmar' : 'Sin configurar'}</span></div>
+        <div className="horario-libre__cabecera"><div><h3>Horario de clases y ocupaciones</h3><p>Solo se guardan los bloques que confirmes. La foto no se conserva.</p></div>
+          <span className={`horario-libre__estado ${confirmado && !pendiente ? 'horario-libre__estado--ok' : ''}`}>{confirmado && !pendiente ? 'Confirmado' : pendiente ? 'Cambios sin guardar' : 'Sin configurar'}</span></div>
+        {!cargando && <div className="horario-libre__resumen">
+          <div className="horario-libre__resumen-datos"><strong>{bloques.length}</strong><span>{bloques.length === 1 ? 'bloque ocupado' : 'bloques ocupados'} · {new Set(bloques.map(b => b.dia)).size} días de la semana</span></div>
+          <button type="button" className="horario-libre__toggle" aria-controls="horario-editor" aria-expanded={mostrarHorario} onClick={() => setMostrarHorario(v => !v)}>
+            <Icono nombre="calendario" tamano={17} /> {mostrarHorario ? 'Ocultar horario' : 'Mostrar y editar horario'} <span aria-hidden="true">{mostrarHorario ? '↑' : '↓'}</span>
+          </button>
+        </div>}
+        {error && <p className="horario-libre__error" role="alert">{error}</p>}
+        {!mostrarHorario && pendiente && <p className="horario-libre__advertencia">Tienes cambios pendientes. Abre el horario y guarda para actualizar las sugerencias.</p>}
+        <div id="horario-editor" hidden={!mostrarHorario}>
         <label className={`horario-libre__subir ${procesando ? 'horario-libre__subir--busy' : ''}`}>
           <Icono nombre="calendario" tamano={25} /><strong>{procesando ? 'Leyendo la imagen con Gemini…' : 'Seleccionar imagen del horario'}</strong>
           <small>JPG, PNG o WEBP · Máximo 5 MB</small>
           <input type="file" accept="image/jpeg,image/png,image/webp" onChange={leerImagen} disabled={procesando || guardando} aria-label="Seleccionar una foto de tu horario" />
         </label>
         {cargando && <p role="status">Cargando tu horario…</p>}
-        {error && <p className="horario-libre__error" role="alert">{error}</p>}
         {avisos.map((a, i) => <p key={i} className="horario-libre__advertencia">{a}</p>)}
         {!cargando && <>
           {bloques.length > 0 && <div className="horario-libre__tabla"><div className="horario-libre__fila-titulos"><span>Día</span><span>Inicio</span><span>Fin</span><span>Curso / ocupación</span><span></span></div>
@@ -106,11 +117,12 @@ export default function HorarioLibre() {
             <button type="button" className="boton-secundario" onClick={() => { setBloques((v) => [...v, bloqueNuevo()]); setPendiente(true) }} disabled={procesando || guardando}>+ Agregar bloque</button>
             <button type="button" className="horario-libre__guardar" onClick={guardar} disabled={procesando || guardando || cargando}>{guardando ? 'Guardando…' : 'Confirmar y guardar horario'}</button>
           </div>
-          <p className="horario-libre__nota">Comprueba especialmente los días y las horas. Una IA puede leer mal una captura. Las sugerencias usan una franja de 08:00 a 21:00.</p>
+          <p className="horario-libre__nota">Revisa días y horas antes de guardar; el reconocimiento de imágenes puede equivocarse. Las sugerencias consideran la franja de 08:00 a 21:00.</p>
         </>}
+        </div>
       </div>
       <div className="horario-libre__resultados">
-        <div className="horario-libre__cabecera"><div><h3>✦ Actividades para tus huecos libres</h3><p>Solo actividades publicadas que encajan con tus horas confirmadas y tus inscripciones.</p></div>
+        <div className="horario-libre__cabecera"><div><h3>Actividades compatibles con tu tiempo</h3><p>Resultados del catálogo real que no se cruzan con tu disponibilidad confirmada.</p></div>
         {confirmado && !pendiente && <button className="boton-secundario" type="button" onClick={() => setVersion((n) => n + 1)}>Actualizar</button>}</div>
         {!confirmado && <p>Sube y confirma tu horario para ver recomendaciones.</p>}
         {pendiente && <p>Guarda tus correcciones para volver a calcular las sugerencias.</p>}

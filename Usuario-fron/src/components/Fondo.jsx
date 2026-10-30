@@ -12,7 +12,15 @@ const ANIO = new Date().getFullYear()
 export function Fondo({ children }) {
   return (
     <div className="vynk-page" style={{ '--vynk-campus': `url(${campus})` }}>
-      <div className="vynk-campus" aria-hidden="true" />
+      <div className="vynk-campus">
+        <div className="vynk-campus__contenido">
+          <span className="vynk-campus__sello"><span /> LA COMUNIDAD NOS CONECTA</span>
+          <div className="vynk-campus__linea" />
+          <h2>Un campus.<br /><em>Infinitas oportunidades.</em></h2>
+          <p>Encuentra actividades, comparte experiencias y vive lo mejor de tu comunidad Tecsup.</p>
+          <span className="vynk-campus__pie">VYNK <span>·</span> CAMPUS DIGITAL</span>
+        </div>
+      </div>
 
       <aside className="vynk-panel">
         <Portada />
@@ -21,11 +29,7 @@ export function Fondo({ children }) {
 
 
         <footer className="vynk-footer">
-          <nav className="footer-links" aria-label="Enlaces legales">
-            <a href="#">Política de privacidad</a>
-            <span className="dot-sep" aria-hidden="true">·</span>
-            <a href="#">Términos de servicio</a>
-          </nav>
+          <span className="vynk-footer__seguridad">Acceso para cuentas institucionales</span>
           <span>© {ANIO} VYNK, Tecsup</span>
         </footer>
       </aside>

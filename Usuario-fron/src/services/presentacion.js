@@ -68,10 +68,10 @@ export function estadoCupos(cupos) {
   return { texto: `${cupos} cupos`, tono: 'ok' }
 }
 
-// Los colores salen del programa del T&C Week: celeste/azul para lo cultural y verde azulado para los concursos.
+// Categorías generales: T&C Week es un evento temporal, no el nombre permanente de cada concurso.
 const CATEGORIAS = {
   cultural: { clase: 'cultural', icono: 'mascaras', nombre: 'Actividad cultural' },
-  concurso: { clase: 'concurso', icono: 'trofeo', nombre: 'Concurso T&C Week' },
+  concurso: { clase: 'concurso', icono: 'trofeo', nombre: 'Concurso' },
 }
 const OTRA = { clase: 'otra', icono: 'etiqueta', nombre: 'Actividad' }
 

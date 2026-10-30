@@ -25,10 +25,17 @@ export function Perfil({ usuario, rol, token, onSalir }) {
     }
   }
 
+  const nombre = (usuario.nombre || usuario.correo || 'Mi perfil').trim()
+  const iniciales = nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(parte => parte[0].toUpperCase()).join('')
   return (
     <div className="perfil-contenido">
+      <header className="perfil-presentacion">
+        <div className="perfil-presentacion__avatar" aria-hidden="true">{iniciales}</div>
+        <div><span>IDENTIDAD INSTITUCIONAL</span><h2>{nombre}</h2><p>{usuario.correo}</p></div>
+        <RolBadge rol={rol} />
+      </header>
       <section className="perfil-seccion">
-        <h2>Datos institucionales</h2>
+        <h2>Información personal</h2>
         <dl className="perfil-datos">
           <div>
             <dt>Nombre</dt>
@@ -46,7 +53,7 @@ export function Perfil({ usuario, rol, token, onSalir }) {
       </section>
 
       <section className="perfil-seccion">
-        <h2>Contraseña (opcional)</h2>
+        <h2>Seguridad de mi cuenta</h2>
         <form className="perfil-password" onSubmit={guardar}>
           <p className="card-nota">Con una contraseña podrás entrar con tu correo sin usar Google.</p>
           <label htmlFor="nueva-password">Nueva contraseña</label>
@@ -76,7 +83,7 @@ export function Perfil({ usuario, rol, token, onSalir }) {
       </section>
 
       <section className="perfil-seccion perfil-seccion--ancha">
-        <h2>Mis intereses</h2>
+        <h2>Preferencias e intereses</h2>
         <ResumenIntereses token={token} />
       </section>
 

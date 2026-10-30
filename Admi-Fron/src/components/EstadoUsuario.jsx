@@ -21,7 +21,7 @@ export default function EstadoUsuario({ token, usuario, onActualizado, onSesionE
 
   return <section className="gestion-estado" aria-labelledby="estado-titulo">
     <h3 id="estado-titulo">Estado de la cuenta</h3>
-    <p className="suave">Una cuenta inactiva no podrá usar las rutas administrativas. El bloqueo del login en Spring Boot requiere su integración.</p>
+    <p className="suave">Controla el acceso administrativo de esta cuenta. El bloqueo del inicio de sesión en Spring Boot requiere su integración.</p>
     <label className="permiso-item"><span><strong>{usuario.activo === false ? 'Cuenta desactivada' : 'Cuenta activa'}</strong><small>Desactivar o reactivar acceso</small></span>
       <input type="checkbox" className="interruptor" checked={usuario.activo !== false} onChange={() => { setError(''); setConfirmando(true) }} /></label>
     {confirmando && <div className="confirmacion-fondo" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !guardando) setConfirmando(false) }}>
