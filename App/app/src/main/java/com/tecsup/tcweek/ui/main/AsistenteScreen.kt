@@ -12,7 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
@@ -34,6 +34,7 @@ import com.tecsup.tcweek.data.MensajeAsistente
 import com.tecsup.tcweek.data.SesionGuardada
 import com.tecsup.tcweek.data.UbicacionAsistente
 import com.tecsup.tcweek.data.RequisitosAsistente
+import com.tecsup.tcweek.data.puedeIniciarNuevaConversacion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -52,6 +53,8 @@ fun AsistenteScreen() {
     val mensajes = remember(correo) { mutableStateListOf<MensajeAsistente>().apply { addAll(historial.cargar()) } }
     var borrador by remember { mutableStateOf("") }
     var cargando by remember { mutableStateOf(false) }
+    var sincronizando by remember { mutableStateOf(true) }
+    var reiniciando by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var estadoConexion by remember { mutableStateOf("Verificando conexión…") }
     val lista = rememberLazyListState()
@@ -59,13 +62,12 @@ fun AsistenteScreen() {
 
     fun enviar(texto: String) {
         val consulta = texto.trim()
-        if (consulta.isBlank() || cargando || consulta.length > 600) return
+        if (consulta.isBlank() || cargando || sincronizando || reiniciando || consulta.length > 600) return
         val token = sesion?.llave
         if (token.isNullOrBlank()) {
             error = "Inicia sesión para consultar el asistente."
             return
         }
-        val previos = mensajes.takeLast(8)
         mensajes.add(MensajeAsistente("usuario", consulta))
         historial.guardar(mensajes)
         borrador = ""
@@ -73,7 +75,7 @@ fun AsistenteScreen() {
         error = null
         scope.launch {
             try {
-                val respuesta = AsistenteApi.preguntar(token, consulta, previos)
+                val respuesta = AsistenteApi.preguntar(token, consulta)
                 mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones, respuesta.tipoConsulta, respuesta.actividades, respuesta.requisitos))
                 historial.guardar(mensajes)
             } catch (e: CancellationException) { throw e }
@@ -83,7 +85,38 @@ fun AsistenteScreen() {
     }
 
     LaunchedEffect(correo) {
-        estadoConexion = if (sesion?.llave.isNullOrBlank()) "Inicia sesión para consultar" else AsistenteApi.verificar(sesion!!.llave)
+        val token = sesion?.llave
+        sincronizando = true
+        if (token.isNullOrBlank()) {
+            estadoConexion = "Inicia sesión para consultar"
+        } else {
+            try {
+                val remotos = AsistenteApi.consultarConversacion(token)
+                mensajes.clear()
+                mensajes.addAll(remotos)
+                historial.guardar(remotos)
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { error = "Sin sincronización: ${e.message}" }
+            estadoConexion = AsistenteApi.verificar(token)
+        }
+        sincronizando = false
+    }
+
+    fun nuevaConversacion() {
+        val token = sesion?.llave
+        if (token.isNullOrBlank() || cargando || sincronizando || reiniciando) return
+        reiniciando = true
+        scope.launch {
+            try {
+                AsistenteApi.nuevaConversacion(token)
+                mensajes.clear()
+                historial.borrar()
+                borrador = ""
+                error = null
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { error = e.message ?: "No fue posible borrar la conversación." }
+            finally { reiniciando = false }
+        }
     }
 
     LaunchedEffect(mensajes.size, cargando) {
@@ -111,10 +144,12 @@ fun AsistenteScreen() {
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
                 Text("Asistente VYNK", color = MarinoChat, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                Text(if (cargando) "Consultando el cronograma…" else estadoConexion, color = Color(0xFF68809D), style = MaterialTheme.typography.labelSmall)
+                Text(if (sincronizando) "Sincronizando conversación…" else if (reiniciando) "Iniciando conversación…" else if (cargando) "Consultando el cronograma…" else estadoConexion, color = Color(0xFF68809D), style = MaterialTheme.typography.labelSmall)
             }
-            IconButton(onClick = { mensajes.clear(); historial.borrar(); error = null }, enabled = !cargando && mensajes.isNotEmpty()) {
-                Icon(Icons.Filled.DeleteOutline, contentDescription = "Borrar conversación", tint = Color(0xFF7890AA))
+            TextButton(onClick = { nuevaConversacion() }, enabled = puedeIniciarNuevaConversacion(mensajes.size, cargando, sincronizando, reiniciando)) {
+                Icon(Icons.Filled.AddComment, contentDescription = null, modifier = Modifier.size(17.dp))
+                Spacer(Modifier.width(5.dp))
+                Text("Nueva conversación", style = MaterialTheme.typography.labelSmall)
             }
         }
         HorizontalDivider(color = Color(0xFFE4EBF6))
@@ -133,7 +168,7 @@ fun AsistenteScreen() {
                     Sugerencias.forEach { sugerencia ->
                         OutlinedCard(
                             onClick = { enviar(sugerencia) },
-                            enabled = !cargando,
+                            enabled = !cargando && !sincronizando && !reiniciando,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                             shape = RoundedCornerShape(13.dp),
                             colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
@@ -167,12 +202,12 @@ fun AsistenteScreen() {
                     shape = RoundedCornerShape(17.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = { enviar(borrador) }),
-                    enabled = !cargando,
+                    enabled = !cargando && !sincronizando && !reiniciando,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AzulChat)
                 )
                 FilledIconButton(
                     onClick = { enviar(borrador) },
-                    enabled = !cargando && borrador.isNotBlank(),
+                    enabled = !cargando && !sincronizando && !reiniciando && borrador.isNotBlank(),
                     modifier = Modifier.size(53.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = AzulChat)

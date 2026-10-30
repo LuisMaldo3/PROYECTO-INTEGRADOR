@@ -46,7 +46,43 @@ object AsistenteApi {
         } finally { conexion.disconnect() }
     }
 
-    suspend fun preguntar(token: String, pregunta: String, historial: List<MensajeAsistente>): RespuestaAsistente = withContext(Dispatchers.IO) {
+    /** Recupera historial común para React y Kotlin desde Spring Boot/MongoDB. */
+    suspend fun consultarConversacion(token: String): List<MensajeAsistente> = withContext(Dispatchers.IO) {
+        val conexion = URL(Servidor.DIRECCION.trimEnd('/') + "/api/asistente/conversacion").openConnection() as HttpURLConnection
+        try {
+            conexion.requestMethod = "GET"
+            conexion.connectTimeout = 8000
+            conexion.readTimeout = 12000
+            conexion.setRequestProperty("Authorization", "Bearer $token")
+            val status = conexion.responseCode
+            if (status !in 200..299) throw IllegalStateException("No se pudo recuperar el historial (HTTP $status).")
+            val json = JSONObject(conexion.inputStream.bufferedReader().use { it.readText() })
+            val mensajes = json.optJSONArray("mensajes") ?: throw IllegalStateException("El servidor devolvió un historial inválido.")
+            (0 until minOf(mensajes.length(), 24)).mapNotNull { n ->
+                val m = mensajes.optJSONObject(n) ?: return@mapNotNull null
+                val rol = m.optString("rol")
+                if (rol != "usuario" && rol != "asistente") return@mapNotNull null
+                MensajeAsistente(rol, m.optString("contenido"), m.optString("origen"), m.optString("aviso"),
+                    leerUbicaciones(m.optJSONArray("ubicaciones")), m.optString("tipoConsulta", "general"),
+                    leerActividadesMomento(m.optJSONArray("actividades")), leerRequisitosAsistente(m.optJSONArray("requisitos")))
+            }
+        } finally { conexion.disconnect() }
+    }
+
+    /** Nueva conversación en MongoDB; borra también el contexto disponible para la web. */
+    suspend fun nuevaConversacion(token: String) = withContext(Dispatchers.IO) {
+        val conexion = URL(Servidor.DIRECCION.trimEnd('/') + "/api/asistente/conversacion").openConnection() as HttpURLConnection
+        try {
+            conexion.requestMethod = "DELETE"
+            conexion.connectTimeout = 8000
+            conexion.readTimeout = 12000
+            conexion.setRequestProperty("Authorization", "Bearer $token")
+            val status = conexion.responseCode
+            if (status !in 200..299) throw IllegalStateException("No se pudo borrar la conversación (HTTP $status).")
+        } finally { conexion.disconnect() }
+    }
+
+    suspend fun preguntar(token: String, pregunta: String): RespuestaAsistente = withContext(Dispatchers.IO) {
         val url = Servidor.DIRECCION.trimEnd('/') + "/api/asistente/preguntar"
         val conexion = URL(url).openConnection() as HttpURLConnection
         try {
@@ -57,12 +93,8 @@ object AsistenteApi {
             conexion.setRequestProperty("Authorization", "Bearer $token")
             conexion.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             conexion.setRequestProperty("Accept", "application/json")
-            val contexto = JSONArray().apply {
-                historial.takeLast(8).forEach { m ->
-                    put(JSONObject().put("rol", m.rol).put("contenido", m.contenido.take(300)))
-                }
-            }
-            val cuerpo = JSONObject().put("mensaje", pregunta.take(600)).put("historial", contexto).toString()
+            // El servidor recupera el historial por JWT: no acepta contexto inventado por el cliente.
+            val cuerpo = JSONObject().put("mensaje", pregunta.take(600)).toString()
             conexion.outputStream.use { it.write(cuerpo.toByteArray(Charsets.UTF_8)) }
             val status = conexion.responseCode
             if (status !in 200..299) {
@@ -71,6 +103,7 @@ object AsistenteApi {
                     401 -> "Tu sesión expiró. Vuelve a iniciar sesión."
                     403 -> "No tienes permisos para consultar el asistente."
                     404 -> "El servidor no tiene el nuevo servicio del asistente. Actualiza Spring Boot."
+                    409 -> "La conversación se reinició en otro dispositivo. Vuelve a abrir el chat."
                     503 -> "MongoDB no está disponible. Comprueba la conexión del backend."
                     else -> "No se pudo consultar el asistente (HTTP $status)."
                 }
