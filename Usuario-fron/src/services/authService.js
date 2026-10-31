@@ -1,7 +1,7 @@
-import { API_URL } from '../config'
-import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso'
-import { normalizarUsuario } from './permisos'
-import { borrarDatosDeSesion, sinTokenGuardado } from './sesionLocal'
+import { API_URL } from '../config.js'
+import { decidirAcceso, decidirQuienSoy, MENSAJES, tokenVigente } from './acceso.js'
+import { normalizarUsuario } from './permisos.js'
+import { borrarDatosDeSesion, sinTokenGuardado } from './sesionLocal.js'
 
 const KEY_TOKEN = 'vynk.token'
 const KEY_USUARIO = 'vynk.usuario'

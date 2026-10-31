@@ -1,0 +1,135 @@
+/* VYNK Estudiante · Paleta institucional refinada
+   Azul noche / azul marca / celeste / blanco / turquesa (acciones positivas).
+   Prioridad: contenido real, lectura fácil y controles consistentes. */
+:root {
+  --marino:#0b2244;
+  --azul:#1a65c8;
+  --azul-oscuro:#1551a4;
+  --celeste:#63c6f4;
+  --fondo:#eff4fa;
+  --texto:#172a45;
+  --texto-suave:#60748d;
+  --borde:#dbe5f1;
+  --superficie:#fff;
+  --verde-vynk:#06857b;
+  --sombra:0 8px 30px rgba(19,51,100,.055);
+  --sombra-hover:0 16px 38px rgba(19,51,100,.12);
+  --gradiente-banner:linear-gradient(122deg,#0c2c5b,#175cb8 74%,#277fc5);
+}
+body{background:var(--fondo);color:var(--texto)}
+.shell,.shell--asistente{--lateral:234px;--margen:clamp(20px,3vw,48px);background:var(--fondo)}
+.shell-lateral,.shell--asistente .shell-lateral{
+  background:linear-gradient(175deg,#091c39 0%,#102e57 62%,#133a6a 100%);
+  border-right:1px solid #ffffff0f;
+}
+.shell-identidad{padding:26px 10px 21px;border-bottom:1px solid #ffffff1a}
+.shell-identidad__linea,.shell-nav-label{color:#9cb9dc}
+.shell-identidad__linea i,.shell-pie__punto{background:#60c6ed}
+.shell-menu a{color:#c2d3e9;border-radius:11px;font-weight:700;min-height:47px;margin:2px 0}
+.shell-menu a:hover{color:#fff;background:#ffffff12}
+.shell-menu a[aria-current='page'],.shell-menu a[aria-current='page']:hover{
+  background:#2876cf;color:#fff;border-color:#4098ed;box-shadow:0 6px 20px #03172d2b,inset 3px 0 0 #88d9fc;
+}
+.shell-menu a[aria-current='page'] svg{color:#d4f3ff}
+.shell-ayuda{background:#ffffff10;border:1px solid #ffffff1c;border-radius:13px}
+.shell-ayuda strong{color:#fff}
+.shell-pie{color:#a9bed7}
+.shell-contenido{background:var(--fondo)}
+.shell-topbar{min-height:66px;background:#fff;border-bottom:1px solid #dce5f2;box-shadow:0 3px 14px #13294c08}
+.shell-topbar__camino{color:#647b96;font-weight:650}
+.shell-topbar__avatar{background:#e1eeff;border-color:#bcd8fc;color:#1754a3;font-weight:800}
+.shell-cabecera{background:var(--fondo)}
+.shell-cabecera-in{padding-top:30px;padding-bottom:13px}
+.shell-cabecera__etiqueta{color:#2368ae}
+.shell-cabecera__etiqueta span{background:#38a8e2}
+.shell-cabecera h1{color:#122b4f;font-size:clamp(1.55rem,2.15vw,2.15rem);letter-spacing:-.04em}
+.shell-cabecera p{color:#687c92;max-width:76ch}
+.shell-main{padding-top:19px}
+/* Home: el azul atrae, mientras que el resto conserva espacio en blanco. */
+.inicio-panel__hero{
+  background:linear-gradient(115deg,#0a2b58 0%,#175cb3 62%,#1d75bc 100%);
+  border:1px solid #12467c;border-radius:20px;box-shadow:0 17px 38px #113c741b;
+}
+.inicio-panel__hero .inicio-panel__eyebrow{color:#a9e6ff}
+.inicio-panel__hero p{color:#e4f0ff}
+.inicio-panel__hero-foto{border-radius:15px;border:2px solid #ffffff42}
+.inicio-panel__btn{background:#fff;color:#184c92!important;border-color:#fff;border-radius:10px}
+.inicio-panel__btn:hover{background:#e7f4ff;color:#103b78!important}
+.inicio-panel__metricas>div{border:1px solid #e1e9f4;border-radius:15px!important;background:#fff}
+.inicio-panel__metricas>div:first-child{border-top:4px solid #2c7ad4}
+.inicio-panel__metricas>div:nth-child(2){border-top:4px solid #0f988b}
+.inicio-panel__metricas>div:nth-child(3){border-top:4px solid #e5aa54}
+.inicio-panel__metricas .inicio-panel__metrica-icono{background:#e7f1ff;color:#195bb4}
+.inicio-panel__metricas>div:nth-child(2) .inicio-panel__metrica-icono{background:#e5f7f2;color:#0e887e}
+.inicio-panel__evento,.inicio-panel__vacio{background:#fff;border-color:#e0e9f4;box-shadow:var(--sombra)}
+.inicio-panel__fecha{background:#e7f1fe;color:#145da9}
+.inicio-panel__especial{background:#e7f5ff;border-color:#bee1ff;border-left:4px solid #277bd4}
+.inicio-panel__especial-kicker,.inicio-panel__especial a{color:#155d9f}
+.inicio-panel__especial h3{color:#143c70}
+/* Catálogo y secciones de datos */
+.catalogo__encabezado{background:linear-gradient(110deg,#fff,#edf5ff);border:1px solid #d4e5f7;border-left:4px solid #2a7ed5;border-radius:15px}
+.catalogo__kicker{color:#155fb7}
+.catalogo__etapas{background:#e8effa}
+.catalogo__etapas button[aria-pressed='true']{color:#145db6}
+.catalogo__campana{background:#eaf3ff;border-color:#bddaff;color:#155ea8}
+.actividad,.perfil-datos,.perfil-password,.resumen-intereses{border:1px solid #dee8f3;box-shadow:var(--sombra);border-radius:15px!important}
+.actividad:hover{border-color:#94c6f4;box-shadow:var(--sombra-hover)}
+.boton-primario,.rec-enlace,.btn-blue-submit{background:#1a65c8!important;border-color:#1a65c8!important;color:#fff!important;box-shadow:0 7px 20px #155cb425}
+.boton-primario:hover:not(:disabled),.btn-blue-submit:hover:not(:disabled){background:#1151a7!important}
+/* Asistente/agenda: superficies con delimitación y color coherentes. */
+.v-asistente-chat,.v-asistente-side,.dia,.agenda-tarjeta,.agenda-actividad{border-color:#d9e6f5}
+.v-asistente-chat__logo,.v-chat-composer button{background:#1b6aca}
+/* Recomendaciones: jerarquía, tarjetas editoriales y decisión discreta. */
+.rec-pagina{max-width:1190px}
+.rec-hero{background:linear-gradient(117deg,#0b2449,#1759ad 70%,#1976c5);padding:31px 35px;border-radius:21px;box-shadow:0 16px 32px #12346a26}
+.rec-hero h2{font-size:clamp(1.6rem,2.9vw,2.5rem);letter-spacing:-.04em}
+.rec-hero p{color:#dcecff}
+.rec-hero__acciones>span{color:#d7ecff;font-weight:700;font-size:.81rem}
+.rec-hero__acciones button{background:#ffffff1c;border:1px solid #91caff;color:#fff;border-radius:10px;font-weight:750}
+.rec-hero__acciones button:hover:not(:disabled){background:#ffffff30}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:17px;margin-top:19px;align-items:stretch}
+.rec-tarjeta{display:flex;flex-direction:column;padding:22px;border:1px solid #e0e8f4;border-radius:18px;background:#fff;box-shadow:0 7px 22px #173c7210;transition:box-shadow .18s,border-color .18s}
+.rec-tarjeta:hover{border-color:#a8cef9;box-shadow:0 15px 28px #173c721b}
+.rec-rank{background:#e5f1ff;color:#1656a2;border-radius:9px;font-size:.74rem}
+.rec-tarjeta__cupos{background:#edf8f5;color:#187c6f;border:1px solid #cce9e0;padding:5px 10px;border-radius:8px;font-size:.72rem;font-weight:700}
+.rec-tarjeta h3{margin:17px 0 9px;font-size:1.18rem;letter-spacing:-.025em;line-height:1.37;color:#102b51}
+.rec-desc{color:#61748c;min-height:0}
+.rec-datos{padding:10px 0;border-top:1px solid #edf1f7;margin-top:14px}
+.rec-motivo{background:#eff5ff;border-left:3px solid #2a79d3;color:#234a81;border-radius:10px;margin:9px 0 15px;font-size:.82rem}
+.rec-compatible{background:#e8f8f1;border-color:#c5eadd;color:#136b51}
+.rec-sin-horario,.rec-estado,.rec-aviso{background:#f3f7fd;border:1px solid #dbe7f5;color:#334d72}
+.rec-descartar{border-radius:9px}
+/* Entrada: imagen institucional y panel blanco, menos saturación y mejor legibilidad. */
+.vynk-page{background:#0b1e3b}
+.vynk-campus{position:relative}
+.vynk-campus::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#071d43ae 0%,#0b2d55a6 66%,#0b2141b8);pointer-events:none}
+.vynk-campus__contenido{position:relative;z-index:1}
+.vynk-campus__sello{color:#b3e9ff}
+.vynk-panel{background:#fff;box-shadow:-20px 0 65px #081b3660;border-radius:25px 0 0 25px}
+.portada{height:clamp(165px,23vh,220px)}
+.portada::after{background:linear-gradient(105deg,#0b2351dc,#1556a7a8)}
+.vynk-sheet-body{max-width:455px;padding-left:30px;padding-right:30px}
+.card-title{font-size:1.55rem;letter-spacing:-.035em;color:#122b4e}
+.card-subtitle{color:#687b91}
+.form-group label{color:#203f65}
+.input-box input{border-color:#cfddeb}
+.input-box input:focus{border-color:#2676d2}
+/* Responsive: conserva barras de navegación utilizables y blancos como descansos visuales. */
+@media(max-width:760px){
+  .shell,.shell--asistente{--margen:clamp(14px,4vw,22px)}
+  .shell-lateral,.shell--asistente .shell-lateral{background:#fff;border-top:1px solid #dce7f5;box-shadow:0 -3px 22px #1a356112}
+  .shell-menu a{color:#5f7692;background:transparent;font-size:.66rem}
+  .shell-menu a[aria-current='page'],.shell-menu a[aria-current='page']:hover{background:#e8f2ff;color:#1558a8;border:0;box-shadow:none}
+  .shell-menu a[aria-current='page'] svg{color:#1467c5}
+  .shell-menu a:hover{background:#f0f6ff;color:#1b5cab}
+  .shell-cabecera-in{padding-top:18px;padding-bottom:10px}
+  .inicio-panel__hero{border-radius:17px}
+  .rec-hero{padding:24px 20px}
+  .rec-tarjeta__pie{align-items:flex-start}
+  .vynk-panel{border-radius:0}
+}
+@media(max-width:430px){
+  .rec-descartar{width:100%}
+  .rec-tarjeta__nota{width:100%}
+  .rec-grid{grid-template-columns:1fr}
+}
