@@ -19,10 +19,13 @@ import pe.tecsup.vynk.model.Inscripcion;
 public class AgendaSugeridaService {
     private final ContextoAgendaSugeridaService contexto;
     private final GeminiAgendaSugeridaService gemini;
+    private final DescartesRecomendacionesService descartes;
 
-    public AgendaSugeridaService(ContextoAgendaSugeridaService contexto, GeminiAgendaSugeridaService gemini) {
+    public AgendaSugeridaService(ContextoAgendaSugeridaService contexto, GeminiAgendaSugeridaService gemini,
+                                DescartesRecomendacionesService descartes) {
         this.contexto = contexto;
         this.gemini = gemini;
+        this.descartes = descartes;
     }
 
     public record Bloque(LocalDate fecha, LocalTime inicio, LocalTime fin) {
@@ -65,7 +68,8 @@ public class AgendaSugeridaService {
 
     public Map<String, Object> generar(String usuarioId) {
         var datos = contexto.reunir(usuarioId);
-        List<Map<String, Object>> candidatas = datos.disponibles();
+        List<Map<String, Object>> candidatas = DescartesRecomendacionesService.excluir(
+                datos.disponibles(), descartes.idsDescartados(usuarioId));
         List<Map<String, String>> ocupadas = datos.inscritas().stream().map(i -> Map.of(
                 "nombre", valor(i.getNombreActividad()), "fecha", valor(i.getFecha()),
                 "inicio", valor(i.getHoraInicio()), "fin", valor(i.getHoraFin()))).toList();
