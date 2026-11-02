@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
+/** Modelo compartido por catálogo, detalle, similitud y resultados. */
 data class ActividadCatalogo(
     val id: String,
     val nombre: String,
@@ -21,13 +22,36 @@ data class ActividadCatalogo(
     val portadaAutor: String = "",
     val portadaLicencia: String = "",
     val portadaCreditoUrl: String = "",
-    val tipoActividad: String = "actividad", val modalidad: String = "individual",
-    val reglas: String = "", val areaTecsup: String = "", val ubicacion: String = ""
+    val tipoActividad: String = "actividad",
+    val modalidad: String = "individual",
+    val reglas: String = "",
+    val areaTecsup: String = "",
+    val ubicacion: String = "",
+    val estado: String = "programada"
 )
 
 object CatalogoApi {
-    suspend fun cargar(token: String): List<ActividadCatalogo> = withContext(Dispatchers.IO) {
-        val conn = URL(Servidor.DIRECCION.trimEnd('/') + "/api/catalogo").openConnection() as HttpURLConnection
+    suspend fun cargar(token: String): List<ActividadCatalogo> {
+        val json = obtener(token, "/api/catalogo")
+        val lista = json.optJSONArray("actividades") ?: return emptyList()
+        return (0 until lista.length()).map { parsear(lista.getJSONObject(it)) }
+    }
+
+    /** US-22: abre incluso un evento finalizado que ya salió del catálogo de inscripciones. */
+    suspend fun detalle(token: String, actividadId: String): ActividadCatalogo =
+        parsear(obtener(token, "/api/catalogo/${codificar(actividadId)}"))
+
+    /** US-22 T01..T06: exclusivamente actividades programadas relacionadas. */
+    suspend fun similares(token: String, actividadId: String): List<ActividadCatalogo> {
+        val json = obtener(token, "/api/catalogo/${codificar(actividadId)}/similares")
+        val lista = json.optJSONArray("actividades") ?: return emptyList()
+        return (0 until lista.length()).map { parsear(lista.getJSONObject(it)) }
+    }
+
+    private fun codificar(id: String) = java.net.URLEncoder.encode(id, "UTF-8")
+
+    private suspend fun obtener(token: String, ruta: String): JSONObject = withContext(Dispatchers.IO) {
+        val conn = URL(Servidor.DIRECCION.trimEnd('/') + ruta).openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "GET"
             conn.connectTimeout = 8000
@@ -36,38 +60,42 @@ object CatalogoApi {
             if (token.isNotBlank()) conn.setRequestProperty("Authorization", "Bearer $token")
             val status = conn.responseCode
             if (status !in 200..299) {
-                throw IllegalStateException(if (status == 401 || status == 403) "Tu sesión no tiene acceso al catálogo. Inicia sesión nuevamente." else "No se pudo cargar el catálogo (HTTP $status).")
+                throw IllegalStateException(if (status == 401 || status == 403) "Tu sesión no tiene acceso a las actividades. Inicia sesión nuevamente." else "No se pudo consultar la actividad (HTTP $status).")
             }
-            val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-            val lista = json.optJSONArray("actividades") ?: return@withContext emptyList()
-            (0 until lista.length()).map { i ->
-                val a = lista.getJSONObject(i)
-                ActividadCatalogo(
-                    id = a.optString("id"),
-                    nombre = a.optString("nombre", "Actividad"),
-                    descripcion = a.optString("descripcion"),
-                    fecha = a.optString("fecha"),
-                    horaInicio = a.optString("horaInicio"),
-                    horaFin = a.optString("horaFin"),
-                    cupos = if (a.isNull("cuposDisponibles")) null else a.optInt("cuposDisponibles"),
-                    maximo = if (a.isNull("maximoParticipantes")) null else a.optInt("maximoParticipantes"),
-                    organizador = a.optString("organizador"),
-                    categoriaId = a.optString("categoriaId").takeUnless { it == "null" }.orEmpty(),
-                    portadaUrl = a.optString("portadaUrl").takeUnless { it == "null" }.orEmpty()
-                        .let { url -> if (url.startsWith("/api/portadas/archivo/")) Servidor.DIRECCION.trimEnd('/') + url
-                          else if (url.startsWith("https://upload.wikimedia.org/") || (a.optJSONObject("portada")?.optString("tipo") == "url" && url.startsWith("https://"))) url else "" },
-                    portadaAutor = a.optJSONObject("portada")?.optString("autor").orEmpty(),
-                    portadaLicencia = a.optJSONObject("portada")?.optString("licencia").orEmpty(),
-                    portadaCreditoUrl = a.optJSONObject("portada")?.optString("creditoUrl").orEmpty(),
-                    tipoActividad = a.optString("tipoActividad", "actividad"),
-                    modalidad = a.optString("modalidad", "individual"),
-                    reglas = a.optString("reglasCompetencia").takeUnless { it == "null" }.orEmpty(),
-                    areaTecsup = a.optString("areaTecsup").takeUnless { it == "null" }.orEmpty(),
-                    ubicacion = a.optString("ubicacion").takeUnless { it == "null" }.orEmpty()
-                )
-            }
-        } finally {
-            conn.disconnect()
+            JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+        } finally { conn.disconnect() }
+    }
+
+    internal fun parsear(a: JSONObject): ActividadCatalogo {
+        val portada = a.optJSONObject("portada")
+        val url = a.optString("portadaUrl").takeUnless { it == "null" }.orEmpty()
+        val imagenValida = when {
+            url.startsWith("/api/portadas/archivo/") -> Servidor.DIRECCION.trimEnd('/') + url
+            url.startsWith("https://upload.wikimedia.org/") -> url
+            portada?.optString("tipo") == "url" && url.startsWith("https://") -> url
+            else -> ""
         }
+        return ActividadCatalogo(
+            id = a.optString("id"),
+            nombre = a.optString("nombre", "Actividad"),
+            descripcion = a.optString("descripcion"),
+            fecha = a.optString("fecha"),
+            horaInicio = a.optString("horaInicio"),
+            horaFin = a.optString("horaFin"),
+            cupos = if (a.isNull("cuposDisponibles")) null else a.optInt("cuposDisponibles"),
+            maximo = if (a.isNull("maximoParticipantes")) null else a.optInt("maximoParticipantes"),
+            organizador = a.optString("organizador"),
+            categoriaId = a.optString("categoriaId").takeUnless { it == "null" }.orEmpty(),
+            portadaUrl = imagenValida,
+            portadaAutor = portada?.optString("autor").orEmpty(),
+            portadaLicencia = portada?.optString("licencia").orEmpty(),
+            portadaCreditoUrl = portada?.optString("creditoUrl").orEmpty(),
+            tipoActividad = a.optString("tipoActividad", "actividad"),
+            modalidad = a.optString("modalidad", "individual"),
+            reglas = a.optString("reglasCompetencia").takeUnless { it == "null" }.orEmpty(),
+            areaTecsup = a.optString("areaTecsup").takeUnless { it == "null" }.orEmpty(),
+            ubicacion = a.optString("ubicacion").takeUnless { it == "null" }.orEmpty(),
+            estado = a.optString("estado", "programada")
+        )
     }
 }

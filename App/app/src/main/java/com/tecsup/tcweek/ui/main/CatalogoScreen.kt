@@ -156,7 +156,7 @@ fun CatalogoScreen() {
             }
         }
         if (seleccionada != null) {
-            DialogoActividad(seleccionada!!, token) { seleccionada = null; recarga++ }
+            DialogoActividad(seleccionada!!, token, alCerrar = { seleccionada = null; recarga++ }, onVerActividad = { seleccionada = it })
         }
     }
 }
@@ -261,17 +261,29 @@ private fun portadaTematica(a: ActividadCatalogo): Int {
 }
 
 @Composable
-private fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit) {
+internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit, onVerActividad: (ActividadCatalogo) -> Unit = {}) {
     var consultando by remember(a.id) { mutableStateOf(true) }
+    var similares by remember(a.id) { mutableStateOf<List<ActividadCatalogo>>(emptyList()) }
+    var similaresError by remember(a.id) { mutableStateOf("") }
+    var cargandoSimilares by remember(a.id) { mutableStateOf(true) }
+    LaunchedEffect(a.id, token) {
+        cargandoSimilares = true
+        similaresError = ""
+        try { similares = CatalogoApi.similares(token, a.id) }
+        catch (e: CancellationException) { throw e }
+        catch (e: Exception) { similaresError = e.message ?: "No se pudieron consultar actividades similares." }
+        finally { cargandoSimilares = false }
+    }
     var inscrito by remember(a.id) { mutableStateOf(false) }
     var capitan by remember(a.id) { mutableStateOf(false) }
-    var procesando by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf("") }
-    var codigoPrivado by remember { mutableStateOf("") }
-    var nombreEquipo by remember { mutableStateOf("") }
-    var modoEquipo by remember { mutableStateOf(false) }
+    var procesando by remember(a.id) { mutableStateOf(false) }
+    var error by remember(a.id) { mutableStateOf("") }
+    var codigoPrivado by remember(a.id) { mutableStateOf("") }
+    var nombreEquipo by remember(a.id) { mutableStateOf("") }
+    var modoEquipo by remember(a.id) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val esEquipos = a.tipoActividad == "competencia" && a.modalidad == "equipos"
+    val finalizada = a.estado == "finalizada"
     LaunchedEffect(a.id, token) {
         consultando = true
         try {
@@ -298,7 +310,20 @@ private fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -
                 if (a.areaTecsup.isNotBlank()) Text("Área: ${a.areaTecsup}")
                 Text("Disponibles: ${a.cupos?.toString() ?: "Por confirmar"} ${if (esEquipos) "equipos" else "cupos"}")
                 if (a.reglas.isNotBlank()) Text("Reglas: ${a.reglas}")
-                if (esEquipos && !inscrito) {
+                HorizontalDivider(color = Color(0xFFDFEAF4))
+                Text("Actividades similares", color = Color(0xFF123C6A), fontWeight = FontWeight.Bold)
+                if (cargandoSimilares) Text("Buscando actividades relacionadas…", color = ColorGris)
+                if (similaresError.isNotBlank()) Text(similaresError, color = ColorGris)
+                if (!cargandoSimilares && similares.isEmpty() && similaresError.isBlank())
+                    Text("Por ahora no hay otras actividades similares disponibles.", color = ColorGris)
+                similares.forEach { otra ->
+                    OutlinedButton(onClick = { onVerActividad(otra) }, modifier = Modifier.fillMaxWidth()) {
+                        Text("${otra.nombre}  →", maxLines = 2)
+                    }
+                }
+                if (finalizada) Text("Esta competencia ya finalizó. No admite inscripciones nuevas.",
+                    color = Color(0xFF255A87), fontWeight = FontWeight.Bold)
+                if (esEquipos && !inscrito && !finalizada) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         TextButton(onClick = { modoEquipo = false }) { Text(if (!modoEquipo) "✓ Crear equipo" else "Crear equipo") }
                         TextButton(onClick = { modoEquipo = true }) { Text(if (modoEquipo) "✓ Unirme" else "Unirme") }
@@ -316,7 +341,7 @@ private fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -
             }
         },
         confirmButton = {
-            Button(enabled = !consultando && !procesando && (inscrito || !esEquipos || nombreEquipo.length >= 3),
+            Button(enabled = !finalizada && !consultando && !procesando && (inscrito || !esEquipos || nombreEquipo.length >= 3),
                 onClick = {
                     procesando = true; error = ""
                     scope.launch {
