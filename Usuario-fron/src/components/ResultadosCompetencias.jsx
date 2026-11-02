@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { consultarClasificacion, consultarResultados } from '../services/inscripcionesService'
 import './ResultadosCompetencias.css'
+import { enlaceActividad } from './DetalleActividad'
+import { urlImagenActividad, imagenTematicaActividad } from '../services/portadaActividad'
 
 export function ResultadosCompetencias() {
   const [datos, setDatos] = useState({ cargando: true, error: '', resultados: [], clasificacion: null })
@@ -30,6 +32,7 @@ export function ResultadosCompetencias() {
           <div className="tc-resultado__top"><span className="tc-resultados__kicker">RESULTADO OFICIAL</span><span className="tc-resultado__publicado">Validado</span></div><h4>{r.nombre}</h4><p>{r.fecha || 'Fecha pendiente'} · {r.modalidad === 'equipos' ? 'Por equipos' : 'Individual'}</p>
           <ol>{(r.posiciones || []).slice().sort((a,b)=>a.puesto-b.puesto).map((p,i) => <li key={`${p.puesto}-${i}`} className={p.puesto === 1 ? 'tc-resultado__ganador' : undefined}>
             <span className="tc-resultado__puesto">{p.puesto}°</span><div><strong>{p.nombre}</strong><small>{p.areaTecsup || 'Área aún no verificada'}</small></div>{p.puesto === 1 && <span className="tc-resultado__primer-lugar">Ganador</span>}</li>)}</ol>
+          <a className="tc-boton tc-boton--suave tc-detalle-enlace" href={enlaceActividad(r.actividadId)}>Ver competencia y sus ganadores →</a>
         </article>)}</div>
       </section>
       <section className="tc-resultados__bloque"><div className="tc-resultados__bloque-titulo"><div><span className="tc-resultados__kicker">CLASIFICACIÓN GENERAL</span><h3>Puntaje acumulado por áreas</h3></div><span className="tc-resultado__publicado">{datos.clasificacion?.estado === 'publicado' ? 'Oficial' : 'Aún sin resultados'}</span></div>
