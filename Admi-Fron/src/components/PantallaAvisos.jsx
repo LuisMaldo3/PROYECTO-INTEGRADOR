@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Icono from './Iconos'
+import PortadaActividad from './PortadaActividad'
+import { urlPortada } from '../services/portadasService'
 import { listarAvisos, publicarAviso, validarAviso } from '../services/avisos'
 
 const fechaLegible = (valor) => {
@@ -12,6 +14,7 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
   const [avisos, setAvisos] = useState([])
   const [titulo, setTitulo] = useState('')
   const [mensaje, setMensaje] = useState('')
+  const [portada, setPortada] = useState(null)
   const [modo, setModo] = useState('ahora')
   const [fechaLocal, setFechaLocal] = useState('')
   const [filtro, setFiltro] = useState('todos')
@@ -36,7 +39,7 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
   async function enviar(evento) {
     evento.preventDefault()
     if (guardando) return
-    const resultado = validarAviso({ titulo, mensaje, programar: modo === 'programar', fechaLocal })
+    const resultado = validarAviso({ titulo, mensaje, portada, programar: modo === 'programar', fechaLocal })
     setErrores(resultado.errores)
     setExito(''); setError('')
     if (Object.keys(resultado.errores).length) return
@@ -44,7 +47,7 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
     try {
       const nuevo = await publicarAviso(token, resultado)
       setAvisos((actual) => [nuevo, ...actual.filter((a) => a.id !== nuevo.id)])
-      setTitulo(''); setMensaje(''); setFechaLocal(''); setModo('ahora'); setErrores({})
+      setTitulo(''); setMensaje(''); setPortada(null); setFechaLocal(''); setModo('ahora'); setErrores({})
       setExito(nuevo.estado === 'programado' ? `Aviso programado para el ${fechaLegible(nuevo.publicarEn)}.` : 'Aviso publicado correctamente.')
     } catch (e) {
       if (e.estado === 401) onSesionExpirada?.(e.detalle)
@@ -69,6 +72,7 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
         <div className="avisos-tarjeta-cabecera"><span className="seccion-etiqueta"><Icono nombre="mas" tam={17}/> REDACTAR COMUNICADO</span><h2>Nuevo aviso</h2><p>Prepara un mensaje y decide cuándo publicarlo.</p></div>
         <label className="campo">Título <input value={titulo} onChange={(e) => { setTitulo(e.target.value); setErrores((a) => ({ ...a, titulo: '' })) }} maxLength={101} placeholder="Ej.: Información importante para estudiantes" aria-invalid={!!errores.titulo}/>{errores.titulo && <span className="campo__error" role="alert">{errores.titulo}</span>}</label>
         <label className="campo">Mensaje <textarea value={mensaje} onChange={(e) => { setMensaje(e.target.value); setErrores((a) => ({ ...a, mensaje: '' })) }} maxLength={2001} rows={7} placeholder="Escribe el contenido del comunicado..." aria-invalid={!!errores.mensaje}/><span className="campo__contador">{mensaje.length}/2000 caracteres</span>{errores.mensaje && <span className="campo__error" role="alert">{errores.mensaje}</span>}</label>
+        <PortadaActividad token={token} nombre={titulo} valor={portada} onCambiar={setPortada} />
         <fieldset className="publicacion-modo"><legend>¿Cuándo publicar?</legend>
           <label className={`opcion-publicacion${modo === 'ahora' ? ' opcion-publicacion--activa' : ''}`}><input type="radio" name="modo-publicacion" checked={modo === 'ahora'} onChange={() => setModo('ahora')}/><Icono nombre="check" tam={18}/><span><strong>Publicar ahora</strong><small>Visible inmediatamente al crear el aviso</small></span></label>
           <label className={`opcion-publicacion${modo === 'programar' ? ' opcion-publicacion--activa' : ''}`}><input type="radio" name="modo-publicacion" checked={modo === 'programar'} onChange={() => setModo('programar')}/><Icono nombre="calendario" tam={18}/><span><strong>Programar publicación</strong><small>Elige una fecha y hora futura</small></span></label>
@@ -84,7 +88,7 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
         <div className="pestanas pestanas--avisos" role="group" aria-label="Filtrar avisos">
           {[['todos', 'Todos', avisos.length], ['publicados', 'Publicados', publicados.length], ['programados', 'Programados', programados.length]].map(([id, label, numero]) => <button key={id} className={filtro === id ? 'pestana pestana--activa' : 'pestana'} type="button" onClick={() => setFiltro(id)}>{label} <span>{numero}</span></button>)}
         </div>
-        {cargando ? <p className="avisos-vacio">Cargando comunicados…</p> : visibles.length === 0 ? <div className="avisos-vacio"><Icono nombre="correo" tam={30}/><strong>Sin avisos en esta sección</strong><p>Los comunicados aparecerán aquí cuando se creen.</p></div> : <div className="avisos-items">{visibles.map((aviso) => <article key={aviso.id} className="avisos-item"><div className="avisos-item-cabecera"><div><span className={aviso.estado === 'programado' ? 'estado-programado' : 'estado-publicado'}>{aviso.estado === 'programado' ? 'Programado' : 'Publicado'}</span><h3>{aviso.titulo}</h3></div><time>{aviso.estado === 'programado' ? fechaLegible(aviso.publicarEn) : fechaLegible(aviso.publicadoEn || aviso.creadoEn)}</time></div><p>{aviso.mensaje}</p></article>)}</div>}
+        {cargando ? <p className="avisos-vacio">Cargando comunicados…</p> : visibles.length === 0 ? <div className="avisos-vacio"><Icono nombre="correo" tam={30}/><strong>Sin avisos en esta sección</strong><p>Los comunicados aparecerán aquí cuando se creen.</p></div> : <div className="avisos-items">{visibles.map((aviso) => <article key={aviso.id} className="avisos-item"><div className="avisos-item-cabecera"><div><span className={aviso.estado === 'programado' ? 'estado-programado' : 'estado-publicado'}>{aviso.estado === 'programado' ? 'Programado' : 'Publicado'}</span><h3>{aviso.titulo}</h3></div><time>{aviso.estado === 'programado' ? fechaLegible(aviso.publicarEn) : fechaLegible(aviso.publicadoEn || aviso.creadoEn)}</time></div>{aviso.portada?.url && <img className="vynk-aviso-admin-img" src={urlPortada(aviso.portada)} alt={`Imagen del aviso: ${aviso.titulo}`} loading="lazy" referrerPolicy="no-referrer" />}<p>{aviso.mensaje}</p></article>)}</div>}
       </div>
     </div>
   </section>

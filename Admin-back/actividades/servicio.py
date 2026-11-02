@@ -2,6 +2,9 @@
 from datetime import datetime, timezone
 
 from . import mongo
+from .portadas import normalizar_portada
+from .competencias import validar_configuracion
+from .areas import normalizar_areas
 from .horario import validar_horario
 from .cambios_horario import detectar_cambios_horario
 from .cambios_ubicacion import detectar_cambio_ubicacion
@@ -116,6 +119,16 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
         "maximoParticipantes": doc.get("maximoParticipantes"),
         "participantesInscritos": doc.get("participantesInscritos", 0),
         "cuposDisponibles": calcular_cupos_disponibles(doc),
+        "tipoActividad": doc.get("tipoActividad", "actividad"),
+        "areaTecsup": doc.get("areaTecsup", ""),
+        "encargadosPorArea": doc.get("encargadosPorArea", {}),
+        "modalidad": doc.get("modalidad"),
+        "maxIntegrantesEquipo": doc.get("maxIntegrantesEquipo"),
+        "reglasCompetencia": doc.get("reglasCompetencia", ""),
+        "puntosPorPuesto": doc.get("puntosPorPuesto", []),
+        "portada": doc.get("portada"),
+        "portadaUrl": doc.get("portada", {}).get("url") if isinstance(doc.get("portada"), dict) else None,
+        "unidadCupo": "equipos" if doc.get("tipoActividad") == "competencia" and doc.get("modalidad") == "equipos" else "estudiantes",
         "organizadorId": doc.get("organizadorId"),
         "organizador": doc.get("organizador"),
         "creadaPor": doc.get("creadaPor"),
@@ -126,6 +139,12 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
 def crear_actividad(datos, admin_id):
     """Valida y guarda una actividad nueva. Devuelve la actividad creada lista para JSON."""
     nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
+    configuracion = validar_configuracion(datos)
+    areas = normalizar_areas(datos)
+    try:
+        portada = normalizar_portada(datos.get("portada"))
+    except ValueError as exc:
+        raise DatosInvalidos({"portada": str(exc)}) from exc
     doc = {
         "nombre": nombre,
         "estado": "programada",
@@ -134,6 +153,8 @@ def crear_actividad(datos, admin_id):
         "ubicacionId": ubicacion["_id"],
         "maximoParticipantes": maximo,
         "participantesInscritos": 0,
+        "portada": portada,
+        **configuracion, **areas,
         "organizadorId": str(organizador["_id"]),
         "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")},
         **horario,
@@ -155,13 +176,22 @@ def modificar_actividad(actividad_id, datos, admin_id=None):
     if actual.get("estado", "programada") == "cancelada":
         raise DatosInvalidos({"estado": "No se puede editar una actividad cancelada."})
     nombre, descripcion, categoria, ubicacion, horario, maximo, organizador = validar(datos)
+    configuracion = validar_configuracion(datos)
+    areas = normalizar_areas(datos)
+    try:
+        portada = normalizar_portada(datos.get("portada", actual.get("portada")))
+    except ValueError as exc:
+        raise DatosInvalidos({"portada": str(exc)}) from exc
+    if inscritos_existentes := actual.get("participantesInscritos", 0):
+        if configuracion["tipoActividad"] != actual.get("tipoActividad", "actividad") or configuracion["modalidad"] != actual.get("modalidad"):
+            raise DatosInvalidos({"modalidad": "No se puede cambiar el tipo o modalidad con inscripciones activas."})
     inscritos = actual.get("participantesInscritos", 0)
     if maximo < inscritos:
         raise DatosInvalidos({"maximoParticipantes": f"El máximo no puede ser menor que los {inscritos} participantes inscritos."})
     cambios = {"nombre": nombre, "descripcion": descripcion, "categoriaId": categoria["_id"],
-               "ubicacionId": ubicacion["_id"], "maximoParticipantes": maximo,
+               "ubicacionId": ubicacion["_id"], "maximoParticipantes": maximo, "portada": portada, **areas,
                "organizadorId": str(organizador["_id"]),
-               "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")}, **horario}
+               "organizador": {"id": str(organizador["_id"]), "nombre": organizador.get("nombre", "")}, **horario, **configuracion}
     # La condición evita reducir cupos si se inscribieron más personas durante la edición.
     filtro = {"_id": actividad_id, "estado": {"$ne": "cancelada"}, "$or": [{"participantesInscritos": {"$lte": maximo}},
                                             {"participantesInscritos": {"$exists": False}}]}

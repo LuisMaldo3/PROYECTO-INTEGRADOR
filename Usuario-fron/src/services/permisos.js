@@ -32,16 +32,18 @@ export const ETIQUETAS_ROL = {
  */
 export const PANTALLAS = [
   { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Actividades, novedades y oportunidades para tu vida estudiantil.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
-  { ruta: 'catalogo', titulo: 'Catálogo de actividades', descripcion: 'Descubre eventos de Tecsup durante todo el año.', tituloMenu: 'Catálogo', roles: ROLES_VALIDOS },
+  { ruta: 'actividades', titulo: 'Actividades', descripcion: 'Explora competencias y actividades del campus e inscríbete.', tituloMenu: 'Actividades', roles: ROLES_VALIDOS },
+  { ruta: 'actividad', titulo: 'Detalle de actividad', descripcion: 'Conoce los requisitos y confirma tu inscripción.', tituloMenu: 'Actividades', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'actividades' },
   { ruta: 'recomendaciones', titulo: 'Recomendaciones para ti', descripcion: 'Descubre actividades según tus intereses, con Gemini cuando esté disponible.', tituloMenu: 'Para ti', roles: ROLES_VALIDOS },
+  { ruta: 'resultados', titulo: 'Resultados de T&C Week', descripcion: 'Ganadores de cada competencia y tabla general de las cinco áreas.', tituloMenu: 'Resultados', roles: ROLES_VALIDOS },
   { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
   { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
   { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
-  // US-46 / US-51 / US-55 / US-50: solo el rol organizador puede abrir estas rutas.
+  // US-46 / US-51 / US-50: solo el rol organizador puede abrir estas rutas.
   { ruta: 'organizador-actividades', titulo: 'Mis actividades asignadas', descripcion: 'Gestiona tus actividades como organizador.', tituloMenu: 'Mis actividades', roles: [ROLES.ORGANIZADOR] },
   { ruta: 'organizador-detalle', titulo: 'Detalle de actividad', descripcion: 'Información de tu actividad asignada.', tituloMenu: 'Detalle', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
+  { ruta: 'organizador-resultados', titulo: 'Registrar resultados', descripcion: 'Envía posiciones de tus competencias para su validación.', tituloMenu: 'Resultados', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-inscritos', titulo: 'Estudiantes inscritos', descripcion: 'Participantes de una actividad asignada.', tituloMenu: 'Inscritos', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
-  { ruta: 'organizador-asistencia', titulo: 'Control de asistencia', descripcion: 'Registra la asistencia de los estudiantes.', tituloMenu: 'Asistencia', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-reporte', titulo: 'Reportar un problema', descripcion: 'Informa incidencias sobre la actividad.', tituloMenu: 'Reportar', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   // Se abre desde Perfil: no tiene botón propio en el menú y, mientras se está en ella, se marca «Perfil».
   { ruta: 'intereses', titulo: 'Mis intereses', descripcion: 'Elige los temas que te gustan y te recomendaremos actividades.', tituloMenu: 'Intereses', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'perfil' },
@@ -74,7 +76,8 @@ export function pantallasDelMenu(rol, lista = PANTALLAS) {
 
 /** "#/agenda" -> "agenda". Sin nada (o "#/") es "inicio". */
 export function rutaDeHash(hash = '') {
-  const ruta = String(hash).replace(/^#\/?/, '').split(/[?/]/)[0].trim().toLowerCase()
+  const rutaOriginal = String(hash).replace(/^#\/?/, '').split(/[?/]/)[0].trim().toLowerCase()
+  const ruta = rutaOriginal === 'catalogo' ? 'actividades' : rutaOriginal
   return ruta || 'inicio'
 }
 

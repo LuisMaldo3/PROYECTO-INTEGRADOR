@@ -5,7 +5,7 @@ import SelectorRol from './SelectorRol'
 import PermisosUsuario from './PermisosUsuario'
 import EstadoUsuario from './EstadoUsuario'
 import { useCambioRol } from '../hooks/useCambioRol'
-import { obtenerUsuario } from '../services/usuariosService'
+import { obtenerUsuario, verificarAreaTecsup } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol } from '../services/usuarios'
 
 /** Vista de perfil independiente: no desplaza ni reduce la tabla de usuarios. */
@@ -13,6 +13,8 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
   const [estado, setEstado] = useState({ cargando: true, error: '', usuario: null })
   const [pestana, setPestana] = useState('informacion')
   const [aviso, setAviso] = useState('')
+  const [areaElegida, setAreaElegida] = useState('')
+  const [guardandoArea, setGuardandoArea] = useState(false)
   const tituloRef = useRef(null)
 
   const cambio = useCambioRol({
@@ -33,7 +35,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
     setAviso('')
     obtenerUsuario(token, usuarioId)
       .then((usuario) => {
-        if (!cancelado) setEstado({ cargando: false, error: '', usuario })
+        if (!cancelado) { setEstado({ cargando: false, error: '', usuario }); setAreaElegida(usuario.areaTecsup || '') }
       })
       .catch((e) => {
         if (cancelado) return
@@ -108,6 +110,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
                   <div><dt>Correo institucional</dt><dd>{usuario.correo || 'No registrado'}</dd></div>
                   <div><dt>Rol asignado</dt><dd>{etiquetaRol(usuario.rol)}</dd></div>
                   <div><dt>Estado de la cuenta</dt><dd>{etiquetaEstado(usuario.activo)}</dd></div>
+                  <div className="perfil__datos-ancho"><dt>Área de Tecsup</dt><dd>{usuario.areaVerificada ? usuario.areaTecsup : 'Área pendiente de verificación'}</dd></div>
                   <div className="perfil__datos-ancho"><dt>Identificador de usuario</dt><dd className="mono">{usuario.id}</dd></div>
                 </dl>
               </section>
@@ -127,6 +130,21 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
                 <div className="perfil__tarjeta-cabecera"><div><h2>Rol y responsabilidades</h2><p>Selecciona el rol que tendrá esta cuenta.</p></div></div>
                 <SelectorRol rolActual={usuario.rol} deshabilitado={cambio.enviando} onElegir={cambio.pedir} />
                 <p className="perfil__texto-ayuda">Para proteger los cambios, se solicitará una confirmación antes de actualizar el rol.</p>
+              </section>
+              <section className="perfil__tarjeta" aria-label="Área institucional">
+                <div className="perfil__tarjeta-cabecera"><div><h2>Área verificada de Tecsup</h2><p>Solo un administrador puede establecer el área que recibirá puntos por competencias. Sin área verificada no se publicarán puntos atribuidos a la cuenta.</p></div></div>
+                <form onSubmit={async (e) => { e.preventDefault(); setGuardandoArea(true); setAviso(''); try {
+                  const nuevo = await verificarAreaTecsup(token, usuarioId, areaElegida)
+                  setEstado(v => ({ ...v, usuario: nuevo })); onRolCambiado?.()
+                  setAviso(nuevo.areaVerificada ? `Área verificada: ${nuevo.areaTecsup}` : 'Se retiró la verificación del área.')
+                } catch (error) { setAviso(error.message) } finally { setGuardandoArea(false) } }}>
+                  <label htmlFor="area-tecsup-usuario">Área asignada</label>
+                  <select id="area-tecsup-usuario" value={areaElegida} onChange={e => setAreaElegida(e.target.value)} disabled={guardandoArea}>
+                    <option value="">Sin área verificada</option>
+                    {['Gestión y Producción','Tecnología Digital','Minería y Procesos Químicos','Electricidad y Electrónica','Mecánica'].map(area => <option key={area} value={area}>{area}</option>)}
+                  </select>
+                  <div style={{marginTop: 12}}><button type="submit" className="boton" disabled={guardandoArea || areaElegida === (usuario.areaTecsup || '')}>{guardandoArea ? 'Guardando…' : 'Verificar área institucional'}</button></div>
+                </form>
               </section>
               <section className="perfil__tarjeta">
                 <EstadoUsuario token={token} usuario={usuario} onSesionExpirada={onSesionExpirada} onActualizado={actualizar} />

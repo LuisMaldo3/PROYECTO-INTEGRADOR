@@ -69,3 +69,11 @@ export function cambiarEstado(token, id, activo) {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ activo }),
   })
 }
+
+/** Solo un administrador verifica el área institucional; el estudiante no puede editarla. */
+export function verificarAreaTecsup(token, id, areaTecsup) {
+  return pedir(`/api/usuarios/${encodeURIComponent(id)}/area/`, token, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ areaTecsup: areaTecsup || null }),
+  })
+}

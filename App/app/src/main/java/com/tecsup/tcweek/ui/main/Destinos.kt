@@ -33,7 +33,7 @@ const val RUTA_INTERESES = "intereses"
 /** Botones del menú inferior, en el orden en que se muestran. */
 enum class Destino(val ruta: String, val titulo: String) {
     INICIO("inicio", "Inicio"),
-    CATALOGO("catalogo", "Catálogo"),
+    CATALOGO("catalogo", "Actividades"),
     AGENDA("agenda", "Agenda"),
     ASISTENTE("asistente", "Asistente"),
     PERFIL("perfil", "Perfil")

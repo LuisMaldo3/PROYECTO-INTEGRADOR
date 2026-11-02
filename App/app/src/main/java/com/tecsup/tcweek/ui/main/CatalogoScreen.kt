@@ -1,5 +1,22 @@
 package com.tecsup.tcweek.ui.main
 
+import android.content.Intent
+import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.tecsup.tcweek.R
+import com.tecsup.tcweek.data.InscripcionApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +25,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,6 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +70,10 @@ import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 
 /** Catálogo: las actividades publicadas, agrupadas por día. */
 @Composable
@@ -60,6 +85,7 @@ fun CatalogoScreen() {
     var cargando by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var recarga by remember { mutableIntStateOf(0) }
+    var seleccionada by remember { mutableStateOf<ActividadCatalogo?>(null) }
 
     LaunchedEffect(token, recarga) {
         cargando = true
@@ -83,7 +109,7 @@ fun CatalogoScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Catálogo de actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color.Black
+                Text("Actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color.Black
                 )
                 Text(
                     if (cargando) "Cargando actividades…" else cantidad(actividades.size, "actividad disponible", "actividades disponibles"),
@@ -104,7 +130,7 @@ fun CatalogoScreen() {
 
             error != null -> EstadoVacio(
                 icono = Icons.Filled.ErrorOutline,
-                titulo = "No pudimos cargar el catálogo",
+                titulo = "No pudimos cargar las actividades",
                 texto = error.orEmpty(),
                 esError = true
             ) {
@@ -125,15 +151,18 @@ fun CatalogoScreen() {
                     item(key = "dia-${grupo.fecha}") {
                         EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
                     }
-                    items(grupo.items, key = { it.id }) { actividad -> TarjetaActividad(actividad) }
+                    items(grupo.items, key = { it.id }) { actividad -> TarjetaActividad(actividad) { seleccionada = actividad } }
                 }
             }
+        }
+        if (seleccionada != null) {
+            DialogoActividad(seleccionada!!, token) { seleccionada = null; recarga++ }
         }
     }
 }
 
 @Composable
-private fun TarjetaActividad(a: ActividadCatalogo) {
+private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
     val categoria = estiloCategoria(id = a.categoriaId)
     val cupos = estadoCupos(a.cupos)
     val descripcion = a.descripcion.takeIf { it.isNotBlank() && it != "null" }
@@ -144,9 +173,23 @@ private fun TarjetaActividad(a: ActividadCatalogo) {
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, ColorBorde),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (a.portadaUrl.isNotBlank()) {
+                ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
+                if (a.portadaCreditoUrl.startsWith("https://commons.wikimedia.org/")) {
+                    val contexto = LocalContext.current
+                    Text("Foto: ${a.portadaAutor} · ${a.portadaLicencia}",
+                         style = MaterialTheme.typography.labelSmall, color = ColorGris,
+                         modifier = Modifier.clickable {
+                             contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(a.portadaCreditoUrl)))
+                         })
+                }
+            } else {
+                Image(painter = painterResource(id = portadaTematica(a)), contentDescription = "Ilustración de ${a.nombre}",
+                    contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 EtiquetaCategoria(categoria)
                 Spacer(Modifier.weight(1f))
@@ -161,9 +204,136 @@ private fun TarjetaActividad(a: ActividadCatalogo) {
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
+            if (a.areaTecsup.isNotBlank()) Text(a.areaTecsup, color = Color(0xFF246DAB),
+                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text("Ver detalles e inscribirme  →", color = Color(0xFF1769DB),
+                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             HorizontalDivider(color = Color(0xFFEDF1F7))
             DatoConIcono(Icons.Filled.Schedule, rangoHoras(a.horaInicio, a.horaFin))
             if (organizador != null) DatoConIcono(Icons.Filled.Group, organizador)
         }
     }
+}
+
+
+/** Muestra portadas publicadas. No se envía la clave de Gemini a Android. */
+@Composable
+fun ImagenPortadaCatalogo(url: String, nombre: String, respaldo: Int = R.drawable.vynk_actividades) {
+    var foto by remember(url) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(url) {
+        foto = withContext(Dispatchers.IO) {
+            try {
+                val conexion = URL(url).openConnection() as HttpURLConnection
+                conexion.connectTimeout = 6500
+                conexion.readTimeout = 10000
+                try {
+                    if (conexion.responseCode !in 200..299) return@withContext null
+                    val options = BitmapFactory.Options().apply { inSampleSize = 2 }
+                    conexion.inputStream.use { BitmapFactory.decodeStream(it, null, options)?.asImageBitmap() }
+                } finally { conexion.disconnect() }
+            } catch (_: Exception) { null }
+        }
+    }
+    if (foto == null) {
+        Image(painter = painterResource(respaldo), contentDescription = "Ilustración de $nombre",
+            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+    } else {
+        Image(bitmap = foto!!, contentDescription = "Portada de $nombre",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxWidth().height(158.dp)
+                .background(Color(0xFF123B5F)))
+    }
+}
+
+
+/** Portada ilustrada local si una actividad antigua todavía no tiene una foto oficial. */
+private fun portadaTematica(a: ActividadCatalogo): Int {
+    val texto = (a.nombre + " " + a.areaTecsup).lowercase()
+    return when {
+        "fútbol" in texto || "futbol" in texto -> R.drawable.vynk_futbol
+        "química" in texto || "minería" in texto || "laboratorio" in texto -> R.drawable.vynk_quimica
+        "electrónica" in texto || "electricidad" in texto -> R.drawable.vynk_electronica
+        "mecánica" in texto || "taller" in texto -> R.drawable.vynk_mecanica
+        "digital" in texto || "software" in texto || "programación" in texto -> R.drawable.vynk_digital
+        "gestión" in texto || "producción" in texto -> R.drawable.vynk_gestion
+        else -> R.drawable.vynk_actividades
+    }
+}
+
+@Composable
+private fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit) {
+    var consultando by remember(a.id) { mutableStateOf(true) }
+    var inscrito by remember(a.id) { mutableStateOf(false) }
+    var capitan by remember(a.id) { mutableStateOf(false) }
+    var procesando by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf("") }
+    var codigoPrivado by remember { mutableStateOf("") }
+    var nombreEquipo by remember { mutableStateOf("") }
+    var modoEquipo by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val esEquipos = a.tipoActividad == "competencia" && a.modalidad == "equipos"
+    LaunchedEffect(a.id, token) {
+        consultando = true
+        try {
+            val datos = InscripcionApi.estado(token, a.id)
+            inscrito = datos.optBoolean("inscrito", false)
+            capitan = datos.optBoolean("capitan", false)
+        } catch (e: Exception) { error = e.message.orEmpty() }
+        finally { consultando = false }
+    }
+    AlertDialog(
+        onDismissRequest = alCerrar,
+        title = { Text(a.nombre, color = Color(0xFF102C56), fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Column(Modifier.fillMaxWidth().heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (a.portadaUrl.isBlank()) Image(painterResource(portadaTematica(a)),
+                    contentDescription = "Ilustración de ${a.nombre}", contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(155.dp))
+                else ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
+                Text(a.descripcion, color = Color(0xFF49627D))
+                Text("Fecha: ${a.fecha} · ${a.horaInicio}", fontWeight = FontWeight.SemiBold)
+                Text("Lugar: ${a.ubicacion.ifBlank { "Por confirmar" }}")
+                Text("Encargado: ${a.organizador.ifBlank { "Tecsup" }}")
+                if (a.areaTecsup.isNotBlank()) Text("Área: ${a.areaTecsup}")
+                Text("Disponibles: ${a.cupos?.toString() ?: "Por confirmar"} ${if (esEquipos) "equipos" else "cupos"}")
+                if (a.reglas.isNotBlank()) Text("Reglas: ${a.reglas}")
+                if (esEquipos && !inscrito) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TextButton(onClick = { modoEquipo = false }) { Text(if (!modoEquipo) "✓ Crear equipo" else "Crear equipo") }
+                        TextButton(onClick = { modoEquipo = true }) { Text(if (modoEquipo) "✓ Unirme" else "Unirme") }
+                    }
+                    OutlinedTextField(value = nombreEquipo, onValueChange = { nombreEquipo = it },
+                        label = { Text(if (modoEquipo) "Código privado del equipo" else "Nombre del equipo") },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true)
+                }
+                if (inscrito && capitan && esEquipos)
+                    Text("Atención: cancelar como capitán retirará a tu equipo completo de esta competencia.",
+                        color = Color(0xFF954B1B), fontWeight = FontWeight.Bold)
+                if (codigoPrivado.isNotBlank()) Text("Código del equipo: $codigoPrivado · Compártelo con tus integrantes.",
+                    color = Color(0xFF0F5D9B), fontWeight = FontWeight.Bold)
+                if (error.isNotBlank()) Text(error, color = Color(0xFFB92F39))
+            }
+        },
+        confirmButton = {
+            Button(enabled = !consultando && !procesando && (inscrito || !esEquipos || nombreEquipo.length >= 3),
+                onClick = {
+                    procesando = true; error = ""
+                    scope.launch {
+                        try {
+                            val r = if (inscrito) InscripcionApi.cancelar(token, a.id)
+                                else if (esEquipos && modoEquipo) InscripcionApi.unirse(token, a.id, nombreEquipo)
+                                else InscripcionApi.inscribir(token, a.id, if (esEquipos) nombreEquipo else "")
+                            codigoPrivado = r.optString("codigoEquipo")
+                            inscrito = !inscrito
+                        } catch (e: Exception) { error = e.message.orEmpty() }
+                        finally { procesando = false }
+                    }
+                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF164F94))) {
+                Text(if (procesando) "Procesando…" else if (inscrito) "Cancelar inscripción" else "Inscribirme")
+            }
+        },
+        dismissButton = { TextButton(onClick = alCerrar) { Text("Cerrar") } },
+        containerColor = Color.White, shape = RoundedCornerShape(19.dp)
+    )
 }

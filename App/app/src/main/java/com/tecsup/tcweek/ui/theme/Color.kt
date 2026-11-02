@@ -2,10 +2,11 @@ package com.tecsup.tcweek.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val VynkNavy = Color(0xFF0C2142)
+val VynkBlue = Color(0xFF1769DB)
+val VynkSky = Color(0xFF55B9F7)
+val VynkTeal = Color(0xFF078A87)
+val VynkBackground = Color(0xFFF1F5FB)
+val VynkSurface = Color.White
+val VynkText = Color(0xFF172A45)
+val VynkMuted = Color(0xFF62738A)

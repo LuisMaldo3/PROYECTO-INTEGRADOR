@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import Icono from './Iconos'
+import ResultadosCompetencia from './ResultadosCompetencia'
+import { urlPortada } from '../services/portadasService'
+import { portadaTematica } from '../services/portadaTematica'
 import { listarActividades, cancelarActividad } from '../services/actividadesService'
 import { formatearFechaActividad, formatearHorario, resumen } from '../services/formatoActividad'
 
@@ -8,6 +11,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
   const [estado, setEstado] = useState({ cargando: true, error: '', actividades: [] })
   const [recarga, setRecarga] = useState(0)
   const [pendiente, setPendiente] = useState(null)
+  const [competenciaElegida, setCompetenciaElegida] = useState(null)
   const [procesando, setProcesando] = useState(false)
   const [errorCancelar, setErrorCancelar] = useState('')
   const [exitoCancelar, setExitoCancelar] = useState('')
@@ -60,7 +64,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
         <div>
           <p className="eyebrow">PROGRAMACIÓN Y EVENTOS</p>
           <h1>Actividades</h1>
-          <p className="suave">Organiza eventos, horarios, lugares y participantes.</p>
+          <p className="suave">Gestiona competencias, inscripciones y publicaciones del campus desde una sola vista.</p>
         </div>
         <div className="lista__acciones">
           <button
@@ -81,7 +85,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
 
       <div className="metricas-actividad" aria-label="Resumen de actividades">
         <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><span>Total de actividades</span><strong>{actividades.length}</strong><small>Eventos registrados</small></div>
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles en el catálogo</small></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles para estudiantes</small></div>
         <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="reloj" tam={20}/></span><span>Canceladas</span><strong>{actividades.filter((a) => a.estado === 'cancelada').length}</strong><small>Con historial preservado</small></div>
       </div>
       <div className="barra-filtros">
@@ -123,10 +127,13 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
               {filtradas.map((a) => (
                 <tr key={a.id}>
                   <td>
-                    <div className="celda-principal" title={a.descripcion}>
-                      <strong>{a.nombre}</strong>
-                      {a.estado === 'cancelada' && <span className="estado-cancelada">Cancelada</span>}
-                      <span>{resumen(a.descripcion, 70)}</span>
+                    <div className="actividad-admin__principal">
+                      <img className="actividad-admin__foto" src={a.portada?.url ? urlPortada(a.portada) : portadaTematica(a)} alt={`Portada de ${a.nombre}`} loading="lazy" referrerPolicy="no-referrer" />
+                      <div className="celda-principal" title={a.descripcion}>
+                        <strong>{a.nombre}</strong>
+                        {a.estado === 'cancelada' && <span className="estado-cancelada">Cancelada</span>}
+                        <span>{resumen(a.descripcion, 70)}</span>
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -156,6 +163,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
                   <td>
                     <div className="acciones-actividad">
                       <button type="button" className="boton boton--claro" disabled={a.estado === 'cancelada'} onClick={() => onEditar(a)}>Editar</button>
+                      {a.tipoActividad === 'competencia' && <button type="button" className="boton boton--claro" onClick={() => setCompetenciaElegida(a)}>Revisar resultados</button>}
                       {a.estado !== 'cancelada' && <button type="button" className="boton boton--peligro-discreto" onClick={() => { setErrorCancelar(''); setPendiente(a) }}>Cancelar</button>}
                     </div>
                   </td>
@@ -165,6 +173,7 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
           </table>
         </div>
       )}
+      {competenciaElegida && <ResultadosCompetencia token={token} actividad={competenciaElegida} onCerrar={() => setCompetenciaElegida(null)} />}
       {pendiente && (
         <div className="confirmacion-fondo" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !procesando) setPendiente(null) }}>
           <div className="confirmacion-panel" role="alertdialog" aria-modal="true" aria-labelledby="titulo-cancelacion" aria-describedby="detalle-cancelacion">

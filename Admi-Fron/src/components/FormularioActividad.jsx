@@ -4,6 +4,8 @@ import ConfirmarAvisoHorario from './ConfirmarAvisoHorario'
 import { datosEdicionActividad } from '../services/datosEdicionActividad'
 import { hayCambioNotificable } from '../services/cambiosNotificables'
 import SelectorUbicacion from './SelectorUbicacion'
+import PortadaActividad from './PortadaActividad'
+import { AREAS_TECSUP } from '../services/areas'
 import { useFormularioActividad } from '../hooks/useFormularioActividad'
 import { crearActividad, modificarActividad } from '../services/actividadesService'
 
@@ -94,6 +96,9 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           {errores.descripcion && <span className="campo__error" role="alert">{errores.descripcion}</span>}
         </label>
 
+        <PortadaActividad token={token} nombre={valores.nombre} valor={valores.portada}
+          onCambiar={(portada) => f.cambiar('portada', portada)} deshabilitado={enviando} />
+
         <div className="campo-fila campo-fila--dos">
           <label className="campo">
             Categoría
@@ -117,8 +122,28 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           />
         </div>
 
+        <label className="campo">Área de la actividad (opcional)
+          <select value={valores.areaTecsup || ''} onChange={e => f.cambiar('areaTecsup', e.target.value)} disabled={enviando}>
+            <option value="">Todas las áreas de la sede</option>
+            {AREAS_TECSUP.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <span className="campo__ayuda">Si compiten las cinco áreas, deja «Todas». Puedes designar un contacto organizador para cada una.</span>
+        </label>
+        {valores.tipoActividad === 'competencia' && <fieldset className="vynk-areas-asignacion">
+          <legend>Encargados por área (opcional)</legend>
+          <p>El organizador principal registra las posiciones. Estos encargados coordinan los equipos de sus áreas.</p>
+          <div className="vynk-areas-asignacion__grid">
+            {AREAS_TECSUP.map(area => <label className="campo" key={area}>{area}
+              <select value={valores.encargadosPorArea?.[area] || ''} disabled={enviando}
+                onChange={e => f.cambiar('encargadosPorArea', { ...(valores.encargadosPorArea || {}), [area]: e.target.value })}>
+                <option value="">Sin encargado asignado</option>
+                {organizadores.map(o => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+              </select>
+            </label>)}
+          </div>
+        </fieldset>}
         <label className="campo">
-          Organizador responsable
+          Organizador principal responsable de resultados
           <select value={valores.organizadorId ?? ''} onChange={(e) => f.cambiar('organizadorId', e.target.value)} {...campo('organizadorId')}>
             <option value="">Elige un organizador</option>
             {organizadores.map((o) => (
@@ -147,8 +172,36 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </label>
         </div>
 
+        <div className="campo-fila campo-fila--dos">
+          <label className="campo">Tipo de publicación
+            <select value={valores.tipoActividad || 'actividad'} onChange={e => f.cambiar('tipoActividad', e.target.value)} {...campo('tipoActividad')}>
+              <option value="actividad">Actividad general</option><option value="competencia">Competencia · T&amp;C Week</option>
+            </select>
+          </label>
+          {valores.tipoActividad === 'competencia' && <label className="campo">Modalidad
+            <select value={valores.modalidad || 'individual'} onChange={e => f.cambiar('modalidad', e.target.value)} {...campo('modalidad')}>
+              <option value="individual">Individual</option><option value="equipos">Por equipos</option>
+            </select>
+          </label>}
+        </div>
+        {valores.tipoActividad === 'competencia' && <div className="competencia-form">
+          <p className="suave">Competencia de una sede. Los cinco departamentos se usarán en los resultados oficiales.</p>
+          <label className="campo">Reglas de la competencia
+            <textarea rows={3} maxLength={2000} value={valores.reglasCompetencia || ''} onChange={e => f.cambiar('reglasCompetencia', e.target.value)} {...campo('reglasCompetencia')} />
+            {errores.reglasCompetencia && <span className="campo__error">{errores.reglasCompetencia}</span>}
+          </label>
+          {valores.modalidad === 'equipos' && <label className="campo">Máximo de integrantes por equipo
+            <input type="number" min="2" max="30" value={valores.maxIntegrantesEquipo || ''} onChange={e => f.cambiar('maxIntegrantesEquipo', e.target.value)} {...campo('maxIntegrantesEquipo')} />
+            {errores.maxIntegrantesEquipo && <span className="campo__error">{errores.maxIntegrantesEquipo}</span>}
+          </label>}
+          <label className="campo">Puntos por puesto (según reglamento, opcional)
+            <input type="text" value={valores.puntosPorPuesto || ''} placeholder="Ej.: 20, 10, 5" onChange={e => f.cambiar('puntosPorPuesto', e.target.value)} {...campo('puntosPorPuesto')} />
+            <span className="campo__ayuda">1.º, 2.º, 3.º… No se asignarán puntajes inventados.</span>
+            {errores.puntosPorPuesto && <span className="campo__error">{errores.puntosPorPuesto}</span>}
+          </label>
+        </div>}
         <label className="campo">
-          Máximo de participantes
+          {valores.tipoActividad === 'competencia' && valores.modalidad === 'equipos' ? 'Máximo de equipos' : 'Máximo de participantes'}
           <input type="number" min="1" step="1" value={valores.maximoParticipantes}
             onChange={(e) => f.cambiar('maximoParticipantes', e.target.value)}
             placeholder="Ej.: 30" {...campo('maximoParticipantes')} />

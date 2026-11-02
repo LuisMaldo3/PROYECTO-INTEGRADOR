@@ -1,0 +1,34 @@
+.portada-actividad{background:#f3f7fb;border:1px solid #c9d8e8;border-radius:15px;padding:19px;margin:18px 0;color:#12375c}
+.portada-actividad__heading h3{font-size:1.13rem;color:#12375c;margin:3px 0 5px;font-weight:780}
+.portada-actividad__heading p,.portada-actividad__pie,.portada-actividad__ayuda{font-size:.83rem;color:#53677e;margin:4px 0;line-height:1.55}
+.portada-actividad__eyebrow{font-size:.65rem;letter-spacing:.13em;font-weight:850;color:#15588d}
+.portada-actividad__acciones{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.portada-actividad__boton{border:1px solid #b9cadc;border-radius:9px;background:#fff;color:#143856;padding:10px 13px;font:inherit;font-size:.84rem;font-weight:730;cursor:pointer}
+.portada-actividad__boton--activo{background:#12395d;color:white;border-color:#12395d}
+.portada-actividad__boton:disabled{opacity:.56;cursor:not-allowed}
+.portada-actividad__error{color:#a32424;background:#fff1ee;border:1px solid #f0c5c0;border-radius:8px;padding:10px 12px;font-size:.84rem}
+.portada-actividad__elegida{overflow:hidden;border-radius:12px;border:1px solid #bfd1e2;background:#fff;margin:12px 0}
+.portada-actividad__elegida>img{height:190px;width:100%;object-fit:cover;display:block}
+.portada-actividad__elegida-info{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px}
+.portada-actividad__elegida-info div{display:grid;gap:3px}
+.portada-actividad__elegida-info span{color:#526d85;font-size:.78rem}
+.portada-actividad__elegida-info button{border:0;background:#e4edf6;border-radius:7px;padding:8px 10px;color:#193a57;cursor:pointer}
+.portada-actividad__resultados p{font-size:.85rem;font-weight:720;margin:9px 0}
+.portada-actividad__galeria{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.portada-actividad__foto{text-align:left;overflow:hidden;border:2px solid transparent;background:#fff;border-radius:9px;padding:0;cursor:pointer;box-shadow:0 1px 6px #09294315}
+.portada-actividad__foto--elegida{border-color:#1974aa}
+.portada-actividad__foto img{height:95px;width:100%;object-fit:cover;display:block}
+.portada-actividad__foto span{font-size:.66rem;line-height:1.35;color:#516981;display:block;padding:7px;max-height:42px;overflow:hidden}
+.portada-actividad__pie{margin-top:13px}
+@media(max-width:650px){.portada-actividad{padding:14px}.portada-actividad__galeria{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Filas de administración con una miniatura compacta y una sola paleta azul marino. */
+.actividad-admin__principal{display:flex;align-items:center;gap:12px;min-width:230px}
+.actividad-admin__foto{width:70px;height:55px;flex:0 0 70px;border-radius:9px;object-fit:cover;border:1px solid #c9d9e7}
+.lista .metricas-actividad .metrica{background:#103758!important;border:1px solid #103758!important;color:#f7fbff!important;box-shadow:none!important}
+.lista .metricas-actividad .metrica>strong,.lista .metricas-actividad .metrica>span,.lista .metricas-actividad .metrica>small{color:#f7fbff!important}
+.lista .metricas-actividad .metrica__icono{background:#1a4b76!important;color:#e2f4ff!important;border-color:#1a4b76!important}
+.lista .tabla--actividades thead th{background:#eaf2f9;color:#123d63}
+@media(max-width:730px){.actividad-admin__foto{width:57px;height:49px;flex-basis:57px}}
+
+.vynk-portada-subir{display:grid;gap:8px;font-size:.84rem;font-weight:720;color:#173e63;margin-bottom:14px;padding:13px;border:1px dashed #b6cadb;border-radius:10px;background:#fff}.vynk-portada-subir input{font:inherit;color:#234f78;width:100%}.vynk-portada-subir span{font-size:.75rem;color:#2a6394}

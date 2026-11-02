@@ -11,6 +11,7 @@ export function TarjetaRecomendada({ actividad, posicion, onDescartar, deshabili
       {a.motivoHorario && <span>{a.motivoHorario}</span>}
     </div>}
     <div className="rec-motivo"><strong>✦ ¿Por qué te la recomendamos?</strong><p>{a.motivo || 'Actividad publicada por Tecsup.'}</p></div>
+    <a className="vynk-up-card__action" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles e inscribirme <span aria-hidden="true">→</span></a>
     <div className="rec-tarjeta__pie">
       <span className="rec-tarjeta__nota">Ajusta tus sugerencias</span>
       <button type="button" className="rec-descartar" onClick={onDescartar} disabled={deshabilitado} aria-label={`No me interesa ${a.nombre}`}>

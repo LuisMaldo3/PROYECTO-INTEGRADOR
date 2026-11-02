@@ -16,7 +16,13 @@ data class ActividadCatalogo(
     val cupos: Int?,
     val maximo: Int?,
     val organizador: String,
-    val categoriaId: String = ""
+    val categoriaId: String = "",
+    val portadaUrl: String = "",
+    val portadaAutor: String = "",
+    val portadaLicencia: String = "",
+    val portadaCreditoUrl: String = "",
+    val tipoActividad: String = "actividad", val modalidad: String = "individual",
+    val reglas: String = "", val areaTecsup: String = "", val ubicacion: String = ""
 )
 
 object CatalogoApi {
@@ -46,7 +52,18 @@ object CatalogoApi {
                     cupos = if (a.isNull("cuposDisponibles")) null else a.optInt("cuposDisponibles"),
                     maximo = if (a.isNull("maximoParticipantes")) null else a.optInt("maximoParticipantes"),
                     organizador = a.optString("organizador"),
-                    categoriaId = a.optString("categoriaId").takeUnless { it == "null" }.orEmpty()
+                    categoriaId = a.optString("categoriaId").takeUnless { it == "null" }.orEmpty(),
+                    portadaUrl = a.optString("portadaUrl").takeUnless { it == "null" }.orEmpty()
+                        .let { url -> if (url.startsWith("/api/portadas/archivo/")) Servidor.DIRECCION.trimEnd('/') + url
+                          else if (url.startsWith("https://upload.wikimedia.org/") || (a.optJSONObject("portada")?.optString("tipo") == "url" && url.startsWith("https://"))) url else "" },
+                    portadaAutor = a.optJSONObject("portada")?.optString("autor").orEmpty(),
+                    portadaLicencia = a.optJSONObject("portada")?.optString("licencia").orEmpty(),
+                    portadaCreditoUrl = a.optJSONObject("portada")?.optString("creditoUrl").orEmpty(),
+                    tipoActividad = a.optString("tipoActividad", "actividad"),
+                    modalidad = a.optString("modalidad", "individual"),
+                    reglas = a.optString("reglasCompetencia").takeUnless { it == "null" }.orEmpty(),
+                    areaTecsup = a.optString("areaTecsup").takeUnless { it == "null" }.orEmpty(),
+                    ubicacion = a.optString("ubicacion").takeUnless { it == "null" }.orEmpty()
                 )
             }
         } finally {

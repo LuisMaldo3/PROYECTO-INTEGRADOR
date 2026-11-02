@@ -24,3 +24,7 @@ def inscripciones():
 
 def notificaciones():
     return base.db()["notificaciones"]
+
+
+def resultados_competencias():
+    return base.db()["resultados_competencias"]

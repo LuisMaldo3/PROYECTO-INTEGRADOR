@@ -1,0 +1,7 @@
+US-22 | Backend Spring Boot
+GET /api/catalogo/{id} -> detalle incluso si ha finalizado
+GET /api/catalogo/{id}/similares -> hasta 4 actividades similares abiertas
+GET /api/competencias/resultados/{actividadId} -> SOLO resultados publicados
+GET /api/competencias/resultados -> incluye portada oficial de cada evento
+Pruebas JUnit para similitud y no exposición de borradores.
+La generación de imágenes con Gemini y la validación administrativa de resultados no se modifican.

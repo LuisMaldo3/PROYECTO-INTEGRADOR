@@ -16,8 +16,14 @@ public class Usuario {
     private String nombre;
     private String rol = Roles.USUARIO;
     private boolean activo = true;
+    private String areaTecsup; // Asignada/verificada por la institución, no por el alumno
+    private boolean areaVerificada;
     private String passwordHash; // null si el usuario solo entra con Google
 
+    public String getAreaTecsup() { return areaTecsup; }
+    public void setAreaTecsup(String area) { this.areaTecsup = area; }
+    public boolean isAreaVerificada() { return areaVerificada; }
+    public void setAreaVerificada(boolean b) { areaVerificada = b; }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

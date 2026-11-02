@@ -18,7 +18,7 @@ export function validarAviso(valores, ahora = new Date()) {
     else if (fecha <= ahora) errores.publicarEn = 'Elige una fecha y hora futuras.'
     else publicarEn = fecha.toISOString()
   }
-  return { titulo, mensaje, publicarEn, errores }
+  return { titulo, mensaje, publicarEn, portada: valores?.portada || null, errores }
 }
 
 export async function listarAvisos(token) {
@@ -30,7 +30,7 @@ export async function publicarAviso(token, valores) {
   // Permite enviar también el objeto ya validado y normalizado.
   const normalizado = valores?.publicarEn !== undefined && valores?.errores
     ? valores : validarAviso(valores)
-  const { titulo, mensaje, publicarEn, errores } = normalizado
+  const { titulo, mensaje, publicarEn, portada, errores } = normalizado
   if (Object.keys(errores).length) {
     const error = new Error('Revisa los campos del aviso.')
     error.errores = errores
@@ -38,6 +38,6 @@ export async function publicarAviso(token, valores) {
   }
   return pedir('/api/avisos/', token, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titulo, mensaje, publicarEn }),
+    body: JSON.stringify({ titulo, mensaje, publicarEn, portada }),
   })
 }

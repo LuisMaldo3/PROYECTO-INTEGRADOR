@@ -32,7 +32,8 @@ export function OrganizadorTarjeta({ actividad }) {
         <span>⌖ {a.ubicacion || 'Ubicación por confirmar'}</span>
       </div>
       <div className="org-capacidad">
-        <div className="org-capacidad__encabezado"><span><strong>{inscritos}</strong> inscritos {maximo != null ? `de ${maximo}` : ''}</span><span className={disponibles === 0 ? 'org-cupos--llenos' : 'org-cupos--libres'}>{disponibles == null ? 'Cupos por confirmar' : disponibles === 0 ? 'Sin cupos' : `${disponibles} disponibles`}</span></div>
+        <div className="org-capacidad__encabezado"><span><strong>{inscritos}</strong> {a.unidadCupo === 'equipos' ? 'equipos registrados' : 'estudiantes inscritos'} {maximo != null ? `de ${maximo}` : ''}</span><span className={disponibles === 0 ? 'org-cupos--llenos' : 'org-cupos--libres'}>{disponibles == null ? 'Cupos por confirmar' : disponibles === 0 ? 'Sin cupos' : `${disponibles} disponibles`}</span></div>
+        {a.unidadCupo === 'equipos' && <small>{a.estudiantesInscritos ?? 0} estudiantes · {a.equiposConfirmados ?? 0} equipos habilitados</small>}
         {maximo != null && maximo > 0 && <div className="org-barra" role="progressbar" aria-label="Cupos ocupados" aria-valuenow={Math.min(inscritos, maximo)} aria-valuemin={0} aria-valuemax={maximo}><span style={{ width: `${progreso}%` }} /></div>}
       </div>
       <div className="org-tarjeta__acciones">
@@ -40,7 +41,6 @@ export function OrganizadorTarjeta({ actividad }) {
           Ver detalles <span aria-hidden="true">→</span>
         </a>
         <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-inscritos', a.id)}>Inscritos</a>
-        <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-asistencia', a.id)}>Asistencia</a>
         <a className="org-boton org-boton--simple" href={rutaOrganizador('organizador-reporte', a.id)}>Reportar</a>
       </div>
     </article>

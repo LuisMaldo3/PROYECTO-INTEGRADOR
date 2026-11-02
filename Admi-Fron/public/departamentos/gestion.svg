@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<rect width="1200" height="630" fill="#102C56"/><path d="M0 560l1200-480v200L0 630z" fill="#1B4982" opacity=".44"/>
+<circle cx="1000" cy="-20" r="300" stroke="#579DDA" stroke-width="3" fill="none" opacity=".25"/>
+<path d="M50 85h36v5H50z" fill="#9ADDFF"/><text x="50" y="157" fill="#9ADDFF" font-size="34" font-family="Arial" font-weight="bold" letter-spacing="5">VYNK / TECSUP</text>
+<text x="50" y="310" fill="white" font-family="Arial" font-size="74" font-weight="bold">GESTIÓN</text>
+<text x="50" y="376" fill="#C7E7FF" font-family="Arial" font-size="38" letter-spacing="4">Y PRODUCCIÓN</text>
+<path d="M50 468h410" stroke="#5AACE1" stroke-width="6" stroke-linecap="round"/>
+<text x="50" y="533" fill="#B2D5F6" font-family="Arial" font-size="21" letter-spacing="3">UNA SEDE · CINCO ÁREAS</text><path d="M745 428h388" stroke="#92DBFF" stroke-width="13"/><rect x="795" y="301" width="60" height="125" rx="10" fill="#92DBFF"/><rect x="901" y="225" width="60" height="201" rx="10" fill="#92DBFF"/><rect x="1008" y="154" width="60" height="272" rx="10" fill="#92DBFF"/><path d="M780 232l90-74 85 28 111-92" fill="none" stroke="#92DBFF" stroke-width="11"/></svg>

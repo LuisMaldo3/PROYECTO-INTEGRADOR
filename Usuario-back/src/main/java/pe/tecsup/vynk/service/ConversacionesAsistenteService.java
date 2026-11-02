@@ -30,7 +30,7 @@ public class ConversacionesAsistenteService {
                                      ConversacionAsistente.Mensaje pregunta,
                                      ConversacionAsistente.Mensaje respuesta) {
         Query enRevision = Query.query(Criteria.where("_id").is(usuarioId).and("revision").is(revision));
-        Update guardar = new Update().push("mensajes").each(pregunta, respuesta).slice(-MAX_MENSAJES);
+        Update guardar = new Update().push("mensajes").slice(-MAX_MENSAJES).each(pregunta, respuesta);
         return mongo.findAndModify(enRevision, guardar, ConversacionAsistente.class) != null;
     }
 

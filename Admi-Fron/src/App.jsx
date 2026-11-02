@@ -5,6 +5,7 @@ import Login from './components/Login'
 import MenuAdmin from './components/MenuAdmin'
 import PantallaActividades from './components/PantallaActividades'
 import PantallaAvisos from './components/PantallaAvisos'
+import ClasificacionGeneral from './components/ClasificacionGeneral'
 import { cerrarSesion, guardarSesion, leerSesion } from './services/authService'
 
 export default function App() {
@@ -71,7 +72,7 @@ export default function App() {
 
       <div className="panel__workspace">
         <header className="panel__topbar">
-          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? (seleccionadoId ? 'Perfil del usuario' : 'Usuarios') : vista === 'actividades' ? 'Actividades' : 'Avisos'}</strong></div>
+          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? (seleccionadoId ? 'Perfil del usuario' : 'Usuarios') : vista === 'actividades' ? 'Actividades' : vista === 'clasificacion' ? 'Clasificación' : 'Avisos'}</strong></div>
           <div className="panel__topbar-derecha"><span className="panel__online"/> Panel de administración <span className="panel__topbar-avatar">{(sesion.usuario?.nombre || sesion.usuario?.correo || 'A').charAt(0).toUpperCase()}</span></div>
         </header>
         <main className="contenido">
@@ -99,6 +100,7 @@ export default function App() {
         )}
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'clasificacion' && <ClasificacionGeneral token={sesion.token} />}
         </main>
       </div>
     </div>

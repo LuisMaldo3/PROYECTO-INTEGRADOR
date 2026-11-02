@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from usuarios.auth import exigir_admin
 from usuarios.permisos import exigir_permiso
 
-from . import servicio, organizadores, avisos as servicio_avisos
+from . import servicio, organizadores, avisos as servicio_avisos, mongo
 
 
 @require_http_methods(["GET", "POST"])
@@ -117,3 +117,77 @@ def catalogo_estudiantes(request):
     """Consulta de solo lectura: solo actividades disponibles, sin credenciales de administrador."""
     lista = [a for a in servicio.listar_actividades() if a.get("estado") == "programada"]
     return JsonResponse({"total": len(lista), "actividades": lista})
+
+
+@require_http_methods(["GET", "PUT"])
+@exigir_admin
+@exigir_permiso("actividades.gestionar")
+def resultados_competencia(request, actividad_id):
+    """US-32: consultar/corregir propuesta administrativa; no alterar un resultado publicado."""
+    from . import resultados_competencias as resultados
+    try:
+        if request.method == "GET":
+            return JsonResponse(resultados.obtener(actividad_id))
+        cuerpo = json.loads(request.body or b"{}")
+        return JsonResponse(resultados.preparar_propuesta(actividad_id, cuerpo, request.admin_id))
+    except servicio.DatosInvalidos as e:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(e), "errores": e.errores}, status=400)
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Competencia no encontrada."}, status=404)
+    except (ValueError, TypeError):
+        return JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "JSON inválido."}, status=400)
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("actividades.gestionar")
+def publicar_resultados(request, actividad_id):
+    from . import resultados_competencias as resultados
+    try:
+        return JsonResponse(resultados.publicar(actividad_id, request.admin_id))
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Competencia no encontrada."}, status=404)
+    except servicio.DatosInvalidos as e:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(e), "errores": e.errores}, status=409)
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("actividades.gestionar")
+def anunciar_resultados(request, actividad_id):
+    from . import resultados_competencias as resultados
+    from usuarios.permisos import permisos_de
+    if not permisos_de(request.admin_id, "administrador").get("avisos.publicar", False):
+        return JsonResponse({"codigo": "PERMISO_DENEGADO", "mensaje": "Falta permiso para publicar avisos."}, status=403)
+    try:
+        return JsonResponse(resultados.anunciar(actividad_id, request.admin_id), status=201)
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Competencia no encontrada."}, status=404)
+    except servicio.DatosInvalidos as e:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(e), "errores": e.errores}, status=409)
+
+
+@require_GET
+@exigir_admin
+@exigir_permiso("actividades.gestionar")
+def participantes_competencia(request, actividad_id):
+    from . import resultados_competencias as resultados
+    try:
+        actividad = resultados._actividad(actividad_id)
+    except LookupError:
+        return JsonResponse({"codigo": "NO_ENCONTRADA", "mensaje": "Competencia no encontrada."}, status=404)
+    except servicio.DatosInvalidos as e:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(e)}, status=400)
+    registros = resultados.participantes_confirmados(actividad).values()
+    lista = [{"id": str(p["_id"]), "nombre": p.get("nombreEquipo") or p.get("nombreEstudiante") or "Participante",
+              "areaTecsup": p.get("areaTecsup") if p.get("areaVerificada") is True else None,
+              "integrantesConfirmados": len(p.get("integrantes", [])) if p.get("nombreEquipo") else 1} for p in registros]
+    return JsonResponse({"total": len(lista), "participantes": lista})
+
+
+@require_GET
+@exigir_admin
+@exigir_permiso('actividades.gestionar')
+def clasificacion_general(request):
+    from .resultados_competencias import clasificacion_general as calcular
+    return JsonResponse(calcular())

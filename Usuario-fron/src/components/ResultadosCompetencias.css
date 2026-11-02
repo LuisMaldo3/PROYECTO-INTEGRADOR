@@ -1,0 +1,63 @@
+.tc-resultados{display:grid;gap:22px;color:#123052}
+.tc-resultados__cabecera{position:relative;padding:28px;border:1px solid #d6e8f3;background:linear-gradient(130deg,#102d57 0%,#174776 100%);border-radius:18px;color:white}
+.tc-resultados__cabecera h2{font-size:clamp(1.5rem,2.7vw,2.2rem);margin:8px 0;color:white}
+.tc-resultados__cabecera p{color:#d7e9fa;max-width:60ch}
+.tc-resultados__kicker{display:block;font-size:11px;font-weight:750;letter-spacing:.12em;color:#65c4ed}
+.tc-accion,.tc-boton{border:1px solid #49aeda;background:#1296cf;color:white;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+.tc-boton--suave{background:#ebf6fd;border-color:#b4dcef;color:#17466d}
+.tc-boton:disabled{opacity:.55;cursor:not-allowed}
+.tc-resultados__bloque{border:1px solid #dbe7f1;border-radius:16px;padding:20px;background:#fff}
+.tc-resultados__bloque h3{font-size:20px;color:#153b67;margin:0 0 15px}
+.tc-resultados__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:13px}
+.tc-resultado{border:1px solid #d6e4f0;background:#fbfdff;border-radius:12px;padding:17px}
+.tc-resultado h4{margin:8px 0;font-size:18px;color:#10375b}
+.tc-resultado ol{padding:0;list-style:none;display:grid;gap:7px}
+.tc-resultado li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e2ebf3;font-size:13px}
+.tc-resultado li span{color:#49718b}
+.tc-vacio{padding:14px 16px;background:#eef6fb;border-radius:10px;color:#395d7a;font-size:14px}
+.tc-error{color:#a32232;background:#fff2f5;padding:12px;border-radius:9px}
+.tc-tabla{overflow-x:auto}.tc-tabla table{width:100%;border-collapse:collapse}.tc-tabla th{text-align:left;color:#1e4b73;background:#f0f6fb}.tc-tabla td,.tc-tabla th{border-bottom:1px solid #e2ebf3;padding:13px}
+.tc-inscribir{display:grid;gap:9px;margin-top:13px;border-top:1px solid #dde9f3;padding-top:12px}
+.tc-inscribir input{width:100%;padding:9px 11px;border:1px solid #bdd1e2;border-radius:8px;background:white;color:#14395c}
+.tc-inscribir__acciones{display:flex;gap:7px;flex-wrap:wrap}.tc-inscribir__estado{font-size:12px;color:#27547a}.tc-inscribir__aviso{font-size:12px;color:#285373;overflow-wrap:anywhere}
+.tc-inscribir__aviso--error{color:#a12c35}
+/* Refinamiento editorial del tablero de ganadores y tabla general */
+.tc-resultados{max-width:1280px;margin:0 auto;gap:20px}
+.tc-resultados__cabecera{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:33px 37px;border-radius:20px;background:linear-gradient(117deg,#0a264b 0%,#12589b 68%,#137fb8 100%);box-shadow:0 18px 36px #184b7d20;border-color:#205f98}
+.tc-resultados__cabecera>div{max-width:750px}
+.tc-resultados__cabecera h2{font-size:clamp(1.7rem,3.3vw,2.55rem);letter-spacing:-.05em}
+.tc-resultados__cabecera p{font-size:.9rem;line-height:1.7;color:#dceeff}
+.tc-resultados__cabecera .tc-accion{flex-shrink:0;background:#fff;border-color:#fff;color:#154f8a}
+.tc-resultados__resumen{display:flex;flex-wrap:wrap;gap:23px;margin-top:19px;color:#c9eaff;font-size:.75rem;font-weight:750}
+.tc-resultados__resumen strong{color:#fff;font-size:1.05rem;margin-right:7px}
+.tc-resultados__bloque{padding:25px;border-radius:17px;border:1px solid #dfeaf3;box-shadow:0 9px 27px #123c7210}
+.tc-resultados__bloque-titulo{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-bottom:19px}
+.tc-resultados__bloque-titulo h3{margin:5px 0 0;font-size:1.24rem;letter-spacing:-.033em}
+.tc-resultados__bloque .tc-resultados__kicker{color:#2485bd}
+.tc-resultados__buscar{display:flex;align-items:center;min-width:230px}
+.tc-resultados__buscar input{width:100%;min-height:42px;padding:10px 14px;color:#17385c;background:#f9fbfe;border:1px solid #d5e3f0;border-radius:10px;font:inherit;font-size:.83rem}
+.tc-visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.tc-resultado{border-radius:13px;border-color:#dfeaf3;background:#fff;padding:20px}
+.tc-resultado__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tc-resultado__publicado{display:inline-flex;border:1px solid #c6e7d9;color:#13704e;background:#eaf9f1;border-radius:7px;padding:6px 10px;font-size:.71rem;font-weight:820}
+.tc-resultado h4{font-size:1.11rem;letter-spacing:-.025em;margin:14px 0 8px}
+.tc-resultado>p{font-size:.77rem;color:#678198;margin:0 0 15px}
+.tc-resultado ol{gap:0;margin:0}
+.tc-resultado li{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:12px 0;font-size:.83rem}
+.tc-resultado li>div{display:grid;gap:3px;min-width:0;flex:1}
+.tc-resultado li strong{color:#183d61;overflow-wrap:anywhere}
+.tc-resultado li small{font-size:.7rem;color:#6b859a}
+.tc-resultado__puesto{font-size:.74rem;font-weight:900;width:35px;height:35px;display:grid;place-items:center;border-radius:9px;background:#edf4fb;color:#2c5c8b;flex-shrink:0}
+.tc-resultado__ganador .tc-resultado__puesto{background:#d8eeff;color:#155c98}
+.tc-resultado__primer-lugar{font-size:.67rem;font-weight:850;border:1px solid #bcdaf0;background:#e9f5ff;color:#196eaf;padding:6px 9px;border-radius:8px}
+.tc-vacio{background:#f0f6fc;color:#547391;border:1px solid #dbe9f5;padding:20px;border-radius:11px}
+.tc-vacio strong{display:block;color:#20496d;margin-bottom:7px}
+.tc-vacio p{margin:0;line-height:1.6}
+.tc-tabla{border:1px solid #e2eaf4;border-radius:11px}
+.tc-tabla th{font-size:.74rem;letter-spacing:.04em;text-transform:uppercase}
+.tc-tabla td{font-size:.86rem;color:#244666}
+.tc-tabla td:last-child{text-align:right;font-weight:760;color:#5e7891}
+.tc-tabla th:last-child{text-align:right}
+@media(max-width:700px){.tc-resultados__cabecera{padding:24px 20px;flex-direction:column;align-items:flex-start}.tc-resultados__cabecera .tc-accion{width:100%}.tc-resultados__bloque{padding:18px}.tc-resultados__buscar{width:100%}}
+
+.tc-resultados__desglose{display:grid;gap:9px;margin-top:18px}.tc-resultados__desglose details{background:#f6faff;border:1px solid #e1ecf7;padding:15px 17px;border-radius:12px}.tc-resultados__desglose summary{font-weight:750;color:#173e66;cursor:pointer}.tc-resultados__desglose ul{margin:12px 0 0;padding:0;list-style:none}.tc-resultados__desglose li{display:flex;justify-content:space-between;gap:14px;border-top:1px solid #e1eaf3;padding:12px 0;font-size:.87rem}.tc-resultados__desglose p{color:#58758c;font-size:.85rem}.tc-tabla td:last-child,.tc-tabla th:last-child{text-align:right}.tc-tabla th:first-child{width:70px}

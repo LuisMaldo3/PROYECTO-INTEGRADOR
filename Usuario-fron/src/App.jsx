@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react'
 import { Agenda } from './components/Agenda'
 import { Asistente } from './components/Asistente'
 import { Catalogo } from './components/Catalogo'
+import { DetalleActividad } from './components/DetalleActividad'
+import { ResultadosCompetencias } from './components/ResultadosCompetencias'
 import { Inicio } from './components/Inicio'
 import { Intereses } from './components/Intereses'
 import { Recomendaciones } from './components/Recomendaciones'
 import { OrganizadorActividades } from './components/OrganizadorActividades'
 import { OrganizadorDetalle } from './components/OrganizadorDetalle'
+import { OrganizadorResultados } from './components/OrganizadorResultados'
 import { OrganizadorInscritos } from './components/OrganizadorInscritos'
-import { OrganizadorAsistencia } from './components/OrganizadorAsistencia'
 import { OrganizadorReporte } from './components/OrganizadorReporte'
 import { Login } from './components/Login'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
@@ -21,13 +23,15 @@ import './components/Tema.css'
 import './components/Institucional.css'
 import './components/VynkCampus2026.css'
 import './components/VynkProfessional2026.css'
+import './components/VynkUpgrade.css'
+import './components/VynkRefinado.css'
 import { cerrarSesion, cerrarSesionEnServidor, guardarSesion, leerSesion, quienSoy, sesionCerradaEnOtraPestana } from './services/authService'
 import { normalizarRol, resolverRuta, pantallaDe } from './services/permisos'
 import { consultarEstadoIntereses, omitirIntereses } from './services/interesesService'
 import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, catalogo: Catalogo, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-inscritos': OrganizadorInscritos, 'organizador-asistencia': OrganizadorAsistencia, 'organizador-reporte': OrganizadorReporte }
+const SECCIONES = { inicio: Inicio, actividades: Catalogo, actividad: DetalleActividad, resultados: ResultadosCompetencias, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-resultados': OrganizadorResultados, 'organizador-inscritos': OrganizadorInscritos, 'organizador-reporte': OrganizadorReporte }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)

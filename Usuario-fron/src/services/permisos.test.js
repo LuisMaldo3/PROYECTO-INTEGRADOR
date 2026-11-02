@@ -11,7 +11,7 @@ import {
 } from './permisos.js'
 
 const rutas = (rol, lista) => pantallasDelMenu(rol, lista).map((p) => p.ruta)
-const TODAS = ['inicio', 'catalogo', 'recomendaciones', 'agenda', 'asistente', 'perfil']
+const TODAS = ['inicio', 'actividades', 'recomendaciones', 'resultados', 'agenda', 'asistente', 'perfil']
 
 // Lista de prueba con una segunda pantalla hipotética del organizador
 const CON_ORGANIZADOR = [
@@ -37,7 +37,7 @@ test('ROL: normalizarUsuario no pierde los demás datos ni modifica el original'
   assert.equal(normalizarUsuario(null), null)
 })
 
-test('MENÚ: el usuario ve las seis pantallas, en orden', () => {
+test('MENÚ: el usuario ve las siete pantallas, en orden', () => {
   assert.deepEqual(rutas('usuario'), TODAS)
 })
 
@@ -96,7 +96,7 @@ test('BLOQUEO: si el rol cambia, la misma dirección pasa de permitida a bloquea
 test('INTERESES: es una pantalla permitida, pero no tiene botón en el menú', () => {
   assert.equal(resolverRuta('#/intereses', 'usuario').estado, 'permitida')
   assert.equal(rutas('usuario').includes('intereses'), false)
-  assert.deepEqual(rutas('usuario'), TODAS) // el menú sigue con las mismas seis
+  assert.deepEqual(rutas('usuario'), TODAS) // el menú sigue con las mismas siete
 })
 
 test('INTERESES: mientras se está en ella, el menú marca Perfil', () => {
@@ -110,12 +110,26 @@ test('MENÚ: Para ti aparece una sola vez', () => {
 })
 
 
-test('US-46/51/55/50: organizador accede a todas sus pantallas y usuario queda bloqueado', () => {
-  for (const ruta of ['organizador-actividades', 'organizador-inscritos', 'organizador-asistencia', 'organizador-reporte']) {
+test('US-46/51/50: organizador accede a todas sus pantallas y usuario queda bloqueado', () => {
+  for (const ruta of ['organizador-actividades', 'organizador-inscritos', 'organizador-reporte']) {
     assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'organizador').estado, 'permitida')
     assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'usuario').estado, 'bloqueada')
     assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'administrador').estado, 'bloqueada')
   }
   assert.equal(rutas('organizador').filter(r => r.startsWith('organizador')).length, 1)
   assert.equal(resolverRuta('#/organizador-inscritos', 'organizador').pantalla.menuActivo, 'organizador-actividades')
+})
+
+
+test('ACTIVIDADES: antiguo enlace de catálogo permanece válido y abre actividades', () => {
+  assert.equal(rutaDeHash('#/catalogo'), 'actividades')
+  assert.equal(resolverRuta('#/catalogo', 'usuario').estado, 'permitida')
+  assert.equal(resolverRuta('#/actividad?id=123', 'usuario').pantalla.menuActivo, 'actividades')
+  assert.equal(pantallasDelMenu('usuario').find(p => p.ruta === 'actividades').tituloMenu, 'Actividades')
+})
+
+test('RESULTADOS: sólo un organizador puede registrar posiciones de su competencia', () => {
+  assert.equal(resolverRuta('#/organizador-resultados?actividad=123', 'organizador').estado, 'permitida')
+  assert.equal(resolverRuta('#/organizador-resultados?actividad=123', 'usuario').estado, 'bloqueada')
+  assert.equal(resolverRuta('#/organizador-resultados?actividad=123', 'administrador').estado, 'bloqueada')
 })

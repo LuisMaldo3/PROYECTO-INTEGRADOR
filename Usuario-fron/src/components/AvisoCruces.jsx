@@ -92,7 +92,7 @@ export function AvisoCruces({ cruces = [], error = '' }) {
                   </ul>
                 ) : <p>Por ahora no hay actividades compatibles con cupos disponibles.</p>
               )}
-              <small className="cruces__nota-alternativas">Son sugerencias, no nuevas inscripciones. Consulta el catálogo para inscribirte.</small>
+              <small className="cruces__nota-alternativas">Son sugerencias, no nuevas inscripciones. Consulta las actividades para inscribirte.</small>
             </div>
             {explicaciones[c.id] && (
               <div className="cruces__explicacion" role="status">

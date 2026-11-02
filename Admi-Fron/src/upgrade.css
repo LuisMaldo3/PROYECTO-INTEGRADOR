@@ -1,0 +1,50 @@
+/* VYNK Admin 2026 · pulido coherente con azul marino / celeste institucional. */
+:root{--brand:#1364ad;--brand-strong:#0d4f94;--brand-pale:#e7f3ff;--ink:#193852;--muted:#62768c;--line:#dfe8f2;--shadow-card:0 8px 25px #1639630b;--grad-marca:#0d356a;--sombra:var(--shadow-card);--aro:0 0 0 3px #2589d722}
+html,body{background:#f4f7fb;color:var(--ink)}
+.panel{background:#f4f7fb}
+.menu{background:linear-gradient(180deg,#0a2549 0%,#103667 100%);border-right:1px solid #113d6d;color:#d5e5f8}
+.menu::before{height:3px;background:#36b1e9}
+.menu__marca{border-color:#ffffff24}
+.menu .marca__texto{color:#fff}
+.menu .marca__texto small{color:#9bdbfa}
+.menu__badge{background:#1d70ac;color:#fff;border:1px solid #64b9e2}
+.menu__seccion{color:#91adc9}
+.menu__item{color:#c2d7ec;border-radius:11px}
+.menu__item svg{color:#9ebcdb}
+.menu__item:hover,.menu__item:focus-visible{background:#ffffff16;color:#fff;border-color:#ffffff14}
+.menu__item--activo,.menu__item--activo:hover{background:#edf6ff;color:#124e89;border-color:#edf6ff;box-shadow:0 7px 20px #001c3b30}
+.menu__item--activo svg{color:#1373bb}
+.menu__item--activo::after{background:#1999d4}
+.menu__pie{border-color:#ffffff25}
+.menu__persona{background:#ffffff10;border:1px solid #ffffff18}
+.menu__nombre{color:#fff}
+.menu__correo{color:#bfcee1}
+.menu .avatar{background:#dceeff;color:#154e83}
+.menu__pie .boton--fantasma{color:#d2e6f9;border-color:#ffffff32}
+.menu__pie .boton--fantasma:hover{color:#fff;background:#ffffff22}
+.panel__topbar{height:66px;border-bottom:1px solid #e0e9f4;background:#fff}
+.panel__ruta strong{color:#1d416c}
+.panel__topbar-avatar{background:#e6f3fe;color:#155b9b;border-color:#c9e0f4}
+.contenido{padding:clamp(19px,2.6vw,40px);max-width:1550px}
+.lista,.avisos-tarjeta{border:1px solid #dfe9f3;box-shadow:0 9px 30px #1e4a760b;border-radius:18px}
+.lista{--section-color:#0e447f}.lista--actividades{--section-color:#0f4c8c}.avisos-pagina{--section-color:#125b86}
+.lista__cabecera,.avisos-encabezado{background:linear-gradient(110deg,#0a2d5a 0%,#1764aa 100%);border-color:#14548a;border-radius:15px;box-shadow:none;min-height:130px}
+.lista__cabecera h1,.avisos-encabezado h1{letter-spacing:-.045em}
+.lista__cabecera .eyebrow,.avisos-encabezado .eyebrow{color:#a8e2ff}
+.boton:not(.boton--claro):not(.boton--fantasma):not(.boton--peligro-discreto):not(.boton--peligro){background:#1773bc;color:#fff;border-radius:9px}
+.boton:not(.boton--claro):not(.boton--fantasma):not(.boton--peligro-discreto):not(.boton--peligro):hover:not(:disabled){background:#105b9d}
+.boton--claro{background:#fff;color:#24577b;border-color:#d3e1ee}
+.boton--claro:hover:not(:disabled){background:#f0f7ff;color:#155b9a}
+.metrica{border:1px solid #e0eaf3!important;border-radius:13px;background:#fff;box-shadow:none}
+.metrica__icono{background:#e8f4ff!important;color:#1f70ae!important}
+.metrica strong{letter-spacing:-.04em;color:#174777}
+.barra-filtros{background:#fff;border:1px solid #e4edf4;border-radius:12px;padding:12px 15px}
+.pestana--activa,.pestana[aria-pressed=true]{background:#e6f3ff;color:#155b9c}
+.tabla-envoltura{border:1px solid #e3ebf4;border-radius:12px;overflow-x:auto}
+.tabla--actividades tbody tr:hover{background:#f3f8fd}
+.acciones-actividad{gap:7px;flex-wrap:wrap}
+.acciones-actividad .boton{font-size:.77rem;padding:8px 11px}
+.competencia-form{background:#f1f7ff!important;border-color:#c7dcf1!important;border-radius:12px!important;padding:16px!important}
+.campo input:focus,.campo textarea:focus,.campo select:focus{border-color:#278acb;box-shadow:0 0 0 3px #2794d220}
+@media(max-width:980px){.contenido{padding:18px}}
+@media(max-width:670px){.lista__cabecera,.avisos-encabezado{padding:20px!important}.barra-filtros{padding:10px}.acciones-actividad .boton{min-height:36px}}

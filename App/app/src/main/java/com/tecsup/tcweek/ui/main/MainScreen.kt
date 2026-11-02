@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,7 @@ private val AzulVynk = Color(0xFF0B63FF)
 private val GrisTexto = Color(0xFF6B7A99)
 
 private const val RUTA_RECOMENDACIONES = "recomendaciones"
+private const val RUTA_CLASIFICACION = "clasificacion"
 private const val RUTA_AGENDA_SUGERIDA = "agenda-sugerida"
 private const val RUTA_HORAS_LIBRES = "horas-libres"
 
@@ -109,7 +111,7 @@ fun MainScreen(onLogout: () -> Unit) {
                     Text(
                         text = "VYNK",
                         fontWeight = FontWeight.ExtraBold,
-                        color = AzulVynk
+                        color = Color.White
                     )
                 },
                 actions = {
@@ -122,10 +124,11 @@ fun MainScreen(onLogout: () -> Unit) {
                     ) {
                         Text(
                             text = "✦ Para ti",
-                            color = AzulVynk
+                            color = Color(0xFF9CDEFF)
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C2142))
             )
         },
         bottomBar = {
@@ -154,11 +157,20 @@ fun MainScreen(onLogout: () -> Unit) {
             modifier = Modifier.padding(relleno)
         ) {
             composable(Destino.INICIO.ruta) {
-                InicioScreen()
+                InicioScreen(
+                    onCatalogo = { navMenu.navigate(Destino.CATALOGO.ruta) { launchSingleTop = true } },
+                    onRecomendaciones = { navMenu.navigate(RUTA_RECOMENDACIONES) { launchSingleTop = true } },
+                    onAgenda = { navMenu.navigate(Destino.AGENDA.ruta) { launchSingleTop = true } },
+                    onAsistente = { navMenu.navigate(Destino.ASISTENTE.ruta) { launchSingleTop = true } },
+                    onResultados = { navMenu.navigate(RUTA_CLASIFICACION) { launchSingleTop = true } }
+                )
             }
 
             composable(Destino.CATALOGO.ruta) {
                 CatalogoScreen()
+            }
+            composable(RUTA_CLASIFICACION) {
+                ClasificacionScreen(onVolver = { navMenu.popBackStack() })
             }
 
             composable(Destino.AGENDA.ruta) {
@@ -245,9 +257,9 @@ private fun BarraInferior(
                     Text(destino.titulo)
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.White,
+                    selectedIconColor = AzulVynk,
                     selectedTextColor = AzulVynk,
-                    indicatorColor = AzulVynk,
+                    indicatorColor = Color(0xFFE6F1FF),
                     unselectedIconColor = GrisTexto,
                     unselectedTextColor = GrisTexto
                 )

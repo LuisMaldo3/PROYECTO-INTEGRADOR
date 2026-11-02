@@ -1,57 +1,50 @@
 package com.tecsup.tcweek.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+// Paleta VYNK propia: evita tonos dinámicos del dispositivo ajenos a la marca.
+private val LightColorScheme = lightColorScheme(
+    primary = VynkBlue,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFDCEBFF),
+    onPrimaryContainer = VynkNavy,
+    secondary = VynkTeal,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFD9F5F0),
+    onSecondaryContainer = Color(0xFF045B58),
+    tertiary = VynkSky,
+    background = VynkBackground,
+    onBackground = VynkText,
+    surface = VynkSurface,
+    onSurface = VynkText,
+    surfaceVariant = Color(0xFFEAF0F8),
+    onSurfaceVariant = VynkMuted,
+    outline = Color(0xFFCAD7E8),
+    error = Color(0xFFB42332)
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF80B9FF),
+    onPrimary = VynkNavy,
+    secondary = Color(0xFF67D2C9),
+    background = Color(0xFF0D182B),
+    onBackground = Color(0xFFF3F6FC),
+    surface = Color(0xFF17263F),
+    onSurface = Color(0xFFF3F6FC)
 )
 
 @Composable
 fun TCWeekTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = false,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
         content = content
     )

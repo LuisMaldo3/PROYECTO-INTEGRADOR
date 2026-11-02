@@ -73,9 +73,10 @@ public class OrganizadorAccessService {
     public Map<String, Object> resumen(Document doc) {
         Map<String, Object> a = new LinkedHashMap<>();
         a.put("id", texto(doc.get("_id")));
-        for (String campo : List.of("nombre", "descripcion", "fecha", "horaInicio", "horaFin", "estado", "categoriaId", "ubicacionId", "maximoParticipantes")) {
+        for (String campo : List.of("nombre", "descripcion", "fecha", "horaInicio", "horaFin", "estado", "categoriaId", "ubicacionId", "maximoParticipantes", "tipoActividad", "modalidad", "maxIntegrantesEquipo", "reglasCompetencia", "puntosPorPuesto", "areaTecsup", "encargadosPorArea")) {
             a.put(campo, doc.get(campo));
         }
+        a.put("unidadCupo", "competencia".equals(doc.get("tipoActividad")) && "equipos".equals(doc.get("modalidad")) ? "equipos" : "estudiantes");
         a.put("participantesInscritos", doc.get("participantesInscritos") instanceof Number n ? n.intValue() : 0);
         return a;
     }

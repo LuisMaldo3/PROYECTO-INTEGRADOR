@@ -1,0 +1,146 @@
+/* VYNK campus · refinamiento de navegación, inscripción y resultados, sin imágenes generadas. */
+:root{--vynk-navy:#102b51;--vynk-deep:#091d39;--vynk-blue:#165ab2;--vynk-sky:#1f94cf;--vynk-border:#dce6f1;--vynk-subtle:#627895;--vynk-shadow:0 9px 28px rgba(19,55,98,.065)}
+.vynk-up-eyebrow{font-size:.7rem;letter-spacing:.14em;color:#2183c9;font-weight:850;text-transform:uppercase}
+.vynk-up-btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:1px solid transparent;border-radius:12px;padding:12px 18px;font-size:.85rem;font-weight:800;line-height:1.35;cursor:pointer;text-align:center;text-decoration:none!important;transition:transform .18s,background .18s,box-shadow .18s;color:#12375b;background:#f4f8ff}
+.vynk-up-btn:hover:not(:disabled){transform:translateY(-1px)}
+.vynk-up-btn--primary{background:linear-gradient(105deg,#1c65c0,#1585c9);color:#fff!important;box-shadow:0 9px 20px #1761aa2b}
+.vynk-up-btn--primary:hover:not(:disabled){background:linear-gradient(105deg,#114e9e,#136fac)}
+.vynk-up-btn--light{background:#fff;color:#164f91!important;box-shadow:0 6px 20px #06152e24}
+.vynk-up-btn--outline{border-color:#c2d4e7;background:white;color:#1b548d!important}
+.vynk-up-btn--glass{background:#ffffff16;border-color:#ffffff55;color:#fff!important}
+.vynk-up-btn--full{width:100%}
+.vynk-up-btn:disabled{cursor:not-allowed;opacity:.55;transform:none}
+.vynk-up-actividades{max-width:1280px;margin:0 auto;display:grid;gap:23px}
+.vynk-up-actividades__hero{display:flex;align-items:center;justify-content:space-between;gap:30px;padding:34px 40px;color:#fff;border-radius:21px;background:linear-gradient(116deg,#0b2549 0%,#115098 62%,#176bb4 100%);box-shadow:0 18px 35px #16487920;border:1px solid #26558c;position:relative;overflow:hidden}
+.vynk-up-actividades__hero:after{content:'';position:absolute;pointer-events:none;width:300px;height:300px;right:-145px;top:-120px;border:1px solid #ffffff26;border-radius:50%;box-shadow:0 0 0 45px #ffffff06,0 0 0 90px #ffffff06}
+.vynk-up-actividades__hero>div{position:relative;z-index:1;max-width:680px}
+.vynk-up-actividades__hero .vynk-up-eyebrow{color:#98dcff}
+.vynk-up-actividades__hero h2{font-size:clamp(1.65rem,2.8vw,2.4rem);color:#fff;line-height:1.16;letter-spacing:-.042em;margin:9px 0 13px;font-weight:840}
+.vynk-up-actividades__hero p{line-height:1.65;color:#d8e9fa;font-size:.9rem;margin:0;max-width:65ch}
+.vynk-up-actividades__hero>a{position:relative;z-index:1;white-space:nowrap}
+.vynk-up-hero-stats{display:flex;gap:24px;flex-wrap:wrap;margin-top:19px}
+.vynk-up-hero-stats span{font-size:.77rem;color:#c8e9fe;display:flex;align-items:baseline;gap:7px;font-weight:650}
+.vynk-up-hero-stats strong{font-size:1.1rem;color:#fff;letter-spacing:-.015em}
+.vynk-up-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;background:#fff;padding:14px 17px;border-radius:15px;border:1px solid var(--vynk-border);box-shadow:var(--vynk-shadow)}
+.vynk-up-tabs{display:inline-flex;align-items:center;gap:3px;background:#edf3fa;border-radius:11px;padding:4px;flex-wrap:wrap}
+.vynk-up-tabs button{border:0;background:transparent;border-radius:8px;color:#526a85;padding:9px 16px;font-weight:750;cursor:pointer;font-size:.8rem}
+.vynk-up-tabs button[aria-pressed=true]{background:#fff;box-shadow:0 2px 9px #112c4f12;color:#11539e}
+.vynk-up-search{display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end;min-width:min(100%,310px)}
+.vynk-up-search label{display:flex;align-items:center;gap:9px;border:1px solid #dae5f0;border-radius:10px;background:#f9fbfe;min-height:42px;padding:0 12px;flex:1;max-width:340px;min-width:0;color:#647f9e}
+.vynk-up-search input{width:100%;min-width:0;background:transparent;border:0;outline:none;color:#183852;font:inherit;font-size:.82rem}
+.vynk-up-search select{border:1px solid #dae5f0;border-radius:10px;min-height:42px;padding:0 10px;background:#fff;color:#224769;font:inherit;font-size:.8rem;max-width:180px}
+.vynk-up-list-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-4px 0 -11px;color:#1a375f}
+.vynk-up-list-heading strong{font-size:.91rem}
+.vynk-up-reload{display:inline-flex;align-items:center;gap:7px;color:#235b96;font-weight:780;background:transparent;border:0;cursor:pointer;padding:9px}
+.vynk-up-actividades .catalogo__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,295px),1fr));gap:18px}
+.vynk-up-dia{border:0;background:transparent;box-shadow:none;margin:0!important;padding:0!important}
+.vynk-up-dia>.dia__cabecera{border-bottom:1px solid #dde6ef;display:flex;justify-content:space-between;padding:0 1px 13px;margin:0 0 17px}
+.vynk-up-dia .dia__cabecera h2{font-size:1.07rem;letter-spacing:-.02em}
+.vynk-up-card{border:1px solid #dce7f2;background:#fff;border-radius:17px;padding:22px;box-shadow:var(--vynk-shadow);display:flex;flex-direction:column;gap:12px;min-height:295px;transition:border-color .18s,box-shadow .18s,transform .18s;position:relative}
+.vynk-up-card:hover{border-color:#91bee7;box-shadow:0 19px 35px #12396718;transform:translateY(-3px)}
+.vynk-up-card__top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.vynk-up-card__link{display:flex;align-items:flex-start;gap:14px;text-decoration:none!important;color:inherit;min-height:72px}
+.vynk-up-card__link:focus-visible{outline:3px solid #66b4e1;outline-offset:4px}
+.vynk-up-card__date{flex:0 0 60px;border:1px solid #d9e8f6;background:#eff6ff;border-radius:11px;padding:10px 7px;display:flex;align-items:center;flex-direction:column;color:#155eac}
+.vynk-up-card__date strong{font-size:1.45rem;line-height:1.1;letter-spacing:-.04em}
+.vynk-up-card__date>span{font-size:.8rem;font-weight:800}
+.vynk-up-card__date small{font-size:.47rem;font-weight:850;letter-spacing:.05em;margin-top:4px}
+.vynk-up-card h3{font-size:1.13rem;line-height:1.34;color:#15345d;letter-spacing:-.025em;margin:2px 0 0;font-weight:820;overflow-wrap:anywhere}
+.vynk-up-card__link:hover h3{color:#1368bd}
+.vynk-up-card__week{align-self:flex-start;color:#185d9c;font-size:.68rem;font-weight:770;letter-spacing:.015em;border:1px solid #b9dafa;background:#edf6ff;padding:6px 11px;border-radius:8px}
+.vynk-up-card__desc{font-size:.83rem;line-height:1.55;color:#62768d;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vynk-up-card__info{display:grid;gap:8px;margin-top:auto;padding-top:13px;border-top:1px solid #ecf1f7}
+.vynk-up-card__info span{display:flex;align-items:center;gap:8px;font-size:.77rem;color:#58718c;line-height:1.3}
+.vynk-up-card__info svg{color:#3d86c4;flex-shrink:0}
+.vynk-up-card__action{display:flex;align-items:center;justify-content:space-between;gap:9px;color:#125ba9!important;text-decoration:none!important;font-size:.84rem;font-weight:850;padding:13px 0 0;border-top:1px solid #edf2f9;margin-top:3px}
+.vynk-up-card__action:hover{color:#0a84bf!important}
+.vynk-up-card--loading{min-height:310px;background:linear-gradient(105deg,#f7fafd,#edf3f9,#f7fafd);background-size:200% 100%;animation:vynk-up-loading 1.6s ease-in-out infinite}
+@keyframes vynk-up-loading{to{background-position:-200% 0}}
+/* Página de actividad con CTA claro y formulario en panel lateral. */
+.vynk-detalle{max-width:1280px;margin:0 auto;display:grid;gap:19px}
+.vynk-up-back{display:inline-flex;align-items:center;gap:8px;align-self:start;justify-self:start;text-decoration:none!important;color:#1f619c!important;font-weight:780;font-size:.85rem;padding:6px 0}
+.vynk-detalle__hero{display:flex;justify-content:space-between;align-items:center;gap:32px;padding:36px 40px;border-radius:21px;overflow:hidden;background:linear-gradient(115deg,#092545,#114e95 70%,#1378b3);color:#fff;position:relative;border:1px solid #265f91}
+.vynk-detalle__hero-content{max-width:730px;position:relative;z-index:1}
+.vynk-detalle__badges{display:flex;gap:9px;flex-wrap:wrap}
+.vynk-detalle__badges span{display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#ffffff18;border:1px solid #ffffff45;color:#d4ecff;font-size:.68rem;font-weight:820;letter-spacing:.05em}
+.vynk-detalle__hero h2{font-size:clamp(1.85rem,3.3vw,3rem);line-height:1.13;letter-spacing:-.046em;margin:18px 0 12px;color:white}
+.vynk-detalle__hero p{color:#d5e9fa;font-size:.91rem;line-height:1.65;max-width:67ch}
+.vynk-detalle__hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:22px}
+.vynk-detalle__hero-emblem{width:170px;height:170px;flex:0 0 170px;border:1px solid #ffffff4d;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(8deg);background:#ffffff12;box-shadow:0 0 0 23px #ffffff08}
+.vynk-detalle__hero-emblem>span{font-size:4rem;line-height:1;color:#fff;font-weight:900;letter-spacing:-.1em}
+.vynk-detalle__hero-emblem small{font-size:.62rem;color:#c6eaff;letter-spacing:.17em;margin-top:12px;font-weight:800}
+.vynk-detalle__layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(315px,.85fr);gap:20px;align-items:start}
+.vynk-detalle__principal{display:grid;gap:18px;min-width:0}
+.vynk-detalle__bloque,.vynk-detalle__registro{border-radius:18px;border:1px solid var(--vynk-border);background:#fff;padding:25px;box-shadow:var(--vynk-shadow)}
+.vynk-detalle__bloque h3{font-size:1.24rem;letter-spacing:-.027em;color:var(--vynk-navy);margin:8px 0 21px}
+.vynk-detalle__ficha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.vynk-detalle__ficha div{display:grid;gap:6px;border-radius:11px;background:#f6f9fd;border:1px solid #eaf0f7;padding:14px;min-width:0}
+.vynk-detalle__ficha span{font-size:.7rem;letter-spacing:.04em;color:#67809b;font-weight:750;text-transform:uppercase}
+.vynk-detalle__ficha strong{font-size:.88rem;line-height:1.43;color:#183957;overflow-wrap:anywhere}
+.vynk-up-richtext{white-space:pre-wrap;line-height:1.75;color:#4a6480;font-size:.91rem}
+.vynk-detalle__puntos{border-top:1px solid #e7edf5;margin-top:20px;padding-top:17px;color:#1c426c}
+.vynk-detalle__puntos>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.vynk-detalle__puntos span{font-size:.78rem;border-radius:8px;background:#e9f4ff;padding:7px 12px;font-weight:750}
+.vynk-detalle__sidebar{min-width:0;position:sticky;top:22px}
+.vynk-detalle__registro{border-top:4px solid #178bca;padding:25px}
+.vynk-detalle__registro-head h2{font-size:1.24rem;line-height:1.25;color:#103054;margin:8px 0 9px;letter-spacing:-.028em}
+.vynk-detalle__registro-head p{font-size:.83rem;line-height:1.55;color:#718298;margin-bottom:18px}
+.vynk-up-field{display:grid;gap:8px;font-size:.77rem;color:#315374;font-weight:770;margin:14px 0}
+.vynk-up-field input{width:100%;border:1px solid #c9dbea;padding:12px;border-radius:10px;font:inherit;color:#17365d;background:#fff}
+.vynk-detalle__registro-form{display:grid;gap:13px}
+.vynk-detalle__registro-form .vynk-up-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}
+.vynk-detalle__registro-form .vynk-up-tabs button{padding:10px 6px}
+.vynk-up-footnote{font-size:.76rem;color:#73859b;line-height:1.58;margin:6px 0}
+.vynk-up-message{padding:12px;border-radius:9px;background:#edf5fd;color:#245b89;font-size:.8rem;line-height:1.5}
+.vynk-up-message--error{background:#fff0f0;color:#a52a36}
+.vynk-up-message--ok{background:#edf9f3;color:#137151}
+.vynk-detalle__registrado{border:1px solid #bbe5d2;padding:15px;border-radius:12px;background:#f2fbf7}
+.vynk-detalle__registrado>strong{font-size:.98rem;color:#17664d}
+.vynk-detalle__registrado>p{font-size:.85rem;color:#406d5d}
+.vynk-detalle__registro-actions{display:grid;gap:9px;margin-top:17px}
+.vynk-up-codigo{display:grid;gap:6px;padding:12px;border:1px dashed #91b3d4;background:#fff;border-radius:9px;margin:12px 0}
+.vynk-up-codigo span{font-size:.73rem;color:#4f667d}
+.vynk-up-codigo code{font-size:.95rem;word-break:break-all}
+.vynk-up-codigo button{border:0;background:transparent;color:#1e61a6;text-align:left;font-weight:750;cursor:pointer}
+.vynk-up-loading{min-height:170px;display:grid;place-items:center;border-radius:16px;background:#fff;border:1px solid #e3ebf4;color:#446e9c}
+/* Navegación global: refuerzo de jerarquía y espacio sin rediseñar íconos existentes. */
+.shell-topbar{border-bottom:1px solid #e3eaf3}
+.shell-topbar__usuario{border-radius:12px}
+.shell-menu a[aria-current=page]{font-weight:850}
+.inicio-panel__evento--enlace{text-decoration:none!important;color:inherit;transition:transform .18s,border-color .18s}
+.inicio-panel__evento--enlace:hover{transform:translateY(-2px);border-color:#a5cef3}
+.inicio-panel__evento-ver{font-size:.78rem;font-weight:850;color:#1765b2;white-space:nowrap;align-self:center}
+/* La pantalla de registro para organizador se distingue claramente de la de publicación. */
+.org-resultados-up__panel{padding:27px;border:1px solid #dce6f1;background:#fff;border-radius:18px;box-shadow:var(--vynk-shadow);display:grid;gap:16px}
+.org-resultados-up__head{display:flex;align-items:start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.org-resultados-up__head h3{margin:8px 0;font-size:1.35rem;letter-spacing:-.03em;color:#143660}
+.org-resultados-up__head p{font-size:.86rem;color:#67839a;margin:0}
+.vynk-up-status{display:inline-flex;padding:8px 13px;border-radius:9px;color:#7c5c1f;background:#fff4d8;border:1px solid #ecd6a3;font-weight:800;font-size:.75rem}
+.vynk-up-status--ok{color:#147151;background:#eaf9f0;border-color:#c7ebd9}
+.org-resultados-up__meta{display:flex;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e6edf4;padding-bottom:17px}
+.org-resultados-up__meta span{background:#eaf3ff;border-radius:8px;padding:7px 11px;font-size:.8rem;color:#24527c;font-weight:720}
+.org-resultados-up__form{display:grid;gap:14px}
+.org-resultados-up__fila{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;align-items:end;padding:15px;border:1px solid #e1eaf3;border-radius:11px;background:#f9fbfe}
+.org-resultados-up__fila label{display:grid;gap:7px;font-size:.77rem;font-weight:800;color:#355c7e}
+.org-resultados-up__fila input,.org-resultados-up__fila select{width:100%;max-width:100%;padding:11px;border:1px solid #cbdbe8;background:#fff;color:#14395e;border-radius:9px;font:inherit;min-height:43px}
+.org-resultados-up__acciones{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:3px}
+.org-resultados-up__nota{padding:14px 17px;border-left:3px solid #2b91ca;background:#edf6ff;border-radius:9px;color:#446789;font-size:.81rem;line-height:1.55}
+.org-resultados-up__aviso{padding:14px;background:#e9f8f1;color:#186b4f;border-radius:10px;font-size:.85rem}
+.org-detalle__enlace--resultados{color:#1266ad!important;background:#ebf5ff;border-radius:9px;padding:12px!important}
+@media(max-width:1050px){.vynk-detalle__layout{grid-template-columns:1fr}.vynk-detalle__sidebar{position:static}.vynk-up-actividades__hero{padding:30px 28px}}
+@media(max-width:800px){.vynk-up-toolbar{align-items:stretch}.vynk-up-search{max-width:none;width:100%;justify-content:stretch}.vynk-up-search label{max-width:none}.vynk-up-actividades__hero{flex-direction:column;align-items:flex-start;gap:20px}.vynk-detalle__hero-emblem{display:none}.vynk-detalle__hero{padding:30px 23px}}
+@media(max-width:540px){.vynk-up-actividades__hero{padding:26px 20px}.vynk-up-actividades__hero>a{width:100%}.vynk-up-toolbar{padding:12px}.vynk-up-tabs{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.vynk-up-tabs button{padding:9px 5px}.vynk-up-search{display:grid;grid-template-columns:1fr}.vynk-up-search select{max-width:none;width:100%}.vynk-up-card{padding:19px}.vynk-detalle__hero-actions>a,.vynk-detalle__hero-actions>button{width:100%}.vynk-detalle__ficha{grid-template-columns:1fr}.vynk-detalle__bloque,.vynk-detalle__registro{padding:19px}.org-resultados-up__panel{padding:18px}.org-resultados-up__fila{grid-template-columns:1fr}.org-resultados-up__acciones>.org-boton{width:100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.vynk-up-card,.vynk-up-btn,.inicio-panel__evento--enlace{transition:none}.vynk-up-card--loading{animation:none}}
+
+.vynk-up-agenda-enlace{justify-self:start;color:#1664b0!important;text-decoration:none!important;font-size:.79rem;font-weight:820;margin-top:4px}.vynk-up-agenda-enlace:hover{text-decoration:underline!important}
+
+/* Portadas reales y persistentes en las tarjetas y en el detalle. Azul marino sólido, sin saturaciones. */
+.vynk-up-card__media{display:block;overflow:hidden;border-radius:11px;margin:-7px -7px 0;height:175px;background:#10385f;flex-shrink:0}
+.vynk-up-card__media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s ease}
+.vynk-up-card__media:hover img{transform:scale(1.035)}
+.vynk-up-card__credit{font-size:.65rem;color:#667b91!important;text-decoration:underline!important;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:-5px 0 0}
+.vynk-detalle__hero-imagen{width:min(36%,385px);min-width:220px;align-self:stretch;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.vynk-detalle__hero-imagen img{width:100%;height:260px;object-fit:cover;border-radius:13px;border:1px solid #ffffff57;box-shadow:0 18px 32px #00162c40}
+.vynk-detalle__hero-imagen a{font-size:.68rem;color:#e0eeff!important;text-align:right}
+@media(max-width:800px){.vynk-detalle__hero-imagen{width:100%;min-width:0}.vynk-detalle__hero-imagen img{height:230px}}
+@media(prefers-reduced-motion:reduce){.vynk-up-card__media img{transition:none}}

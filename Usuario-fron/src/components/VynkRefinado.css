@@ -1,0 +1,34 @@
+/* Portal estudiante: fotografías primero, botones y cards consistentes. */
+.vynk-up-card{padding:13px!important;min-height:0!important;border-radius:18px!important;gap:10px!important;overflow:hidden;box-shadow:0 8px 28px #102c5610!important}
+.vynk-up-card__media{margin:-13px -13px 4px!important;height:198px!important;border-radius:17px 17px 0 0!important}
+.vynk-up-card__top,.vynk-up-card__link,.vynk-up-card__desc,.vynk-up-card__info,.vynk-up-card__action,.vynk-up-card__week,.vynk-tarjeta-area{margin-left:7px;margin-right:7px}
+.vynk-up-card__link{min-height:auto!important;align-items:center!important}
+.vynk-up-card__date{flex-basis:52px!important;min-height:61px!important}
+.vynk-up-card__action{display:flex;align-items:center;justify-content:space-between;background:#153f75!important;border-radius:10px!important;color:white!important;border:0!important;padding:14px 15px!important;margin-top:auto!important}
+.vynk-up-card__action:hover{background:#105ca2!important}
+.vynk-up-card__desc{-webkit-line-clamp:2!important}
+.vynk-tarjeta-area{display:inline-block;align-self:flex-start;border:1px solid #c9ddf0;background:#f0f6fc;color:#174f83;font-size:.72rem;font-weight:800;border-radius:7px;padding:6px 9px}
+.vynk-up-actividades__hero,.inicio-panel__hero,.vynk-detalle__hero{background:#102c56!important;border-color:#244d7b!important;box-shadow:none!important}
+.vynk-up-btn--primary{background:#155fa7!important;box-shadow:none!important}
+.vynk-inicio-avisos{margin:0 0 32px}
+.vynk-inicio-avisos__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:15px}
+.vynk-inicio-aviso{background:white;border:1px solid #dce7f2;border-radius:15px;overflow:hidden;box-shadow:0 5px 18px #102c560b;display:flex;flex-direction:column;min-height:150px}
+.vynk-inicio-aviso>img{width:100%;height:165px;object-fit:cover}
+.vynk-inicio-aviso__body{padding:17px;display:grid;gap:8px}
+.vynk-inicio-aviso time{font-size:.71rem;color:#267bbb;font-weight:800;letter-spacing:.025em}
+.vynk-inicio-aviso h3{font-size:1.05rem;font-weight:850;line-height:1.35;color:#163963;margin:0}
+.vynk-inicio-aviso p{font-size:.84rem;color:#637790;line-height:1.58;white-space:pre-wrap;margin:0;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.vynk-avisos-descripcion{font-size:.76rem;color:#607c99}
+.vynk-avisos-vacio{font-size:.84rem;color:#7489a3;border:1px dashed #d2dfeb;border-radius:13px;padding:22px;background:white}
+.inicio-panel__evento--enlace{padding:11px!important}
+.vynk-inicio-actividad-foto{height:77px;width:96px;object-fit:cover;border-radius:9px;flex:0 0 96px}
+.vynk-encargados-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.vynk-encargados-detalle p{display:grid;gap:5px;padding:13px;border:1px solid #dfeaf4;border-radius:10px;background:#f6f9fc;margin:0}
+.vynk-encargados-detalle strong{color:#173d68;font-size:.82rem}
+.vynk-encargados-detalle span{color:#56718e;font-size:.78rem}
+.org-resultados-up__fila{grid-template-columns:95px 105px minmax(0,1fr) auto!important}
+@media(max-width:750px){.org-resultados-up__fila{grid-template-columns:1fr!important}.vynk-up-card__media{height:195px!important}}
+
+.vynk-credito-aviso{font-size:.72rem;color:#376e9e;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.vynk-up-actividades__hero,.vynk-detalle__hero,.inicio-panel__hero{background-image:none!important;background-color:#102c56!important}
+.inicio-panel__metrica,.vynk-up-card,.vynk-inicio-aviso{background-image:none!important}

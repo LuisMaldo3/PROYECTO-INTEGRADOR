@@ -58,9 +58,17 @@ public final class RequisitosActividadesService {
         detalle.put("nombre", nombre);
         detalle.put("items", items);
         detalle.put("confirmados", confirmados);
+        boolean competencia = "competencia".equals(actividad.get("tipoActividad"));
+        boolean grupal = competencia && "equipos".equals(actividad.get("modalidad"));
+        String modalidad = !competencia ? "" : grupal
+                ? "\n• Esta competencia requiere equipo registrado; cada integrante debe iniciar sesión y confirmar su propia inscripción con el código del equipo."
+                : "\n• La inscripción a esta competencia es individual y se confirma desde el detalle de Actividades.";
+        String reglas = actividad.get("reglasCompetencia") instanceof String r && !r.isBlank()
+                ? "\nReglamento publicado: " + r.trim() : "";
         String texto = confirmados
                 ? "Requisitos publicados para «" + nombre + "»:\n" + String.join("\n", items.stream().map(i -> "• " + i).toList())
                 : "Administración todavía no ha especificado los requisitos de «" + nombre + "». Esto no significa que la actividad no tenga requisitos. Consulta al organizador para confirmarlo.";
+        texto += reglas + modalidad;
         return respuesta(texto, List.of(detalle));
     }
 

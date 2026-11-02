@@ -68,12 +68,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tecsup.tcweek.R
 
-private val LightBlue = Color(0xFF29B6F6)
-private val BluePrimary = Color(0xFF0B63FF)
-private val FieldBg = Color(0xFFF5F8FD)
+private val LightBlue = Color(0xFF7ED7FF)
+private val BluePrimary = Color(0xFF1769DB)
+private val FieldBg = Color(0xFFF3F7FD)
 private val FieldBorder = Color(0xFFD9E2F1)
 private val FieldText = Color(0xFF6B7A99)
-private val DarkText = Color(0xFF0D1B3E)
+private val DarkText = Color(0xFF0C2142)
 
 @Composable
 fun LoginScreen(
@@ -139,7 +139,7 @@ fun LoginScreen(
                             append("K")
                         }
                     },
-                    fontSize = 76.sp,
+                    fontSize = 60.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = (-2).sp
                 )
@@ -166,8 +166,8 @@ fun LoginScreen(
                     .background(
                         color = Color.White,
                         shape = RoundedCornerShape(
-                            topStart = 32.dp,
-                            topEnd = 32.dp
+                            topStart = 26.dp,
+                            topEnd = 26.dp
                         )
                     )
                     .navigationBarsPadding()

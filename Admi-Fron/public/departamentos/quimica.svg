@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<rect width="1200" height="630" fill="#102C56"/><path d="M0 560l1200-480v200L0 630z" fill="#1B4982" opacity=".44"/>
+<circle cx="1000" cy="-20" r="300" stroke="#579DDA" stroke-width="3" fill="none" opacity=".25"/>
+<path d="M50 85h36v5H50z" fill="#9ADDFF"/><text x="50" y="157" fill="#9ADDFF" font-size="34" font-family="Arial" font-weight="bold" letter-spacing="5">VYNK / TECSUP</text>
+<text x="50" y="310" fill="white" font-family="Arial" font-size="74" font-weight="bold">QUÍMICA</text>
+<text x="50" y="376" fill="#C7E7FF" font-family="Arial" font-size="38" letter-spacing="4">LABORATORIO</text>
+<path d="M50 468h410" stroke="#5AACE1" stroke-width="6" stroke-linecap="round"/>
+<text x="50" y="533" fill="#B2D5F6" font-family="Arial" font-size="21" letter-spacing="3">UNA SEDE · CINCO ÁREAS</text><path d="M902 130v160l-85 150q-17 31 26 31h205q44 0 24-35l-85-146V130" fill="#49A9DC25" stroke="#97DFFF" stroke-width="17" stroke-linejoin="round"/><path d="M867 130h154" stroke="#97DFFF" stroke-width="16"/><path d="M850 372h199" stroke="#97DFFF" stroke-width="8"/><circle cx="906" cy="416" r="12" fill="#97DFFF"/><circle cx="977" cy="399" r="20" fill="#97DFFF"/><circle cx="1054" cy="184" r="28" stroke="#97DFFF" stroke-width="8" fill="none"/></svg>

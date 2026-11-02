@@ -101,3 +101,29 @@ def cambiar_estado_usuario(request, usuario_id):
     if usuario is None:
         return JsonResponse({"codigo": "USUARIO_NO_ENCONTRADO", "mensaje": "Usuario no encontrado."}, status=404)
     return JsonResponse(a_json(usuario))
+
+
+@require_http_methods(["PATCH"])
+@exigir_admin
+@exigir_permiso("usuarios.editar_rol")
+def verificar_area_usuario(request, usuario_id):
+    """Solo personal autorizado verifica las cinco áreas para el puntaje institucional."""
+    from actividades.competencias import AREAS_TECSUP
+    from datetime import datetime, timezone
+    try:
+        cuerpo = json.loads(request.body or b"{}")
+    except ValueError:
+        return JsonResponse({"mensaje": "JSON inválido"}, status=400)
+    area = cuerpo.get("areaTecsup") if isinstance(cuerpo, dict) else None
+    if area is not None and area not in AREAS_TECSUP:
+        return JsonResponse({"mensaje": "Elige una de las cinco áreas institucionales."}, status=400)
+    usuario = buscar_por_id(mongo.usuarios(), usuario_id, {"_id": 1})
+    if not usuario:
+        return JsonResponse({"mensaje": "Usuario no encontrado"}, status=404)
+    nuevo = {"areaTecsup": area, "areaVerificada": bool(area),
+             "areaActualizadaPor": str(request.admin_id), "areaActualizadaEn": datetime.now(timezone.utc)}
+    mongo.usuarios().update_one({"_id": usuario["_id"]}, {"$set": nuevo})
+    # Inscripciones previas no deben conservar afiliaciones distintas tras una verificación.
+    mongo.inscripciones().update_many({"estudianteId": str(usuario["_id"]), "estado": "inscrita"},
+                                       {"$set": {"areaTecsup": area, "areaVerificada": bool(area)}})
+    return JsonResponse(a_json(buscar_por_id(mongo.usuarios(), usuario_id, CAMPOS_PUBLICOS)))

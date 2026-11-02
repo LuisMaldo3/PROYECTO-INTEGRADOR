@@ -91,7 +91,7 @@ export function Asistente() {
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, token, signal: controller.signal })
       setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', requisitos: resultado.requisitos || [], actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
-      setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
+      setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con las actividades · Gemini' : 'Respuesta de actividades verificadas')
     } catch (e) {
       if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }
       else setError(e.message || 'No fue posible consultar el asistente.')

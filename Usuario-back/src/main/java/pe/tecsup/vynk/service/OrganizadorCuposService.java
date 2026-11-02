@@ -1,30 +1,59 @@
 package pe.tecsup.vynk.service;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
+import pe.tecsup.vynk.model.Inscripcion;
 import pe.tecsup.vynk.repository.InscripcionRepository;
 
-/** Cupos calculados desde inscripciones activas; no confía en contadores obsoletos. */
+/** US-31/US-52: aforo real según modalidad. Los integrantes nunca consumen plazas de equipo. */
 @Service
 public class OrganizadorCuposService {
     private final InscripcionRepository inscripciones;
 
-    public OrganizadorCuposService(InscripcionRepository inscripciones) {
-        this.inscripciones = inscripciones;
-    }
+    public OrganizadorCuposService(InscripcionRepository inscripciones) { this.inscripciones = inscripciones; }
 
     public Map<String, Object> enriquecer(Map<String, Object> actividad) {
         Map<String, Object> resultado = new LinkedHashMap<>(actividad);
         String id = String.valueOf(actividad.get("id"));
-        long ocupados = inscripciones.findByActividadId(id).stream()
-                .filter(i -> "inscrita".equalsIgnoreCase(i.getEstado())).count();
+        List<Inscripcion> confirmadas = inscripciones.findByActividadId(id).stream()
+                .filter(i -> "inscrita".equalsIgnoreCase(i.getEstado())).toList();
+        boolean equipos = "competencia".equals(actividad.get("tipoActividad"))
+                && "equipos".equals(actividad.get("modalidad"));
+        long alumnos = confirmadas.size();
+        long registrados = confirmadas.stream().filter(OrganizadorCuposService::esCapitan).count();
+        Map<String, Inscripcion> porAlumno = new HashMap<>();
+        for (Inscripcion i : confirmadas) porAlumno.put(i.getEstudianteId(), i);
+        long habilitados = confirmadas.stream().filter(OrganizadorCuposService::esCapitan)
+                .filter(c -> equipoConfirmado(c, porAlumno)).count();
+        long ocupados = equipos ? registrados : alumnos;
         Integer capacidad = capacidad(actividad.get("maximoParticipantes"));
-        resultado.put("inscritosRegistrados", ocupados);
+        resultado.put("inscritosRegistrados", alumnos);
+        resultado.put("estudiantesInscritos", alumnos);
+        resultado.put("equiposRegistrados", equipos ? registrados : 0L);
+        resultado.put("equiposConfirmados", equipos ? habilitados : 0L);
+        resultado.put("equiposPendientes", equipos ? registrados - habilitados : 0L);
         resultado.put("cuposOcupados", ocupados);
+        resultado.put("unidadCupo", equipos ? "equipos" : "estudiantes");
         resultado.put("cuposDisponibles", capacidad == null ? null : Math.max(0L, (long) capacidad - ocupados));
         resultado.put("capacidadConfirmada", capacidad != null);
         return resultado;
+    }
+
+    public static boolean esCapitan(Inscripcion i) {
+        return "capitan".equals(i.getRolEquipo()) || (i.getCodigoEquipoHash() != null
+                && !i.getCodigoEquipoHash().isBlank());
+    }
+
+    public static boolean equipoConfirmado(Inscripcion capitan, Map<String, Inscripcion> porAlumno) {
+        if (!esCapitan(capitan) || capitan.getIntegrantes().size() < 2) return false;
+        return capitan.getIntegrantes().stream().allMatch(id -> {
+            Inscripcion miembro = porAlumno.get(id);
+            return miembro != null && "inscrita".equalsIgnoreCase(miembro.getEstado())
+                    && capitan.getId().equals(miembro.getEquipoId());
+        });
     }
 
     static Integer capacidad(Object valor) {

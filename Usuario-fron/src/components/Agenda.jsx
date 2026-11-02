@@ -35,6 +35,7 @@ function Item({ actividad: a, conflicto, sugerida = false }) {
           )}
         </div>
         <h3>{a.nombreActividad || a.nombre || 'Actividad sin título'}</h3>
+        {sugerida && a.id && <a className="vynk-up-agenda-enlace" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles e inscribirme →</a>}
         {sugerida && a.motivo && <p className="agenda-sugerida__motivo">{a.motivo}</p>}
         {a.descripcion && <p className="agenda-item__descripcion">{a.descripcion}</p>}
         <p className="agenda-item__lugar">
@@ -147,7 +148,7 @@ export function Agenda() {
               <span className={`agenda-sugerida__origen ${sugerida.origen === 'ia' ? 'agenda-sugerida__origen--ia' : ''}`}>{sugerida.origen === 'ia' ? '✦ Priorizada con Gemini' : sugerida.origen === 'sin_actividades' ? 'Sin actividades compatibles' : 'Propuesta por reglas (sin IA)'}</span>
             </div>
             {sugerida.aviso && <p className="agenda-sugerida__aviso">{sugerida.aviso}</p>}
-            {lista.length === 0 && <EstadoPantalla icono="calendario" titulo="Sin sugerencias compatibles" texto="No encontramos nuevas actividades sin cruces. Prueba de nuevo cuando el catálogo tenga más opciones." />}
+            {lista.length === 0 && <EstadoPantalla icono="calendario" titulo="Sin sugerencias compatibles" texto="No encontramos nuevas actividades sin cruces. Prueba de nuevo cuando las actividades tenga más opciones." />}
             {gruposSugeridos.map((g) => (
               <section className="dia dia--agenda" key={g.fecha}>
                 <div className="dia__bloque" aria-hidden="true"><strong>{bloqueDia(g.fecha)?.numero}</strong><span>{bloqueDia(g.fecha)?.mes}</span></div>

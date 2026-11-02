@@ -14,7 +14,7 @@ def buscar_por_id(coleccion, id_texto, proyeccion=None):
 
 
 # Solo estos campos salen hacia el frontend. NUNCA passwordHash.
-CAMPOS_PUBLICOS = {"nombre": 1, "correo": 1, "rol": 1, "activo": 1}
+CAMPOS_PUBLICOS = {"nombre": 1, "correo": 1, "rol": 1, "activo": 1, "areaTecsup": 1, "areaVerificada": 1}
 
 
 def a_json(doc):
@@ -24,4 +24,6 @@ def a_json(doc):
         "correo": doc.get("correo"),
         "rol": doc.get("rol", "usuario"),
         "activo": doc.get("activo", True),
+        "areaTecsup": doc.get("areaTecsup"),
+        "areaVerificada": doc.get("areaVerificada") is True,
     }

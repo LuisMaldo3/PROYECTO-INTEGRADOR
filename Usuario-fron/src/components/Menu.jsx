@@ -9,13 +9,14 @@ const ICONOS = {
       <path d="M5 10v10h5v-6h4v6h5V10" />
     </>
   ),
-  catalogo: (
+  actividades: (
     <>
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
     </>
   ),
   recomendaciones: <><path d="m12 2 1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9L12 2Z"/><path d="m19 17 .7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/></>,
+  resultados: (<><path d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path d="M8 6H4v3a4 4 0 0 0 4 4M16 6h4v3a4 4 0 0 1-4 4M12 13v4m-4 3h8m-7-3h6"/></>),
   agenda: (
     <>
       <rect x="3" y="5" width="18" height="16" rx="2" />

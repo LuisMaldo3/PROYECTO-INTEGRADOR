@@ -156,3 +156,30 @@
 .org-inscritos__filtros{margin:0 0 20px}
 .org-inscritos__filtros .org-buscar{max-width:610px}
 .org-inscritos__filtros input[type=search]{appearance:none}
+
+/* Sprints 1–2: datos de coordinadores y cupos sin colores mezclados. */
+.org-areas-panel { background: #eff6fc; border: 1px solid #d4e5f6; border-radius: 16px; padding: 18px; color: #173b66; margin-top: 18px; }
+.org-areas-panel > strong { font-size: 1rem; }
+.org-areas-panel > p { color: #4c6684; margin: 6px 0 14px; }
+.org-areas-lista { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.org-areas-lista > div { display: flex; flex-direction: column; background: #fff; border: 1px solid #d7e5f3; border-radius: 10px; padding: 11px; gap: 5px; }
+.org-areas-lista span { font-size: .78rem; color: #58708c; }
+.org-areas-lista strong { color: #173b66; font-size: .9rem; }
+.org-cupos-resumen { color: #17456e; background: #eff6fc; padding: 10px 14px; border-radius: 10px; font-size: .86rem; }
+
+/* US-51: sustituir participantes. Tarjetas de un color por superficie, sin controles de asistencia. */
+.org-cupos-fijos{background:#eef5ff;border:1px solid #cbdcf4;border-radius:14px;padding:17px 20px;display:flex;flex-direction:column;gap:6px;margin-bottom:17px;color:#153e72}
+.org-cupos-fijos strong{font-size:.93rem}
+.org-cupos-fijos span{font-size:.82rem;color:#536d8f;line-height:1.5}
+.org-boton--sustituir{margin-left:auto;align-self:center}
+.org-reemplazo-fondo{position:fixed;inset:0;z-index:1100;background:#0c2347ab;display:grid;place-items:center;padding:20px}
+.org-reemplazo{width:min(100%,520px);background:#fff;border-radius:20px;border:1px solid #e0e9f6;box-shadow:0 25px 100px #00163440;padding:28px;color:#173258}
+.org-reemplazo__encabezado{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.org-reemplazo h3{font-size:1.4rem;line-height:1.25;margin:7px 0 13px}
+.org-reemplazo p{line-height:1.6;font-size:.88rem;color:#526982}
+.org-reemplazo__equipo{padding:12px;background:#edf5ff;border:1px solid #dbe8fa;border-radius:11px}
+.org-reemplazo__formulario{display:grid;gap:17px;margin-top:20px}
+.org-reemplazo__formulario label{font-size:.83rem;font-weight:700;display:grid;gap:7px}
+.org-reemplazo__formulario input,.org-reemplazo__formulario textarea{background:#f8fbff;width:100%;color:#162d4b;border:1px solid #cddbea;border-radius:11px;padding:12px 13px;resize:vertical}
+.org-reemplazo__acciones{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+@media(max-width:600px){.org-reemplazo{padding:20px}.org-boton--sustituir{margin:8px 0 0;width:100%}.org-reemplazo__acciones>*{flex:1}}

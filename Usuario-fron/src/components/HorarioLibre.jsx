@@ -122,7 +122,7 @@ export default function HorarioLibre() {
         </div>
       </div>
       <div className="horario-libre__resultados">
-        <div className="horario-libre__cabecera"><div><h3>Actividades compatibles con tu tiempo</h3><p>Resultados del catálogo real que no se cruzan con tu disponibilidad confirmada.</p></div>
+        <div className="horario-libre__cabecera"><div><h3>Actividades compatibles con tu tiempo</h3><p>Resultados de actividades publicadas que no se cruzan con tu disponibilidad confirmada.</p></div>
         {confirmado && !pendiente && <button className="boton-secundario" type="button" onClick={() => setVersion((n) => n + 1)}>Actualizar</button>}</div>
         {!confirmado && <p>Sube y confirma tu horario para ver recomendaciones.</p>}
         {pendiente && <p>Guarda tus correcciones para volver a calcular las sugerencias.</p>}
@@ -134,7 +134,7 @@ export default function HorarioLibre() {
             <div className="horario-libre__sugerencia-icon"><Icono nombre="destellos" tamano={22} /></div>
             <div><strong>{a.nombre || a.nombreActividad}</strong><small>{a.fecha} · {a.horaInicio} – {a.horaFin}</small>
               {cabeEnHorario(a) && <strong className="horario-libre__compatible">✓ Cabe en tu horario</strong>}
-              <span>Hueco libre: {a.huecoInicio} – {a.huecoFin}</span><p>{a.motivo || 'Se ajusta a tus preferencias y disponibilidad.'}</p></div>
+              <span>Hueco libre: {a.huecoInicio} – {a.huecoFin}</span><p>{a.motivo || 'Se ajusta a tus preferencias y disponibilidad.'}</p><a className="vynk-up-card__action" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles e inscribirme →</a></div>
           </article>)}</div>
           <small>La plataforma no te inscribe automáticamente en ninguna actividad.</small>
         </>}

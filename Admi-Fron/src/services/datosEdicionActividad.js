@@ -7,5 +7,9 @@ export function datosEdicionActividad(a) {
     organizadorId: a.organizadorId ?? a.organizador?.id ?? '',
     fecha: a.fecha ?? '', horaInicio: a.horaInicio ?? '', horaFin: a.horaFin ?? '',
     maximoParticipantes: a.maximoParticipantes == null ? '' : String(a.maximoParticipantes),
+    tipoActividad: a.tipoActividad || "actividad", modalidad: a.modalidad || "individual",
+    maxIntegrantesEquipo: a.maxIntegrantesEquipo == null ? "" : String(a.maxIntegrantesEquipo),
+    areaTecsup: a.areaTecsup || "", encargadosPorArea: Object.fromEntries(Object.entries(a.encargadosPorArea || {}).map(([k,v]) => [k, v?.id || v])),
+    reglasCompetencia: a.reglasCompetencia || "", puntosPorPuesto: (a.puntosPorPuesto || []).join(", "), portada: a.portada || null,
   }
 }

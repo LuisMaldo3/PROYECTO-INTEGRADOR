@@ -29,7 +29,12 @@ public class AgendaController {
             .or(() -> usuarios.findById(jwt.getSubject()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
         if (!usuario.isActivo()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        return inscripciones.findByEstudianteId(usuario.getId()).stream()
+        var todas = new java.util.LinkedHashMap<String, Inscripcion>();
+        for (Inscripcion i : inscripciones.findByEstudianteId(usuario.getId()))
+            if ("inscrita".equalsIgnoreCase(i.getEstado())) todas.put(i.getId(), i);
+        for (Inscripcion i : inscripciones.buscarPorIntegrante(usuario.getId()))
+            if ("inscrita".equalsIgnoreCase(i.getEstado())) todas.put(i.getId(), i);
+        return todas.values().stream()
             .sorted(Comparator.comparing((Inscripcion i) -> i.getFecha() == null ? "" : i.getFecha())
                 .thenComparing(i -> i.getHoraInicio() == null ? "" : i.getHoraInicio()))
             .toList();

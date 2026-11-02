@@ -18,7 +18,7 @@ function esFechaReal(valor) {
 }
 
 /** Devuelve { campo: mensaje } solo con los campos que tienen error; {} si todo está bien. */
-export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId, organizadorId, fecha, horaInicio, horaFin, maximoParticipantes } = {}) {
+export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId, organizadorId, fecha, horaInicio, horaFin, maximoParticipantes, tipoActividad = "actividad", modalidad = "individual", maxIntegrantesEquipo, reglasCompetencia, puntosPorPuesto } = {}) {
   const errores = {}
   const n = texto(nombre)
   const d = texto(descripcion)
@@ -58,5 +58,18 @@ export function validarActividad({ nombre, descripcion, categoriaId, ubicacionId
     else if (!errores.horaInicio && fin <= inicio) errores.horaFin = 'La hora de fin debe ser después de la de inicio.'
   }
 
+  if (!["actividad", "competencia"].includes(tipoActividad)) errores.tipoActividad = 'Selecciona un tipo válido.'
+  if (tipoActividad === 'competencia') {
+    if (!["individual", "equipos"].includes(modalidad)) errores.modalidad = 'Selecciona individual o equipos.'
+    if (texto(reglasCompetencia).length > 2000)
+      errores.reglasCompetencia = 'El reglamento es opcional; máximo 2000 caracteres.'
+    if (modalidad === 'equipos' && (!/^[1-9]\d*$/.test(String(maxIntegrantesEquipo || '')) || Number(maxIntegrantesEquipo) < 2 || Number(maxIntegrantesEquipo) > 30))
+      errores.maxIntegrantesEquipo = 'Indica entre 2 y 30 integrantes por equipo.'
+    if (String(puntosPorPuesto || '').trim()) {
+      const partes = String(puntosPorPuesto).split(',').map(v => v.trim())
+      if (partes.length > 20 || partes.some(v => !/^\d+$/.test(v) || Number(v) > 10000))
+        errores.puntosPorPuesto = 'Indica hasta 20 enteros separados por comas.'
+    }
+  }
   return errores
 }

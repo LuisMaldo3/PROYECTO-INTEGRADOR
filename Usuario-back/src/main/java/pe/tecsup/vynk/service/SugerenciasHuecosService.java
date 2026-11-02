@@ -29,6 +29,18 @@ public class SugerenciasHuecosService {
     }
     public record Franja(LocalTime inicio, LocalTime fin) {}
     private static final LocalTime ABRE = LocalTime.of(8, 0), CIERRA = LocalTime.of(21, 0);
+    private static final Set<String> AREAS_TECSUP = Set.of("Gestión y Producción", "Tecnología Digital",
+            "Minería y Procesos Químicos", "Electricidad y Electrónica", "Mecánica");
+
+    /** US-20: nunca recomendar una competencia cancelada, llena o ajena a las cinco áreas. */
+    public static boolean competenciaDisponible(Map<String, Object> actividad) {
+        String estado = String.valueOf(actividad.getOrDefault("estado", "programada"));
+        if (Set.of("cancelada", "finalizada", "inactiva").contains(estado.toLowerCase())) return false;
+        Object cupos = actividad.get("cuposDisponibles");
+        if (cupos instanceof Number numero && numero.intValue() <= 0) return false;
+        String area = String.valueOf(actividad.getOrDefault("areaTecsup", "")).trim();
+        return area.isEmpty() || "null".equals(area) || AREAS_TECSUP.contains(area);
+    }
     public static List<Franja> huecos(LocalDate fecha, List<BloqueOcupado> clases, List<Inscripcion> inscripciones) {
         List<Franja> ocupadas = new ArrayList<>();
         int dia = fecha.getDayOfWeek().getValue();
@@ -73,6 +85,7 @@ public class SugerenciasHuecosService {
         List<Map<String, Object>> resultado = new ArrayList<>();
         Set<String> ids = new HashSet<>();
         for (var actividad : candidatas) {
+            if (!competenciaDisponible(actividad)) continue;
             try {
                 String id = String.valueOf(actividad.get("id"));
                 var fecha = LocalDate.parse(String.valueOf(actividad.get("fecha")));

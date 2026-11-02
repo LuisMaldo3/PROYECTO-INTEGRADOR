@@ -24,4 +24,33 @@ class OrganizadorCuposServiceTest {
         assertEquals(12, OrganizadorCuposService.capacidad("12"));
         assertNull(OrganizadorCuposService.capacidad("incorrecto"));
     }
+
+    @Test void competenciasPorEquiposNoCobranUnCupoPorIntegrante() {
+        InscripcionRepository repo = mock(InscripcionRepository.class);
+        Inscripcion capitan = new Inscripcion();
+        capitan.setId("equipo1"); capitan.setEstudianteId("u1"); capitan.setRolEquipo("capitan");
+        capitan.setEstado("inscrita"); capitan.setNombreEquipo("Equipo Mecánica");
+        capitan.setIntegrantes(List.of("u1", "u2")); capitan.setEquipoId("equipo1");
+        Inscripcion integrante = new Inscripcion();
+        integrante.setId("m2"); integrante.setEstudianteId("u2"); integrante.setRolEquipo("integrante");
+        integrante.setEquipoId("equipo1"); integrante.setEstado("inscrita");
+        when(repo.findByActividadId("futbol")).thenReturn(List.of(capitan, integrante));
+        var datos = new OrganizadorCuposService(repo).enriquecer(Map.of("id", "futbol", "tipoActividad", "competencia", "modalidad", "equipos", "maximoParticipantes", 3));
+        assertEquals(1L, datos.get("cuposOcupados"));
+        assertEquals(2L, datos.get("cuposDisponibles"));
+        assertEquals(2L, datos.get("estudiantesInscritos"));
+        assertEquals(1L, datos.get("equiposRegistrados"));
+        assertEquals(1L, datos.get("equiposConfirmados"));
+    }
+
+    @Test void capitanSinOtroInscritoQuedaPendiente() {
+        InscripcionRepository repo = mock(InscripcionRepository.class);
+        Inscripcion capitan = new Inscripcion();
+        capitan.setId("equipo1"); capitan.setEstudianteId("u1"); capitan.setRolEquipo("capitan");
+        capitan.setEstado("inscrita"); capitan.setIntegrantes(List.of("u1")); capitan.setEquipoId("equipo1");
+        when(repo.findByActividadId("futbol")).thenReturn(List.of(capitan));
+        var datos = new OrganizadorCuposService(repo).enriquecer(Map.of("id", "futbol", "tipoActividad", "competencia", "modalidad", "equipos", "maximoParticipantes", 3));
+        assertEquals(1L, datos.get("equiposPendientes"));
+        assertEquals(0L, datos.get("equiposConfirmados"));
+    }
 }

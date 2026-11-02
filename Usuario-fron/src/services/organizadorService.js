@@ -53,14 +53,19 @@ export async function obtenerInscritos(token, actividadId, signal, buscar = '') 
     actividad: datos?.actividad || null,
     inscritos,
     ...(datos?.totalInscritos === undefined ? {} : { totalInscritos: datos.totalInscritos }),
+    equiposRegistrados: datos?.equiposRegistrados ?? 0,
+    equiposConfirmados: datos?.equiposConfirmados ?? 0,
   }
 }
 
-export async function guardarAsistencia(token, actividadId, marcas) {
-  if (!actividadId) throw new Error('Selecciona primero una actividad.')
-  if (!Array.isArray(marcas) || marcas.length === 0) throw new Error('No hay estudiantes para registrar asistencia.')
-  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/asistencia`, token, {
-    method: 'POST', body: { asistencias: marcas },
+export async function reemplazarInscrito(token, actividadId, inscripcionId, correoNuevo, motivo) {
+  if (!actividadId || !inscripcionId) throw new Error('Selecciona la actividad y el estudiante que deseas reemplazar.')
+  const correo = String(correoNuevo || '').trim().toLowerCase()
+  if (!/^[a-z0-9._%+-]+@tecsup\.edu\.pe$/.test(correo)) throw new Error('Ingresa un correo institucional @tecsup.edu.pe.')
+  const explicacion = String(motivo || '').trim()
+  if (explicacion.length < 5 || explicacion.length > 400) throw new Error('Indica el motivo (entre 5 y 400 caracteres).')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/inscritos/reemplazar`, token, {
+    method: 'POST', body: { inscripcionId, correoNuevo: correo, motivo: explicacion },
   })
 }
 
@@ -74,6 +79,19 @@ export async function reportarProblema(token, actividadId, categoria, descripcio
 }
 
 /** Navegación de subpantallas del organizador usando el hash existente del proyecto. */
+
+export async function obtenerResultadosOrganizador(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona primero una competencia.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/resultados`, token, { signal })
+}
+
+export async function enviarResultadosOrganizador(token, actividadId, posiciones) {
+  if (!actividadId) throw new Error('Selecciona primero una competencia.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/resultados`, token, {
+    method: 'PUT', body: { posiciones },
+  })
+}
+
 export function rutaOrganizador(pantalla, actividadId) {
   return `#/${pantalla}${actividadId ? `?actividad=${encodeURIComponent(actividadId)}` : ''}`
 }

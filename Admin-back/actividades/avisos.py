@@ -1,6 +1,7 @@
 """Avisos administrativos inmediatos y programados (MongoDB, UTC)."""
 from datetime import datetime, timezone
 from . import mongo
+from .portadas import normalizar_portada
 
 TITULO_MAX = 100
 MENSAJE_MAX = 2000
@@ -29,6 +30,10 @@ def validar_aviso(datos):
         errores["mensaje"] = f"Máximo {MENSAJE_MAX} caracteres."
     if errores:
         raise AvisoInvalido(errores)
+    try:
+        normalizar_portada(datos.get("portada"))
+    except ValueError as exc:
+        raise AvisoInvalido({"portada": str(exc)}) from exc
     return titulo, mensaje
 
 
@@ -63,7 +68,7 @@ def _iso(fecha):
 def a_json(doc):
     return {"id": str(doc["_id"]), "titulo": doc["titulo"], "mensaje": doc["mensaje"],
             "creadoEn": _iso(doc["creadoEn"]), "autorId": str(doc["autorId"]),
-            "estado": doc.get("estado", "publicado"),
+            "estado": doc.get("estado", "publicado"), "portada": doc.get("portada"),
             "publicarEn": _iso(doc.get("publicarEn")),
             "publicadoEn": _iso(doc.get("publicadoEn", doc.get("creadoEn") if doc.get("estado") != "programado" else None))}
 
@@ -74,7 +79,7 @@ def crear_aviso(datos, autor_id, ahora=None):
     futuro = fecha_programada(datos, ahora)
     doc = {"titulo": titulo, "mensaje": mensaje, "autorId": str(autor_id), "creadoEn": ahora,
            "estado": "programado" if futuro else "publicado", "publicarEn": futuro,
-           "publicadoEn": None if futuro else ahora}
+           "publicadoEn": None if futuro else ahora, "portada": normalizar_portada(datos.get("portada"))}
     doc["_id"] = mongo.avisos().insert_one(doc).inserted_id
     return a_json(doc)
 
@@ -97,4 +102,7 @@ def listar_publicados():
     publicar_pendientes()
     # Avisos antiguos no tenían el campo estado; se consideran ya publicados.
     filtro = {"$or": [{"estado": "publicado"}, {"estado": {"$exists": False}}]}
-    return [a_json(d) for d in mongo.avisos().find(filtro).sort("creadoEn", -1).limit(100)]
+    docs = list(mongo.avisos().find(filtro).sort("creadoEn", -1).limit(500))
+    # Avisos programados pueden haberse creado antes, pero ser publicados hoy.
+    docs.sort(key=lambda d: d.get("publicadoEn") or d.get("creadoEn") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    return [a_json(d) for d in docs[:100]]

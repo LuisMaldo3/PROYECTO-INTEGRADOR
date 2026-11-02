@@ -6,6 +6,7 @@ export const OPCIONES = [
   { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },
   { id: 'actividades', titulo: 'Actividades', icono: 'calendario' },
   { id: 'avisos', titulo: 'Avisos', icono: 'correo' },
+  { id: 'clasificacion', titulo: 'Clasificación', icono: 'calendario' },
 ]
 
 export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion }) {

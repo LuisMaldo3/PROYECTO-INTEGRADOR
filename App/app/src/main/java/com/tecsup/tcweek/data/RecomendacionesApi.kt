@@ -9,6 +9,36 @@ import org.json.JSONObject
 data class Recomendacion(val actividad: ActividadCatalogo, val motivo: String, val horario: CompatibilidadHorario = CompatibilidadHorario())
 data class RespuestaRecomendaciones(val origen: String, val aviso: String, val actividades: List<Recomendacion>)
 object RecomendacionesApi {
+    /** Descarte persistente y repetible; 204 = preferencia guardada. */
+    suspend fun descartar(token: String, actividadId: String): Unit = withContext(Dispatchers.IO) {
+        require(actividadId.matches(Regex("[A-Za-z0-9_-]{1,128}"))) { "ID de actividad invalido" }
+        val conn = URL(Servidor.DIRECCION.trimEnd('/') + "/api/recomendaciones/" + actividadId + "/descartar")
+            .openConnection() as HttpURLConnection
+        try {
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 8000
+            conn.readTimeout = 16000
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.setRequestProperty("Accept", "application/json")
+            val codigo = conn.responseCode
+            if (codigo !in 200..299) {
+                val mensaje = when (codigo) {
+                    401 -> "Tu sesion expiro. Inicia sesion de nuevo."
+                    403 -> "No tienes permiso para modificar recomendaciones."
+                    404 -> "Actualiza Spring Boot para poder descartar recomendaciones."
+                    else -> "No se pudo guardar tu preferencia (HTTP $codigo)."
+                }
+                throw IllegalStateException(mensaje)
+            }
+        } catch (e: java.net.ConnectException) {
+            throw IllegalStateException("No hay conexion con el servidor. Vuelve a intentarlo.", e)
+        } catch (e: java.net.SocketTimeoutException) {
+            throw IllegalStateException("El servidor no respondio. Intentalo otra vez.", e)
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     suspend fun cargar(token: String): RespuestaRecomendaciones = withContext(Dispatchers.IO) {
         val conn = URL(Servidor.DIRECCION.trimEnd('/') + "/api/recomendaciones").openConnection() as HttpURLConnection
         try {
