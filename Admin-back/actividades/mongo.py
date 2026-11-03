@@ -28,3 +28,8 @@ def notificaciones():
 
 def resultados_competencias():
     return base.db()["resultados_competencias"]
+
+
+def reemplazos_inscripciones():
+    """Auditoría escrita por el servicio del organizador; el admin solo consulta."""
+    return base.db()["reemplazos_inscripciones"]

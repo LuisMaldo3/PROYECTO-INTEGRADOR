@@ -15,6 +15,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
   const [aviso, setAviso] = useState('')
   const [areaElegida, setAreaElegida] = useState('')
   const [guardandoArea, setGuardandoArea] = useState(false)
+  const [errorArea, setErrorArea] = useState('')
   const tituloRef = useRef(null)
 
   const cambio = useCambioRol({
@@ -33,6 +34,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
     setEstado({ cargando: true, error: '', usuario: null })
     setPestana('informacion')
     setAviso('')
+    setErrorArea('')
     obtenerUsuario(token, usuarioId)
       .then((usuario) => {
         if (!cancelado) { setEstado({ cargando: false, error: '', usuario }); setAreaElegida(usuario.areaTecsup || '') }
@@ -131,16 +133,20 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
               </section>
               <section className="perfil__tarjeta" aria-label="Área institucional">
                 <div className="perfil__tarjeta-cabecera"><div><h2>Área de Tecsup</h2><p>Los puntos de sus competencias se suman a esta área. Sin área verificada no suma puntos.</p></div></div>
-                <form onSubmit={async (e) => { e.preventDefault(); setGuardandoArea(true); setAviso(''); try {
+                <form onSubmit={async (e) => { e.preventDefault(); setGuardandoArea(true); setAviso(''); setErrorArea(''); try {
                   const nuevo = await verificarAreaTecsup(token, usuarioId, areaElegida)
                   setEstado(v => ({ ...v, usuario: nuevo })); onRolCambiado?.()
                   setAviso(nuevo.areaVerificada ? `Área verificada: ${nuevo.areaTecsup}` : 'Se retiró la verificación del área.')
-                } catch (error) { setAviso(error.message) } finally { setGuardandoArea(false) } }}>
+                } catch (error) {
+                  if (error.estado === 401) onSesionExpirada?.(error.detalle)
+                  else setErrorArea(error.detalle || error.message || 'No se pudo verificar el área.')
+                } finally { setGuardandoArea(false) } }}>
                   <label htmlFor="area-tecsup-usuario">Área asignada</label>
                   <select id="area-tecsup-usuario" value={areaElegida} onChange={e => setAreaElegida(e.target.value)} disabled={guardandoArea}>
                     <option value="">Sin área verificada</option>
                     {['Gestión y Producción','Tecnología Digital','Minería y Procesos Químicos','Electricidad y Electrónica','Mecánica'].map(area => <option key={area} value={area}>{area}</option>)}
                   </select>
+                  {errorArea && <p className="aviso aviso--error" role="alert">{errorArea}</p>}
                   <div className="perfil__form-acciones"><button type="submit" className="boton" disabled={guardandoArea || areaElegida === (usuario.areaTecsup || '')}>{guardandoArea ? 'Guardando…' : 'Guardar área'}</button></div>
                 </form>
               </section>

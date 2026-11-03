@@ -1,0 +1,28 @@
+.reemplazos { width:100%; min-width:0; display:grid; gap:1.1rem }
+.reemplazos__resumen { margin:0 }
+.reemplazos__nota { border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af; padding:.85rem 1rem; border-radius:12px; line-height:1.5 }
+.reemplazos__filtros { display:flex; gap:.85rem; flex-wrap:wrap; background:#fff; padding:1rem; border:1px solid var(--borde); border-radius:14px }
+.reemplazos__busqueda, .reemplazos__selector { display:grid; gap:.35rem; font-weight:600; font-size:.82rem; color:#334155 }
+.reemplazos__busqueda { flex:1; min-width:180px }
+.reemplazos__filtros input, .reemplazos__filtros select { border:1px solid #cbd5e1; border-radius:9px; background:#fff; padding:.62rem .75rem; color:var(--tinta); width:100% }
+.reemplazos__layout { display:grid; grid-template-columns:minmax(230px, .72fr) minmax(0, 1.3fr); gap:1rem; align-items:start }
+.reemplazos__lista { display:grid; gap:.45rem; max-height:72vh; overflow-y:auto }
+.reemplazos__item { text-align:left; display:grid; gap:.35rem; border:1px solid var(--borde); background:#fff; border-radius:12px; padding:.9rem 1rem; cursor:pointer; color:var(--tinta) }
+.reemplazos__item:hover { border-color:#7dd3fc }
+.reemplazos__item--activo { border:2px solid #0284c7; background:#f0f9ff }
+.reemplazos__item strong { font-size:.95rem }
+.reemplazos__item span { font-size:.84rem; color:#334155 }
+.reemplazos__item small { color:#64748b }
+.reemplazos__detalle { background:#fff; border:1px solid var(--borde); border-radius:16px; padding:1.2rem 1.3rem; display:grid; gap:1rem; min-width:0 }
+.reemplazos__detalle h2 { font-size:1.15rem; color:var(--marino) }
+.reemplazos__detalle h3 { font-size:.95rem; color:var(--marino) }
+.reemplazos__leyenda { color:#64748b; font-size:.86rem }
+.reemplazos__indicadores { display:grid; grid-template-columns:repeat(auto-fit,minmax(125px,1fr)); gap:.65rem }
+.reemplazos__indicadores>div { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.75rem; display:grid; gap:.3rem }
+.reemplazos__indicadores span { font-size:.8rem; color:#64748b }
+.reemplazos__indicadores strong { font-size:1.25rem; color:var(--marino) }
+.reemplazos__historial { display:grid; gap:.65rem; padding-left:1.3rem; margin:0 }
+.reemplazos__historial li { padding:.7rem .3rem; border-bottom:1px solid #f1f5f9; overflow-wrap:anywhere }
+.reemplazos__historial strong, .reemplazos__historial span { display:block }
+.reemplazos__historial span, .reemplazos__vacio, .reemplazos__estado { color:#64748b; font-size:.88rem; line-height:1.5 }
+@media(max-width:900px){ .reemplazos__layout { grid-template-columns:1fr } .reemplazos__lista { max-height:300px } }

@@ -5,6 +5,7 @@ import Logo from './Logo'
 export const OPCIONES = [
   { id: 'actividades', titulo: 'Actividades', icono: 'calendario' },
   { id: 'inscritos', titulo: 'Inscritos', icono: 'grafico' },
+  { id: 'reemplazos', titulo: 'Reemplazos y cupos', icono: 'actualizar' },
   { id: 'avisos', titulo: 'Avisos', icono: 'megafono' },
   { id: 'clasificacion', titulo: 'Clasificación', icono: 'trofeo' },
   { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },

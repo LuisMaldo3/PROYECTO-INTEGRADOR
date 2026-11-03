@@ -29,3 +29,8 @@ def tokens_revocados():
 
 def permisos_usuarios():
     return db()["permisos_usuarios"]
+
+
+def inscripciones():
+    """Colección compartida con Spring Boot; necesaria al verificar área de Tecsup."""
+    return db()["inscripciones"]

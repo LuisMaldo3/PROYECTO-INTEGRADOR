@@ -198,3 +198,12 @@ def clasificacion_general(request):
 def inscritos_por_actividad(request):
     """US-35: número de inscritos por actividad (personas y, en competencias por equipos, equipos)."""
     return JsonResponse(servicio_inscritos.inscritos_por_actividad())
+
+
+@require_GET
+@exigir_admin
+@exigir_permiso("actividades.gestionar")
+def seguimiento_reemplazos(request):
+    """US-36 · Vista administrativa, sin capacidad de escribir reemplazos ni cupos."""
+    from .reemplazos import resumen_reemplazos
+    return JsonResponse(resumen_reemplazos())
