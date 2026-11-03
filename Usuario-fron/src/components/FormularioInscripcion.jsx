@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { hoyISO } from '../services/presentacion'
 import { cancelarInscripcion, inscribirme, unirmeEquipo, verMiInscripcion } from '../services/inscripcionesService'
 
-/** Formulario de detalle: una inscripción solo se confirma después de la respuesta del backend. */
+/** Inscripción: solo se confirma cuando responde el servidor. */
 export function FormularioInscripcion({ actividad }) {
   const [estado, setEstado] = useState({ cargando: true, inscrito: false, capitan: false, detalle: null, error: '', aviso: '' })
   const [modo, setModo] = useState('crear')
@@ -37,13 +37,13 @@ export function FormularioInscripcion({ actividad }) {
   }
 
   return <section className="vynk-detalle__registro" id="inscripcion" aria-labelledby="vynk-inscripcion-title">
-    <div className="vynk-detalle__registro-head"><span className="vynk-up-eyebrow">PARTICIPA EN VYNK</span><h2 id="vynk-inscripcion-title">{estado.inscrito ? 'Ya tienes tu lugar' : 'Inscríbete en esta actividad'}</h2>
-      <p>Inscripción personal con tu cuenta institucional. {esEquipo ? 'Primero debe existir un equipo registrado; cada integrante confirma su inscripción por separado.' : 'No necesitas ingresar nuevamente tus datos.'}</p></div>
+    <div className="vynk-detalle__registro-head"><h2 id="vynk-inscripcion-title">{estado.inscrito ? 'Ya estás inscrito' : 'Inscripción'}</h2>
+      {esEquipo && !estado.inscrito && <p>Crea un equipo o únete con el código que te dio el capitán. Cada integrante confirma su inscripción con su propia cuenta.</p>}</div>
     {estado.cargando ? <p role="status" className="vynk-up-message">Comprobando tu inscripción…</p>
-      : estado.inscrito ? <div className="vynk-detalle__registrado"><strong>Inscripción confirmada</strong><p>{estado.detalle?.nombreEquipo ? `Equipo: ${estado.detalle.nombreEquipo}` : 'Tu participación está registrada.'}</p>
-          {esEquipo && <p className="vynk-up-message">✓ Tu inscripción personal está confirmada en el equipo registrado. Cada integrante debe ingresar con su cuenta y confirmar usando el código privado del equipo.</p>}
+      : estado.inscrito ? <div className="vynk-detalle__registrado"><strong>Inscripción confirmada</strong><p>{estado.detalle?.nombreEquipo ? `Equipo: ${estado.detalle.nombreEquipo}` : 'La verás en tu agenda.'}</p>
+          {esEquipo && <p className="vynk-up-message">Cada integrante debe entrar con su cuenta y confirmar con el código del equipo.</p>}
           {esEquipo && <p className="vynk-up-message"><strong>{estado.detalle?.integrantesConfirmados ?? 1}</strong> integrante(s) con inscripción personal · {estado.detalle?.equipoHabilitado ? 'Equipo habilitado para competir' : 'Debe haber al menos 2 inscripciones confirmadas para competir'}</p>}
-          {esEquipo && codigoGenerado && <div className="vynk-up-codigo"><span>Código privado para integrantes (guárdalo ahora)</span><code>{codigoGenerado}</code><button type="button" onClick={() => navigator.clipboard?.writeText(codigoGenerado)}>Copiar código</button></div>}
+          {esEquipo && codigoGenerado && <div className="vynk-up-codigo"><span>Código del equipo para tus integrantes</span><code>{codigoGenerado}</code><button type="button" onClick={() => navigator.clipboard?.writeText(codigoGenerado)}>Copiar código</button></div>}
           {actividad.tipoActividad === 'competencia' && !estado.detalle?.areaVerificada && <p className="vynk-up-message">Tu área de Tecsup aún no está verificada. Esto no afecta tu inscripción.</p>}
           <div className="vynk-detalle__registro-actions"><a className="vynk-up-btn vynk-up-btn--primary" href="#/agenda">Ir a mi agenda</a>
             <button type="button" className="vynk-up-btn vynk-up-btn--outline" disabled={procesando} onClick={() => { if (window.confirm(esEquipo && estado.capitan ? 'Eres capitán: cancelar tu inscripción cancelará la inscripción de TODO el equipo. ¿Deseas continuar?' : '¿Seguro que deseas cancelar tu inscripción?')) ejecutar(() => cancelarInscripcion(actividad.id), 'cancelar') }}>Cancelar inscripción</button></div>
@@ -55,9 +55,9 @@ export function FormularioInscripcion({ actividad }) {
         <button type="button" className="vynk-up-btn vynk-up-btn--primary vynk-up-btn--full"
           disabled={procesando || inscripcionCerrada || (agotado && (!esEquipo || modo === 'crear')) || (esEquipo && (modo === 'crear' ? nombreEquipo.trim().length < 3 : codigoEquipo.trim().length < 10))}
           onClick={() => ejecutar(() => esEquipo && modo === 'unir' ? unirmeEquipo(actividad.id, codigoEquipo.trim()) : inscribirme(actividad.id, nombreEquipo.trim()), 'inscribir')}>
-          {procesando ? 'Procesando tu inscripción…' : inscripcionCerrada ? 'Inscripciones cerradas' : agotado && (!esEquipo || modo === 'crear') ? 'Cupos agotados' : esEquipo ? (modo === 'crear' ? 'Registrar equipo y confirmar mi inscripción' : 'Confirmar mi inscripción individual al equipo') : 'Confirmar inscripción'} <span aria-hidden="true">→</span>
+          {procesando ? 'Procesando tu inscripción…' : inscripcionCerrada ? 'Inscripciones cerradas' : agotado && (!esEquipo || modo === 'crear') ? 'Cupos agotados' : esEquipo ? (modo === 'crear' ? 'Registrar equipo y confirmar mi inscripción' : 'Confirmar mi inscripción individual al equipo') : 'Confirmar inscripción'}
         </button>
-        <p className="vynk-up-footnote">Los cupos se confirman en el servidor. Si la actividad está llena, te avisaremos antes de registrar la inscripción.</p>
+        
       </div>}
     {estado.error && <p role="alert" className="vynk-up-message vynk-up-message--error">{estado.error}</p>}
     {estado.aviso && <p role="status" className="vynk-up-message vynk-up-message--ok">{estado.aviso}</p>}

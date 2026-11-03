@@ -103,7 +103,7 @@ fun HorarioLibreScreen(onVolver: () -> Unit) {
         pendiente = true
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF4F7FD))) {
+    Column(Modifier.fillMaxSize().background(Color(0xFFF2F5F9))) {
         Row(Modifier.fillMaxWidth().background(Color.White).padding(12.dp)) {
             IconButton(onClick = onVolver) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") }
             Column(Modifier.weight(1f)) {
@@ -117,7 +117,7 @@ fun HorarioLibreScreen(onVolver: () -> Unit) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Filled.AutoAwesome, null, tint = Color(0xFFB4D6FF))
                         Text("Dale espacio a tus intereses", fontWeight = FontWeight.ExtraBold, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                        Text("Sube una foto de tus clases, corrige los datos y descubre actividades que caben entre tus ocupaciones.", color = Color(0xFFDCEBFF))
+                        Text("Sube una foto de tus clases, corrige los datos y descubre actividades que caben entre tus ocupaciones.", color = Color(0xFFE8F0FD))
                     }
                 }
             }

@@ -33,7 +33,7 @@ const ICONOS = {
   ),
 }
 
-/** Menú principal: arriba en pantallas grandes y abajo en celular (con íconos). La pantalla actual va resaltada. */
+/** Menú principal: lateral en pantallas grandes y barra inferior en celular. */
 export function Menu({ rol, rutaActual }) {
   return (
     <nav className="shell-menu" aria-label="Menú principal">

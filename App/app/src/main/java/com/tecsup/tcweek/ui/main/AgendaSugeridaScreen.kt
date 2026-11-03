@@ -56,7 +56,7 @@ import com.tecsup.tcweek.data.SesionGuardada
 import kotlinx.coroutines.CancellationException
 
 private val MarinoAgenda = Color(0xFF112752)
-private val AzulAgenda = Color(0xFF0B63FF)
+private val AzulAgenda = Color(0xFF1557D0)
 private val GrisAgenda = Color(0xFF5D6C84)
 
 @Composable
@@ -79,7 +79,7 @@ fun AgendaSugeridaScreen(onVolver: () -> Unit) {
         finally { cargando = false }
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF4F7FD))) {
+    Column(Modifier.fillMaxSize().background(Color(0xFFF2F5F9))) {
         Row(Modifier.fillMaxWidth().background(Color.White).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver a mi agenda", tint = MarinoAgenda) }
             Column(Modifier.weight(1f)) {

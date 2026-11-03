@@ -27,10 +27,10 @@ import androidx.compose.ui.unit.sp
 
 /** Piezas compartidas por Catálogo y Agenda. */
 
-internal val ColorMarino = Color(0xFF0D1B3E)
-internal val ColorGris = Color(0xFF6B7A99)
-internal val ColorBorde = Color(0xFFD9E1EC)
-internal val ColorAzul = Color(0xFF0B63FF)
+internal val ColorMarino = com.tecsup.tcweek.ui.theme.VynkNavy
+internal val ColorGris = Color(0xFF55657E)
+internal val ColorBorde = com.tecsup.tcweek.ui.theme.VynkLine
+internal val ColorAzul = Color(0xFF1557D0)
 
 /** Categoría con los colores del cartel del T&C Week: azul para lo cultural y verde azulado para los concursos. */
 @Composable
@@ -40,13 +40,13 @@ fun EtiquetaCategoria(estilo: EstiloCategoria) {
     val icono: ImageVector
     when (estilo.clase) {
         ClaseCategoria.CULTURAL -> {
-            fondo = Color(0xFFE4EFFF); texto = Color(0xFF0A4AA8); icono = Icons.Filled.TheaterComedy
+            fondo = Color(0xFFF3ECFF); texto = Color(0xFF5B34C7); icono = Icons.Filled.TheaterComedy
         }
         ClaseCategoria.CONCURSO -> {
-            fondo = Color(0xFFD9F5EE); texto = Color(0xFF0B6354); icono = Icons.Filled.EmojiEvents
+            fondo = Color(0xFFFFF4E0); texto = Color(0xFF8A4F00); icono = Icons.Filled.EmojiEvents
         }
         ClaseCategoria.OTRA -> {
-            fondo = Color(0xFFEEF2F7); texto = Color(0xFF33415C); icono = Icons.Filled.Star
+            fondo = Color(0xFFDDE4EE); texto = Color(0xFF14213D); icono = Icons.Filled.Star
         }
     }
     Surface(color = fondo, shape = RoundedCornerShape(50)) {
@@ -56,7 +56,7 @@ fun EtiquetaCategoria(estilo: EstiloCategoria) {
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(icono, contentDescription = null, tint = texto, modifier = Modifier.size(14.dp))
-            Text(estilo.nombre, color = texto, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(estilo.nombre, color = texto, style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -66,7 +66,7 @@ fun EtiquetaCategoria(estilo: EstiloCategoria) {
 fun EncabezadoDia(titulo: String, detalle: String) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+            Text(titulo, style = MaterialTheme.typography.titleSmall, color = ColorMarino)
             Text(detalle, style = MaterialTheme.typography.bodySmall, color = ColorGris)
         }
         HorizontalDivider(modifier = Modifier.padding(top = 6.dp), color = ColorBorde)
@@ -84,8 +84,8 @@ fun DatoConIcono(icono: ImageVector, texto: String) {
 
 /** Color del texto de los cupos según el tono. */
 fun TonoCupos.color(): Color = when (this) {
-    TonoCupos.OK -> Color(0xFF14673B)
+    TonoCupos.OK -> Color(0xFF12805C)
     TonoCupos.POCO -> Color(0xFF9A5B00)
-    TonoCupos.AGOTADO -> Color(0xFFA12525)
+    TonoCupos.AGOTADO -> Color(0xFFC0322B)
     TonoCupos.NEUTRO -> ColorGris
 }

@@ -2,6 +2,21 @@
 package com.tecsup.tcweek.ui.main
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.tecsup.tcweek.ui.comun.VynkLogo
+import com.tecsup.tcweek.ui.theme.VynkBlue
+import com.tecsup.tcweek.ui.theme.VynkBlueSoft
+import com.tecsup.tcweek.ui.theme.VynkLine
+import com.tecsup.tcweek.ui.theme.VynkMuted
+import com.tecsup.tcweek.ui.theme.VynkNavy
+import com.tecsup.tcweek.ui.theme.VynkSky
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -42,8 +57,8 @@ import com.tecsup.tcweek.data.ErrorIntereses
 import com.tecsup.tcweek.data.InteresesApi
 import kotlinx.coroutines.CancellationException
 
-private val AzulVynk = Color(0xFF0B63FF)
-private val GrisTexto = Color(0xFF6B7A99)
+private val AzulVynk = VynkBlue
+private val GrisTexto = VynkMuted
 
 private const val RUTA_RECOMENDACIONES = "recomendaciones"
 private const val RUTA_CLASIFICACION = "clasificacion"
@@ -107,13 +122,7 @@ fun MainScreen(onLogout: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "VYNK",
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                },
+                title = { VynkLogo(tamano = 22.sp) },
                 actions = {
                     if (!primerIngreso) TextButton(
                         onClick = {
@@ -122,13 +131,12 @@ fun MainScreen(onLogout: () -> Unit) {
                             }
                         }
                     ) {
-                        Text(
-                            text = "✦ Para ti",
-                            color = Color(0xFF9CDEFF)
-                        )
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = VynkSky, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(text = "Para ti", color = Color.White, style = MaterialTheme.typography.labelLarge)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C2142))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = VynkNavy)
             )
         },
         bottomBar = {
@@ -234,8 +242,10 @@ private fun BarraInferior(
     rutaActual: String?,
     onIr: (Destino) -> Unit
 ) {
+    HorizontalDivider(color = VynkLine)
     NavigationBar(
-        containerColor = Color.White
+        containerColor = Color.White,
+        tonalElevation = 0.dp
     ) {
         destinos.forEach { destino ->
             NavigationBarItem(
@@ -254,12 +264,12 @@ private fun BarraInferior(
                     )
                 },
                 label = {
-                    Text(destino.titulo)
+                    Text(destino.titulo, style = MaterialTheme.typography.labelSmall)
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = AzulVynk,
-                    selectedTextColor = AzulVynk,
-                    indicatorColor = Color(0xFFE6F1FF),
+                    selectedIconColor = VynkBlue,
+                    selectedTextColor = VynkNavy,
+                    indicatorColor = VynkBlueSoft,
                     unselectedIconColor = GrisTexto,
                     unselectedTextColor = GrisTexto
                 )

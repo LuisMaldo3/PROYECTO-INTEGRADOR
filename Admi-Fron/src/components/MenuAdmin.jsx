@@ -1,50 +1,45 @@
 import Icono from './Iconos'
 import Logo from './Logo'
 
-/** Tarea 6 · Menú lateral del panel. Para agregar una pantalla nueva, súmala a OPCIONES. */
+/** Menú lateral del panel. Para agregar una pantalla nueva, súmala a OPCIONES. */
 export const OPCIONES = [
-  { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },
   { id: 'actividades', titulo: 'Actividades', icono: 'calendario' },
-  { id: 'avisos', titulo: 'Avisos', icono: 'correo' },
-  { id: 'clasificacion', titulo: 'Clasificación', icono: 'calendario' },
+  { id: 'inscritos', titulo: 'Inscritos', icono: 'grafico' },
+  { id: 'avisos', titulo: 'Avisos', icono: 'megafono' },
+  { id: 'clasificacion', titulo: 'Clasificación', icono: 'trofeo' },
+  { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },
 ]
 
 export default function MenuAdmin({ activa, onElegir, usuario, onCerrarSesion }) {
+  const nombre = (usuario?.nombre ?? usuario?.correo ?? 'Administrador').trim()
   return (
     <aside className="menu">
-      <div className="menu__marca">
-        <Logo />
-        <span className="menu__badge">ADMIN</span>
-      </div>
-      <p className="menu__seccion">ESPACIO DE TRABAJO</p>
+      <div className="menu__marca"><Logo /></div>
 
       <nav className="menu__lista" aria-label="Menú de administración">
         {OPCIONES.map((op) => (
           <button
             key={op.id}
             type="button"
-            className={`menu__item${op.id === activa ? ' menu__item--activo' : ''}`}
+            className="menu__item"
             aria-current={op.id === activa ? 'page' : undefined}
             onClick={() => onElegir(op.id)}
           >
-            <Icono nombre={op.icono} /> {op.titulo}
+            <Icono nombre={op.icono} /> <span>{op.titulo}</span>
           </button>
         ))}
       </nav>
 
       <div className="menu__pie">
-        <p className="menu__seccion">CUENTA ACTIVA</p>
         <div className="menu__persona">
-          <span className="avatar" aria-hidden="true">
-            {(usuario?.nombre ?? usuario?.correo ?? 'A').trim().charAt(0).toUpperCase()}
-          </span>
+          <span className="avatar" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</span>
           <div>
-            <p className="menu__nombre">{usuario?.nombre ?? 'Administrador'}</p>
+            <p className="menu__nombre">{nombre}</p>
             <p className="menu__correo">{usuario?.correo}</p>
           </div>
         </div>
-        <button type="button" className="boton boton--fantasma" onClick={onCerrarSesion}>
-          <Icono nombre="salir" tam={18} /> Cerrar sesión
+        <button type="button" className="menu__salir" onClick={onCerrarSesion}>
+          <Icono nombre="salir" tam={18} /> <span>Cerrar sesión</span>
         </button>
       </div>
     </aside>

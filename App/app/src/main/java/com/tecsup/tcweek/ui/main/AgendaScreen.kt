@@ -98,7 +98,7 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}, onVerHuecos: () -> Unit = {}) {
     val visibles = items.filter { fechaValida(it.fecha) != null && (!upcoming || it.fecha >= hoy) }
     val grupos = agruparPorDia(visibles, { it.fecha }, { it.inicio })
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F7FA))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF2F5F9))) {
         Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)) {
             Text("Mi agenda", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
             Text(
@@ -111,7 +111,7 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}, onVerHuecos: () -> Unit = {}) {
                 Text("  Ver mi agenda sugerida")
             }
             OutlinedButton(onClick = onVerHuecos, modifier = Modifier.fillMaxWidth()) {
-                Text("✦ Mis horas libres · Sugerencias con IA")
+                Text("Mis horas libres", style = MaterialTheme.typography.labelLarge)
             }
             Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = !upcoming, onClick = { upcoming = false }, label = { Text("Todas") })
@@ -178,13 +178,13 @@ private fun TarjetaAgenda(a: ActividadAgenda) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     EtiquetaCategoria(categoria)
-                    Surface(color = if (cancelada) Color(0xFFEEF2F7) else Color(0xFFE2F6EA), shape = RoundedCornerShape(50)) {
+                    Surface(color = if (cancelada) Color(0xFFDDE4EE) else Color(0xFFE2F6EA), shape = RoundedCornerShape(50)) {
                         Text(
                             if (cancelada) "Cancelada" else "Inscrito",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = if (cancelada) Color(0xFF5A6A82) else Color(0xFF14673B)
+                            color = if (cancelada) Color(0xFF5A6A82) else Color(0xFF12805C)
                         )
                     }
                 }

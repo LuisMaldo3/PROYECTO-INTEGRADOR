@@ -17,7 +17,7 @@ export const ROLES = {
 const ROLES_VALIDOS = Object.values(ROLES)
 
 export const ETIQUETAS_ROL = {
-  usuario: 'Usuario',
+  usuario: 'Estudiante',
   organizador: 'Organizador',
   administrador: 'Administrador',
 }
@@ -31,13 +31,13 @@ export const ETIQUETAS_ROL = {
  * (El administrador usa su propia web, aparte.)
  */
 export const PANTALLAS = [
-  { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Actividades, novedades y oportunidades para tu vida estudiantil.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
-  { ruta: 'actividades', titulo: 'Actividades', descripcion: 'Explora competencias y actividades del campus e inscríbete.', tituloMenu: 'Actividades', roles: ROLES_VALIDOS },
+  { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Tu resumen de actividades y avisos.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
+  { ruta: 'actividades', titulo: 'Actividades', descripcion: 'Competencias, talleres y eventos del campus.', tituloMenu: 'Actividades', roles: ROLES_VALIDOS },
   { ruta: 'actividad', titulo: 'Detalle de actividad', descripcion: 'Conoce los requisitos y confirma tu inscripción.', tituloMenu: 'Actividades', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'actividades' },
-  { ruta: 'recomendaciones', titulo: 'Recomendaciones para ti', descripcion: 'Descubre actividades según tus intereses, con Gemini cuando esté disponible.', tituloMenu: 'Para ti', roles: ROLES_VALIDOS },
-  { ruta: 'resultados', titulo: 'Resultados de T&C Week', descripcion: 'Ganadores de cada competencia y tabla general de las cinco áreas.', tituloMenu: 'Resultados', roles: ROLES_VALIDOS },
+  { ruta: 'recomendaciones', titulo: 'Recomendaciones para ti', descripcion: 'Actividades sugeridas según tus intereses.', tituloMenu: 'Para ti', roles: ROLES_VALIDOS },
+  { ruta: 'resultados', titulo: 'Resultados de T&C Week', descripcion: 'Clasificación de las cinco áreas y ganadores.', tituloMenu: 'Resultados', roles: ROLES_VALIDOS },
   { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
-  { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
+  { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Pregunta por horarios, lugares, cupos y requisitos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },
   { ruta: 'perfil', titulo: 'Mi perfil', descripcion: 'Tus datos institucionales y tu sesión.', tituloMenu: 'Perfil', roles: ROLES_VALIDOS },
   // US-46 / US-51 / US-50: solo el rol organizador puede abrir estas rutas.
   { ruta: 'organizador-actividades', titulo: 'Mis actividades asignadas', descripcion: 'Gestiona tus actividades como organizador.', tituloMenu: 'Mis actividades', roles: [ROLES.ORGANIZADOR] },

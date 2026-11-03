@@ -22,14 +22,14 @@ export function OrganizadorTarjeta({ actividad }) {
         <span className={`org-estado ${estado === 'cancelada' ? 'org-estado--cancelada' : ''}`}>
           <span className="org-punto" aria-hidden="true" />{estadoTexto[estado] || estado}
         </span>
-        <span className="org-tarjeta__id">{a.proxima ? 'PRÓXIMA ACTIVIDAD' : 'ACTIVIDAD'}</span>
+        <span className="org-tarjeta__id">{a.proxima ? 'Próxima' : ''}</span>
       </div>
       <h3>{a.nombre || 'Actividad sin nombre'}</h3>
       <p className="org-tarjeta__descripcion">{a.descripcion || 'Consulta los detalles y gestiona los participantes de tu actividad.'}</p>
       <div className="org-metadatos">
-        <span>◷ {formatoFecha(a.fecha)}</span>
-        <span>◴ {a.horaInicio || '—'}{a.horaFin ? ` – ${a.horaFin}` : ''}</span>
-        <span>⌖ {a.ubicacion || 'Ubicación por confirmar'}</span>
+        <span>{formatoFecha(a.fecha)}</span>
+        <span>{a.horaInicio || '—'}{a.horaFin ? ` – ${a.horaFin}` : ''}</span>
+        <span>{a.ubicacion || 'Ubicación por confirmar'}</span>
       </div>
       <div className="org-capacidad">
         <div className="org-capacidad__encabezado"><span><strong>{inscritos}</strong> {a.unidadCupo === 'equipos' ? 'equipos registrados' : 'estudiantes inscritos'} {maximo != null ? `de ${maximo}` : ''}</span><span className={disponibles === 0 ? 'org-cupos--llenos' : 'org-cupos--libres'}>{disponibles == null ? 'Cupos por confirmar' : disponibles === 0 ? 'Sin cupos' : `${disponibles} disponibles`}</span></div>
@@ -38,7 +38,7 @@ export function OrganizadorTarjeta({ actividad }) {
       </div>
       <div className="org-tarjeta__acciones">
         <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-detalle', a.id)}>
-          Ver detalles <span aria-hidden="true">→</span>
+          Ver detalles
         </a>
         <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-inscritos', a.id)}>Inscritos</a>
         <a className="org-boton org-boton--simple" href={rutaOrganizador('organizador-reporte', a.id)}>Reportar</a>

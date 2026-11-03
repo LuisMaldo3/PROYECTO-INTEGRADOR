@@ -1,40 +1,66 @@
 package com.tecsup.tcweek.ui.main
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import com.tecsup.tcweek.data.AuthRepository
-import com.tecsup.tcweek.data.AvisosApi
-import com.tecsup.tcweek.data.AvisoCampus
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.tecsup.tcweek.R
+import com.tecsup.tcweek.data.ActividadAgenda
+import com.tecsup.tcweek.data.AgendaApi
+import com.tecsup.tcweek.data.AuthRepository
+import com.tecsup.tcweek.data.AvisoCampus
+import com.tecsup.tcweek.data.AvisosApi
+import com.tecsup.tcweek.ui.comun.Pildora
+import com.tecsup.tcweek.ui.comun.Tarjeta
+import com.tecsup.tcweek.ui.comun.TextoSuave
+import com.tecsup.tcweek.ui.comun.TituloSeccion
+import com.tecsup.tcweek.ui.theme.*
+import java.net.HttpURLConnection
+import java.net.URL
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
-private val InicioNavy = Color(0xFF0C2142)
-private val InicioBlue = Color(0xFF1769DB)
+private val Peru = Locale.forLanguageTag("es-PE")
+
+private fun fechaAviso(iso: String): String = runCatching {
+    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Peru).format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
+}.getOrElse { iso.take(10) }
+
+private fun esReciente(iso: String): Boolean = runCatching {
+    Instant.parse(iso).isAfter(Instant.now().minusSeconds(3 * 24 * 3600))
+}.getOrDefault(false)
 
 @Composable
 fun InicioScreen(
@@ -45,91 +71,204 @@ fun InicioScreen(
     onResultados: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val token = remember(context) { AuthRepository(context).currentSession()?.llave.orEmpty() }
-    var avisos by remember { mutableStateOf<List<AvisoCampus>>(emptyList()) }
+    val sesion = remember(context) { AuthRepository(context).currentSession() }
+    val token = sesion?.llave.orEmpty()
+    val primerNombre = sesion?.nombre.orEmpty().trim().split(" ").firstOrNull().orEmpty()
+    var avisos by remember { mutableStateOf<List<AvisoCampus>?>(null) }
+    var agenda by remember { mutableStateOf<List<ActividadAgenda>>(emptyList()) }
+
+    // Los avisos se vuelven a consultar cada minuto: lo que publica administración llega solo.
     LaunchedEffect(token) {
-        avisos = runCatching { AvisosApi.recientes(token) }.getOrDefault(emptyList())
-    }
-    Column(
-        Modifier.fillMaxSize().background(Color(0xFFF1F5FB))
-            .verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(15.dp)
-    ) {
-        Surface(shape = RoundedCornerShape(22.dp), shadowElevation = 5.dp) {
-            Column(Modifier.fillMaxWidth()
-                .background(InicioNavy)
-                .padding(24.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
-                Text("VYNK · COMUNIDAD TECSUP", color = Color(0xFFB1E6FF),
-                    style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                Text("Conecta con lo que te inspira", color = Color.White,
-                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
-                Text("Encuentra actividades, organiza tu agenda y descubre nuevas oportunidades.",
-                    color = Color(0xFFE2EEFF), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = onRecomendaciones, colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White, contentColor = InicioNavy),
-                    shape = RoundedCornerShape(10.dp)) {
-                    Text("Ver recomendaciones", fontWeight = FontWeight.Bold)
-                }
-            }
+        while (true) {
+            avisos = runCatching { AvisosApi.recientes(token) }.getOrDefault(avisos ?: emptyList())
+            delay(60_000)
         }
-        if (avisos.isNotEmpty()) {
-            Text("Avisos recientes", color = InicioNavy, style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold)
-            avisos.forEach { aviso ->
-                Surface(shape = RoundedCornerShape(15.dp), color = Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFDCE7F4))) {
-                    Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        if (aviso.portadaUrl.isNotBlank()) ImagenPortadaCatalogo(aviso.portadaUrl, aviso.titulo)
-                        Text(aviso.publicadoEn.take(10), style = MaterialTheme.typography.labelSmall, color = Color(0xFF2477B8))
-                        Text(aviso.titulo, color = InicioNavy, fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium)
-                        Text(aviso.mensaje, color = Color(0xFF556981), style = MaterialTheme.typography.bodySmall)
-                        if (aviso.creditoUrl.startsWith("https://commons.wikimedia.org/"))
-                            Text("Foto: ${aviso.autor.ifBlank { "Wikimedia Commons" }}", color = InicioBlue,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.clickable { context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(aviso.creditoUrl))) })
+    }
+    LaunchedEffect(token) {
+        val hoy = LocalDate.now().toString()
+        agenda = runCatching { AgendaApi.cargar(token) }.getOrDefault(emptyList())
+            .filter { it.estado != "cancelada" && it.fecha >= hoy }
+    }
+
+    Column(
+        Modifier.fillMaxSize().background(VynkBackground)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Bienvenida(primerNombre, agenda.size, onCatalogo, onRecomendaciones)
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TituloSeccion("Avisos de Tecsup")
+            val lista = avisos
+            when {
+                lista == null -> TextoSuave("Cargando avisos…")
+                lista.isEmpty() -> Tarjeta { TextoSuave("No hay avisos por ahora. Cuando administración publique uno, aparecerá aquí.", Modifier.padding(16.dp)) }
+                else -> {
+                    AvisoDestacado(lista.first())
+                    if (lista.size > 1) Tarjeta {
+                        Column {
+                            lista.drop(1).forEachIndexed { i, aviso ->
+                                if (i > 0) HorizontalDivider(color = VynkLine)
+                                AvisoPlegable(aviso)
+                            }
+                        }
                     }
                 }
             }
         }
-        Text("Tu espacio", color = InicioNavy, style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(top = 5.dp))
-        HomeAcceso("Explorar actividades", "Consulta eventos y talleres publicados.",
-            Icons.Default.Search, Color(0xFF1769DB), Color(0xFFE7F1FF), onCatalogo)
-        HomeAcceso("Resultados y clasificación", "Sigue los ganadores y los puntos oficiales de las cinco áreas.",
-            Icons.Default.EmojiEvents, InicioBlue, Color(0xFFE7F1FF), onResultados)
-        HomeAcceso("Mi agenda", "Revisa tus actividades y horarios disponibles.",
-            Icons.Default.Event, InicioBlue, Color(0xFFE7F1FF), onAgenda)
-        HomeAcceso("Asistente VYNK", "Pregunta por actividades, requisitos o ubicaciones.",
-            Icons.Default.QuestionAnswer, InicioBlue, Color(0xFFE7F1FF), onAsistente)
-        Surface(color = Color(0xFFEAF2FC), shape = RoundedCornerShape(13.dp)) {
-            Text("Tu experiencia mejora con tus intereses y tus preferencias. Puedes descartar cualquier recomendación que no sea para ti.",
-                modifier = Modifier.fillMaxWidth().padding(16.dp), color = Color(0xFF345A87),
-                style = MaterialTheme.typography.bodySmall)
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TituloSeccion("Próximo en tu agenda", "Ver agenda", onAgenda)
+            if (agenda.isEmpty()) Tarjeta {
+                TextoSuave("No tienes actividades próximas. Explora las actividades y elige una.", Modifier.padding(16.dp))
+            } else Tarjeta {
+                Column {
+                    agenda.take(3).forEachIndexed { i, a ->
+                        if (i > 0) HorizontalDivider(color = VynkLine)
+                        FilaAgenda(a)
+                    }
+                }
+            }
         }
-        Spacer(Modifier.height(8.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TituloSeccion("Accesos rápidos")
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Acceso("Actividades", Icons.Default.Search, VynkBlue, Modifier.weight(1f), onCatalogo)
+                Acceso("Resultados", Icons.Default.EmojiEvents, colorArea("Gestión").fuerte, Modifier.weight(1f), onResultados)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Acceso("Mi agenda", Icons.Default.Event, colorArea("Química").fuerte, Modifier.weight(1f), onAgenda)
+                Acceso("Asistente", Icons.Default.QuestionAnswer, colorArea("Digital").fuerte, Modifier.weight(1f), onAsistente)
+            }
+        }
+        Spacer(Modifier.height(4.dp))
     }
 }
 
 @Composable
-private fun HomeAcceso(titulo: String, descripcion: String, icono: ImageVector,
-    color: Color, fondoIcono: Color, onClick: () -> Unit) {
-    Surface(shape = RoundedCornerShape(16.dp), color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFDCE7F4)), shadowElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-            Surface(color = fondoIcono, shape = RoundedCornerShape(13.dp)) {
-                Icon(icono, contentDescription = null, tint = color,
-                    modifier = Modifier.padding(12.dp).size(25.dp))
+private fun Bienvenida(nombre: String, inscripciones: Int, onCatalogo: () -> Unit, onRecomendaciones: () -> Unit) {
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(VynkNavy)) {
+        Image(painterResource(R.drawable.bg_campus), contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize())
+        Box(Modifier.matchParentSize().background(Brush.horizontalGradient(
+            0f to Color(0xF7092048), 0.6f to Color(0xE0092048), 1f to Color(0x99092048))))
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(if (nombre.isBlank()) "Bienvenido a VYNK" else "Hola, $nombre", color = Color.White,
+                style = MaterialTheme.typography.headlineSmall)
+            Text(if (inscripciones == 1) "Tienes 1 actividad próxima." else if (inscripciones > 1) "Tienes $inscripciones actividades próximas." else "Encuentra actividades del campus e inscríbete.",
+                color = Color(0xFFE2ECFA), style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onCatalogo, shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = VynkNavy),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                    Text("Explorar", style = MaterialTheme.typography.labelLarge)
+                }
+                OutlinedButton(onClick = onRecomendaciones, shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = .5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                    Text("Para ti", style = MaterialTheme.typography.labelLarge)
+                }
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(titulo, color = InicioNavy, fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium)
-                Text(descripcion, color = Color(0xFF63768D), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun AvisoDestacado(aviso: AvisoCampus) {
+    val context = LocalContext.current
+    Tarjeta {
+        Row(Modifier.height(IntrinsicSize.Min)) {
+            Box(Modifier.width(4.dp).fillMaxHeight().background(VynkSky))
+            Column(Modifier.weight(1f)) {
+                if (aviso.portadaUrl.isNotBlank()) FotoAviso(aviso.portadaUrl)
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MetaAviso(aviso.publicadoEn)
+                    Text(aviso.titulo, style = MaterialTheme.typography.titleMedium, color = VynkNavy)
+                    Text(aviso.mensaje, style = MaterialTheme.typography.bodyMedium, color = VynkMuted)
+                    if (aviso.creditoUrl.startsWith("https://commons.wikimedia.org/"))
+                        Text("Foto: ${aviso.autor.ifBlank { "Wikimedia Commons" }}", color = VynkSubtle,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(aviso.creditoUrl))) })
+                }
             }
-            Text("›", color = color, style = MaterialTheme.typography.headlineSmall)
+        }
+    }
+}
+
+@Composable
+private fun AvisoPlegable(aviso: AvisoCampus) {
+    var abierto by remember(aviso.id) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().clickable { abierto = !abierto }.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                MetaAviso(aviso.publicadoEn)
+                Text(aviso.titulo, style = MaterialTheme.typography.titleSmall, color = VynkNavy,
+                    maxLines = if (abierto) 3 else 1, overflow = TextOverflow.Ellipsis)
+            }
+            Text(if (abierto) "−" else "+", style = MaterialTheme.typography.titleLarge, color = VynkSubtle)
+        }
+        if (abierto) Text(aviso.mensaje, style = MaterialTheme.typography.bodySmall, color = VynkMuted)
+    }
+}
+
+@Composable
+private fun MetaAviso(iso: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (esReciente(iso)) Pildora("Nuevo", VynkSky, Color.White)
+        Text(fechaAviso(iso), style = MaterialTheme.typography.labelSmall, color = VynkSubtle)
+    }
+}
+
+/** Foto del aviso: si no carga, no deja un hueco vacío. */
+@Composable
+private fun FotoAviso(url: String) {
+    var foto by remember(url) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(url) {
+        foto = withContext(Dispatchers.IO) {
+            runCatching {
+                val c = URL(url).openConnection() as HttpURLConnection
+                c.connectTimeout = 6500; c.readTimeout = 10000
+                try {
+                    if (c.responseCode !in 200..299) null
+                    else c.inputStream.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = 2 })?.asImageBitmap() }
+                } finally { c.disconnect() }
+            }.getOrNull()
+        }
+    }
+    foto?.let { Image(it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(150.dp)) }
+}
+
+@Composable
+private fun FilaAgenda(a: ActividadAgenda) {
+    val fecha = runCatching { LocalDate.parse(a.fecha) }.getOrNull()
+    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(Modifier.width(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(fecha?.dayOfMonth?.toString() ?: "—", style = MaterialTheme.typography.titleLarge, color = VynkNavy)
+            Text(fecha?.format(DateTimeFormatter.ofPattern("MMM", Peru))?.trimEnd('.') ?: "", style = MaterialTheme.typography.labelSmall, color = VynkMuted)
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(a.nombre, style = MaterialTheme.typography.titleSmall, color = VynkNavy, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("${a.inicio}${if (a.fin.isNotBlank()) " – ${a.fin}" else ""} · ${a.ubicacion}", style = MaterialTheme.typography.bodySmall,
+                color = VynkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun Acceso(titulo: String, icono: ImageVector, color: Color, modifier: Modifier, onClick: () -> Unit) {
+    Tarjeta(modifier.clickable(onClick = onClick)) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.size(36.dp).background(color.copy(alpha = .12f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+            }
+            Text(titulo, style = MaterialTheme.typography.titleSmall, color = VynkNavy)
         }
     }
 }

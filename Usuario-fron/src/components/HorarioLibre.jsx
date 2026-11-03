@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { leerSesion } from '../services/authService'
 import { guardarDisponibilidad, interpretarHorario, obtenerDisponibilidad, obtenerSugerenciasHuecos, revisarBloques } from '../services/disponibilidadService'
 import Icono from './Iconos'
-import './HorarioLibre.css'
 
 const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const bloqueNuevo = () => ({ dia: 1, inicio: '08:00', fin: '09:00', nombre: 'Clase / ocupación' })
@@ -79,25 +78,25 @@ export default function HorarioLibre() {
   return (
     <section className="horario-libre">
       <div className="horario-libre__hero">
-        <div><span className="horario-libre__eyebrow">DISPONIBILIDAD PERSONAL</span><h2>Tus clases, sin ocupar toda la pantalla</h2>
-          <p>Guarda tus horas ocupadas una vez y encuentra actividades que no se crucen con tus clases. Puedes ocultar o editar el horario cuando quieras.</p></div>
+        <div><h2>Mis horas libres</h2>
+          <p>Guarda tu horario de clases y te mostramos actividades que no se cruzan con él.</p></div>
         <div className="horario-libre__icon"><Icono nombre="calendario" tamano={35} /></div>
       </div>
 
       <div className="horario-libre__tarjeta">
-        <div className="horario-libre__cabecera"><div><h3>Horario de clases y ocupaciones</h3><p>Solo se guardan los bloques que confirmes. La foto no se conserva.</p></div>
+        <div className="horario-libre__cabecera"><div><h3>Horario de clases y ocupaciones</h3><p>Sube una foto de tu horario o agrega los bloques a mano. La foto no se guarda.</p></div>
           <span className={`horario-libre__estado ${confirmado && !pendiente ? 'horario-libre__estado--ok' : ''}`}>{confirmado && !pendiente ? 'Confirmado' : pendiente ? 'Cambios sin guardar' : 'Sin configurar'}</span></div>
         {!cargando && <div className="horario-libre__resumen">
           <div className="horario-libre__resumen-datos"><strong>{bloques.length}</strong><span>{bloques.length === 1 ? 'bloque ocupado' : 'bloques ocupados'} · {new Set(bloques.map(b => b.dia)).size} días de la semana</span></div>
           <button type="button" className="horario-libre__toggle" aria-controls="horario-editor" aria-expanded={mostrarHorario} onClick={() => setMostrarHorario(v => !v)}>
-            <Icono nombre="calendario" tamano={17} /> {mostrarHorario ? 'Ocultar horario' : 'Mostrar y editar horario'} <span aria-hidden="true">{mostrarHorario ? '↑' : '↓'}</span>
+            <Icono nombre="calendario" tamano={17} /> {mostrarHorario ? 'Ocultar horario' : 'Mostrar y editar horario'} 
           </button>
         </div>}
         {error && <p className="horario-libre__error" role="alert">{error}</p>}
         {!mostrarHorario && pendiente && <p className="horario-libre__advertencia">Tienes cambios pendientes. Abre el horario y guarda para actualizar las sugerencias.</p>}
         <div id="horario-editor" hidden={!mostrarHorario}>
         <label className={`horario-libre__subir ${procesando ? 'horario-libre__subir--busy' : ''}`}>
-          <Icono nombre="calendario" tamano={25} /><strong>{procesando ? 'Leyendo la imagen con Gemini…' : 'Seleccionar imagen del horario'}</strong>
+          <Icono nombre="calendario" tamano={25} /><strong>{procesando ? 'Leyendo la imagen…' : 'Seleccionar imagen del horario'}</strong>
           <small>JPG, PNG o WEBP · Máximo 5 MB</small>
           <input type="file" accept="image/jpeg,image/png,image/webp" onChange={leerImagen} disabled={procesando || guardando} aria-label="Seleccionar una foto de tu horario" />
         </label>
@@ -122,21 +121,21 @@ export default function HorarioLibre() {
         </div>
       </div>
       <div className="horario-libre__resultados">
-        <div className="horario-libre__cabecera"><div><h3>Actividades compatibles con tu tiempo</h3><p>Resultados de actividades publicadas que no se cruzan con tu disponibilidad confirmada.</p></div>
+        <div className="horario-libre__cabecera"><div><h3>Actividades que encajan en tu horario</h3><p>Actividades publicadas que no se cruzan con tu horario.</p></div>
         {confirmado && !pendiente && <button className="boton-secundario" type="button" onClick={() => setVersion((n) => n + 1)}>Actualizar</button>}</div>
         {!confirmado && <p>Sube y confirma tu horario para ver recomendaciones.</p>}
         {pendiente && <p>Guarda tus correcciones para volver a calcular las sugerencias.</p>}
         {cargandoSugerencias && <p role="status">Buscando planes disponibles…</p>}
         {sugerencias && !pendiente && <>
-          <p className="horario-libre__origen">{sugerencias.origen === 'ia' ? '✦ Priorizadas con Gemini' : 'Sugerencias por reglas, sin IA'} · {sugerencias.aviso}</p>
+          <p className="horario-libre__origen">{sugerencias.origen === 'ia' ? 'Ordenadas con IA' : 'Ordenadas por horario'}{sugerencias.aviso ? ` · ${sugerencias.aviso}` : ''}</p>
           {!sugerencias.actividades?.length && <p>No hay nuevas actividades compatibles por ahora.</p>}
           <div className="horario-libre__grid">{(sugerencias.actividades || []).map((a) => <article className="horario-libre__sugerencia" key={a.id}>
             <div className="horario-libre__sugerencia-icon"><Icono nombre="destellos" tamano={22} /></div>
             <div><strong>{a.nombre || a.nombreActividad}</strong><small>{a.fecha} · {a.horaInicio} – {a.horaFin}</small>
-              {cabeEnHorario(a) && <strong className="horario-libre__compatible">✓ Cabe en tu horario</strong>}
-              <span>Hueco libre: {a.huecoInicio} – {a.huecoFin}</span><p>{a.motivo || 'Se ajusta a tus preferencias y disponibilidad.'}</p><a className="vynk-up-card__action" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles e inscribirme →</a></div>
+              {cabeEnHorario(a) && <strong className="horario-libre__compatible">Cabe en tu horario</strong>}
+              <span>Hueco libre: {a.huecoInicio} – {a.huecoFin}</span><p>{a.motivo || 'Se ajusta a tus preferencias y disponibilidad.'}</p><a className="vynk-up-card__action" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles</a></div>
           </article>)}</div>
-          <small>La plataforma no te inscribe automáticamente en ninguna actividad.</small>
+          
         </>}
       </div>
     </section>

@@ -2,6 +2,14 @@ package com.tecsup.tcweek.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.tecsup.tcweek.ui.comun.Pildora
+import com.tecsup.tcweek.ui.comun.Tarjeta
+import com.tecsup.tcweek.ui.comun.TextoSuave
+import com.tecsup.tcweek.ui.theme.VynkBlueSoft
+import com.tecsup.tcweek.ui.theme.VynkNavy
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +32,7 @@ import com.tecsup.tcweek.data.InteresesApi
 import kotlinx.coroutines.CancellationException
 
 /** Perfil · «Mis intereses»: los que eligió la persona y un botón para cambiarlos. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ResumenIntereses(onElegir: () -> Unit) {
     val context = LocalContext.current
@@ -45,22 +54,18 @@ fun ResumenIntereses(onElegir: () -> Unit) {
     }
 
     val elegidos = nombres.orEmpty()
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("MIS INTERESES", style = MaterialTheme.typography.labelMedium, color = Color(0xFF6B7A99))
-            Text(
-                text = when {
-                    nombres == null -> "Cargando tus intereses…"
-                    fallo -> "No pudimos cargar tus intereses."
-                    elegidos.isEmpty() -> "Todavía no elegiste intereses. Elígelos para recibir recomendaciones."
-                    else -> elegidos.joinToString(" · ")
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (elegidos.isNotEmpty()) FontWeight.SemiBold else FontWeight.Normal,
-                color = Color(0xFF0D1B3E)
-            )
-            OutlinedButton(onClick = onElegir, modifier = Modifier.fillMaxWidth()) {
-                Text(if (elegidos.isNotEmpty()) "Editar intereses" else "Elegir intereses")
+    Tarjeta {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when {
+                nombres == null -> TextoSuave("Cargando tus intereses…")
+                fallo -> TextoSuave("No pudimos cargar tus intereses.")
+                elegidos.isEmpty() -> TextoSuave("Todavía no elegiste intereses. Elígelos para recibir recomendaciones.")
+                else -> FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    elegidos.forEach { Pildora(it, VynkBlueSoft, VynkNavy) }
+                }
+            }
+            OutlinedButton(onClick = onElegir, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)) {
+                Text(if (elegidos.isNotEmpty()) "Editar intereses" else "Elegir intereses", style = MaterialTheme.typography.labelLarge)
             }
         }
     }

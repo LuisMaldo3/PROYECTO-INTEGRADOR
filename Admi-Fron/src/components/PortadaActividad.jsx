@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { buscarPortadas, generarPortadaGemini, subirPortada, urlPortada } from '../services/portadasService'
-import './PortadaActividad.css'
 
 /** Elige una portada una vez; nunca busca o genera automáticamente al cargar una tarjeta. */
 export default function PortadaActividad({ token, nombre, valor, onCambiar, deshabilitado = false }) {
@@ -20,7 +19,7 @@ export default function PortadaActividad({ token, nombre, valor, onCambiar, desh
     try {
       const resultados = await buscarPortadas(token, nombre)
       setFotos(resultados)
-      if (!resultados.length) setError('No encontramos fotografías. Intenta con un nombre más concreto o genera una con Gemini.')
+      if (!resultados.length) setError('No encontramos fotos. Prueba con un título más concreto o genera una imagen.')
     } catch (e) { setError(e.message) }
     finally { setBuscando(false) }
   }
@@ -74,33 +73,32 @@ export default function PortadaActividad({ token, nombre, valor, onCambiar, desh
 
   return <section className="portada-actividad" aria-labelledby="portada-actividad-titulo">
     <div className="portada-actividad__heading">
-      <div><span className="portada-actividad__eyebrow">PRESENTACIÓN VISUAL</span><h3 id="portada-actividad-titulo">Portada de la actividad</h3>
-      <p>Con solo escribir el nombre sugeriremos una fotografía relacionada. También puedes generar con Gemini, subir una foto propia o pegar una URL. La imagen elegida se conserva al guardar.</p></div>
+      <div><h3 id="portada-actividad-titulo">Imagen</h3>
+      <p>Sugerimos una foto según el título. También puedes generarla, subirla o pegar un enlace.</p></div>
     </div>
     <div className="portada-actividad__acciones">
-      <button type="button" className={modo === 'buscar' ? 'portada-actividad__boton portada-actividad__boton--activo' : 'portada-actividad__boton'} onClick={buscar} disabled={ocupado || nombre.trim().length < 3}>{buscando ? 'Buscando fotos…' : 'Buscar fotografías'}</button>
-      <button type="button" className={modo === 'gemini' ? 'portada-actividad__boton portada-actividad__boton--activo' : 'portada-actividad__boton'} onClick={generar} disabled={ocupado || nombre.trim().length < 3}>{generando ? 'Gemini está creando la portada…' : 'Generar con Gemini'}</button>
+      <button type="button" className={modo === 'buscar' ? 'portada-actividad__boton portada-actividad__boton--activo' : 'portada-actividad__boton'} onClick={buscar} disabled={ocupado || nombre.trim().length < 3}>{buscando ? 'Buscando…' : 'Buscar fotos'}</button>
+      <button type="button" className={modo === 'gemini' ? 'portada-actividad__boton portada-actividad__boton--activo' : 'portada-actividad__boton'} onClick={generar} disabled={ocupado || nombre.trim().length < 3}>{generando ? 'Generando…' : 'Generar con IA'}</button>
     </div>
-    <label className="vynk-portada-subir">Subir imagen propia (JPG o PNG, hasta 5 MB)
+    <label className="vynk-portada-subir">Subir imagen (JPG o PNG, máx. 5 MB)
       <input type="file" accept="image/jpeg,image/png" disabled={ocupado} onChange={subirImagen} />
       {subiendo && <span role="status">Guardando imagen en VYNK…</span>}
     </label>
-    <div className="vynk-portada-manual"><label>URL de imagen propia (HTTPS)
+    <div className="vynk-portada-manual"><label>Enlace de imagen (https)
       <input type="url" placeholder="https://.../fotografia.jpg" value={urlManual} disabled={ocupado} onChange={e => setUrlManual(e.target.value)} /></label>
       <button type="button" className="portada-actividad__boton" disabled={ocupado || !urlManual.trim()} onClick={agregarUrl}>Usar URL</button>
     </div>
-    {nombre.trim().length < 3 && <p className="portada-actividad__ayuda">Escribe primero el nombre de la actividad para activar las opciones.</p>}
+    {nombre.trim().length < 3 && <p className="portada-actividad__ayuda">Escribe primero el título para buscar o generar.</p>}
     {error && <p role="alert" className="portada-actividad__error">{error}</p>}
     {valor?.url && <div className="portada-actividad__elegida">
       <img src={urlPortada(valor)} alt={`Portada seleccionada para ${nombre}`} loading="lazy" />
-      <div className="portada-actividad__elegida-info"><div><strong>Portada seleccionada</strong><span>{valor.tipo === 'gemini' ? 'Generada con Gemini' : valor.tipo === 'subida' ? 'Imagen subida por administración' : valor.tipo === 'url' ? 'Imagen mediante URL de administración' : `Fotografía de ${valor.autor || 'Wikimedia Commons'}`}</span></div>
-        <button type="button" onClick={() => onCambiar(null)} disabled={ocupado}>Quitar portada</button></div>
+      <div className="portada-actividad__elegida-info"><div><strong>Imagen elegida</strong><span>{valor.tipo === 'gemini' ? 'Generada con IA' : valor.tipo === 'subida' ? 'Subida desde tu equipo' : valor.tipo === 'url' ? 'Desde un enlace' : `Foto de ${valor.autor || 'Wikimedia Commons'}`}</span></div>
+        <button type="button" onClick={() => onCambiar(null)} disabled={ocupado}>Quitar</button></div>
     </div>}
     {fotos.length > 0 && <div className="portada-actividad__resultados">
-      <p>Selecciona la fotografía que represente mejor tu actividad:</p>
+      <p>Elige una foto:</p>
       <div className="portada-actividad__galeria">{fotos.map((foto,i) => <button type="button" key={`${foto.url}-${i}`} className={valor?.url === foto.url ? 'portada-actividad__foto portada-actividad__foto--elegida' : 'portada-actividad__foto'} onClick={() => onCambiar(foto)} disabled={ocupado} aria-label={`Elegir fotografía ${i+1} de ${foto.autor}`}>
         <img src={foto.url} alt={`Opción de portada ${i+1}`} loading="lazy" /><span>{foto.autor} · {foto.licencia}</span></button>)}</div>
     </div>}
-    <p className="portada-actividad__pie">La sugerencia automática proviene de Wikimedia Commons (se conserva su atribución). Gemini necesita que GEMINI_API_KEY esté configurada en Spring Boot y puede consumir créditos de API.</p>
   </section>
 }

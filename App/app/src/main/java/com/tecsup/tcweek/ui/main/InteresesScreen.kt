@@ -69,10 +69,10 @@ import com.tecsup.tcweek.data.InteresesApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-private val Azul = Color(0xFF0B63FF)
-private val Marino = Color(0xFF0D1B3E)
-private val Gris = Color(0xFF6B7A99)
-private val Borde = Color(0xFFD9E1EC)
+private val Azul = Color(0xFF1557D0)
+private val Marino = Color(0xFF0B2A5B)
+private val Gris = Color(0xFF55657E)
+private val Borde = Color(0xFFDDE4EE)
 
 /** Dibujo de cada interés (la lógica de cuál es cuál está en Intereses.kt). */
 fun IconoInteres.dibujo(): ImageVector = when (this) {
@@ -194,7 +194,7 @@ fun InteresesScreen(
         }
         HorizontalDivider(color = Borde)
         if (primerIngreso && avisoEsError && aviso != null) {
-            Text(aviso.orEmpty(), color = Color(0xFFA12525), modifier = Modifier.padding(12.dp))
+            Text(aviso.orEmpty(), color = Color(0xFFC0322B), modifier = Modifier.padding(12.dp))
         }
 
         when {
@@ -280,7 +280,7 @@ private fun TarjetaInteres(interes: Interes, marcado: Boolean, habilitado: Boole
         onClick = onClick,
         enabled = habilitado,
         shape = RoundedCornerShape(12.dp),
-        color = if (marcado) Color(0xFFF0F6FF) else Color.White,
+        color = if (marcado) Color(0xFFE8F0FD) else Color.White,
         border = BorderStroke(if (marcado) 1.5.dp else 1.dp, if (marcado) Azul else Borde),
         modifier = Modifier.fillMaxWidth().semantics {
             role = Role.Checkbox
@@ -296,7 +296,7 @@ private fun TarjetaInteres(interes: Interes, marcado: Boolean, habilitado: Boole
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (marcado) Azul else Color(0xFFEEF3FA)),
+                    .background(if (marcado) Azul else Color(0xFFF2F5F9)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -344,7 +344,7 @@ private fun BarraGuardar(
                     aviso,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (avisoEsError) Color(0xFFA12525) else Color(0xFF14673B)
+                    color = if (avisoEsError) Color(0xFFC0322B) else Color(0xFF12805C)
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {

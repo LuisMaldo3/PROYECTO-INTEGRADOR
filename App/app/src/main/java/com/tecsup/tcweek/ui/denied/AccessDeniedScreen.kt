@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.tcweek.R
 
-private val BluePrimary = Color(0xFF0B63FF)
-private val DarkText = Color(0xFF0D1B3E)
-private val GrayText = Color(0xFF6B7A99)
+private val BluePrimary = Color(0xFF1557D0)
+private val DarkText = Color(0xFF0B2A5B)
+private val GrayText = Color(0xFF55657E)
 private val DeniedRed = Color(0xFFD93025)
 private val DeniedRedBg = Color(0xFFFDECEA)
 

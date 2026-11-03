@@ -3,7 +3,7 @@ import Icono from './Iconos'
 import { listarUsuarios } from '../services/usuariosService'
 import { etiquetaEstado, etiquetaRol, filtrarUsuarios } from '../services/usuarios'
 
-/** Tarea 4 · Pantalla con la lista de usuarios (la carga de datos es la tarea 3, en usuariosService). */
+/** Lista de usuarios con búsqueda y filtro por rol. */
 export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, onSesionExpirada, version = 0 }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', usuarios: [] })
   const [texto, setTexto] = useState('')
@@ -34,25 +34,25 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
 
   return (
     <section className="lista">
-      <header className="lista__cabecera">
+      <header className="pagina__cabecera">
         <div>
-          <p className="eyebrow">GESTIÓN DE COMUNIDAD</p><h1>Usuarios</h1>
-          <p className="suave">
-            {estado.cargando ? 'Buscando usuarios…' : `${visibles.length} cuentas encontradas`}
-          </p>
+          <h1>Usuarios</h1>
+          <p>Roles, áreas y acceso de cada cuenta.</p>
         </div>
-        <button type="button" className="boton boton--claro" onClick={() => setRecarga((n) => n + 1)}>
-          <Icono nombre="actualizar" tam={18} /> Actualizar
-        </button>
+        <div className="pagina__acciones">
+          <button type="button" className="boton boton--claro" onClick={() => setRecarga((n) => n + 1)}>
+            <Icono nombre="actualizar" tam={18} /> Actualizar
+          </button>
+        </div>
       </header>
 
-      <div className="metricas-usuarios" aria-label="Resumen de cuentas">
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="usuarios" tam={20}/></span><strong>{visibles.length}</strong><span>Usuarios encontrados</span></div>
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><strong>{visibles.filter((u) => u.rol === 'organizador').length}</strong><span>Organizadores</span></div>
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><strong>{visibles.filter((u) => u.activo !== false).length}</strong><span>Cuentas activas</span></div>
-      </div>
+      <dl className="cifras" aria-label="Resumen de cuentas">
+        <div><dt>Cuentas</dt><dd>{estado.cargando ? '—' : visibles.length}</dd></div>
+        <div><dt>Organizadores</dt><dd>{estado.cargando ? '—' : visibles.filter((u) => u.rol === 'organizador').length}</dd></div>
+        <div><dt>Activas</dt><dd>{estado.cargando ? '—' : visibles.filter((u) => u.activo !== false).length}</dd></div>
+        <div><dt>Inactivas</dt><dd>{estado.cargando ? '—' : visibles.filter((u) => u.activo === false).length}</dd></div>
+      </dl>
       <div className="filtros" role="search" aria-label="Buscar usuarios">
-        <span className="filtros__titulo">Filtrar usuarios</span>
         <span className="buscador">
           <Icono nombre="buscar" tam={18} />
           <input
@@ -67,7 +67,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         {texto && <button type="button" className="boton boton--claro" onClick={() => setTexto('')} aria-label="Limpiar búsqueda">Limpiar</button>}
         <select value={rol} onChange={(e) => setRol(e.target.value)} aria-label="Filtrar por rol">
           <option value="">Todos los roles</option>
-          <option value="usuario">Usuario</option>
+          <option value="usuario">Estudiante</option>
           <option value="organizador">Organizador</option>
           <option value="administrador">Administrador</option>
         </select>
@@ -79,7 +79,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
         </p>
       )}
 
-      {estado.cargando && <div className="usuarios-cargando" role="status">Buscando cuentas en el servidor…</div>}
+      {estado.cargando && <div className="usuarios-cargando" role="status">Cargando usuarios…</div>}
 
       {!estado.cargando && !estado.error && visibles.length === 0 && (
         <div className="vacio">
@@ -124,7 +124,7 @@ export default function ListaUsuarios({ token, seleccionadoId, onSeleccionar, on
                   </td>
                   <td className="tabla__acciones-celda">
                     <button type="button" className="boton-perfil" onClick={(evento) => { evento.stopPropagation(); onSeleccionar(u.id) }} aria-label={`Ver perfil de ${u.nombre || u.correo}`}>
-                      Ver perfil <Icono nombre="flecha-derecha" tam={16} />
+                      Ver perfil
                     </button>
                   </td>
                 </tr>

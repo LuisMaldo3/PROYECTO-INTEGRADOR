@@ -74,9 +74,8 @@ export function Login({ onSesion }) {
   return (
     <Fondo>
       <h2 className="card-title">Inicia sesión</h2>
-      <p className="card-subtitle">Usa tu correo de Tecsup para entrar.</p>
+      <p className="card-subtitle">Entra con tu cuenta <strong>{DOMINIO_PERMITIDO}</strong>.</p>
 
-      {/* Banner Profesional de Acceso Denegado / Error */}
       {error && (
         <div className="alerta-denegado" role="alert">
           <div className="alerta-icono">
@@ -172,7 +171,7 @@ export function Login({ onSesion }) {
       </form>
 
       <div className="line-divider">
-        <span>o</span>
+        <span>o continúa con</span>
       </div>
 
       {estado === 'sin-config' && (
@@ -190,7 +189,7 @@ export function Login({ onSesion }) {
       {estado === 'error' && (
         <div className="alerta-denegado" role="alert">
           <div className="alerta-contenido">
-            <span className="alerta-titulo">Error de carga</span>
+            <span className="alerta-titulo">Google no está disponible</span>
             <p className="alerta-mensaje">
               No se pudo cargar Google. Revisa tu conexión o desactiva el bloqueador de anuncios.{' '}
               <button type="button" className="link-btn" onClick={() => window.location.reload()}>
@@ -211,14 +210,6 @@ export function Login({ onSesion }) {
           </div>
         )}
       </div>
-
-      <p className="card-hint">
-        <svg width="14" height="14" {...iconoProps}>
-          <rect x="3" y="11" width="18" height="11" rx="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-        Solo cuentas <strong>{DOMINIO_PERMITIDO}</strong>
-      </p>
       <p className="card-nota">¿Aún no tienes contraseña? Entra con Google.</p>
     </Fondo>
   )

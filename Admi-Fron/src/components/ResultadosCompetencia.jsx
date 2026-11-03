@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { anunciarGanadores, guardarPropuesta, obtenerResultadosCompetencia, participantesCompetencia, publicarResultados } from '../services/competenciasService'
-import './ResultadosCompetencia.css'
 
 export default function ResultadosCompetencia({ actividad, token, onCerrar }) {
   const [estado, setEstado] = useState({ cargando: true, participantes: [], resultados: null, error: '' })
@@ -29,8 +28,8 @@ export default function ResultadosCompetencia({ actividad, token, onCerrar }) {
   const editadas = posiciones.map(p => [String(p.inscripcionId), Number(p.puesto), Number(p.puntos ?? 0)]).sort((a, b) => a[1] - b[1])
   const cambiosSinGuardar = JSON.stringify(guardadas) !== JSON.stringify(editadas)
   return <div className="confirmacion-fondo" role="presentation"><div className="resultados-modal" role="dialog" aria-modal="true" aria-label={`Resultados de ${actividad.nombre}`}>
-    <div className="resultados-modal__encabezado"><div><p className="eyebrow">T&amp;C WEEK · VALIDACIÓN ADMINISTRATIVA</p><h2>{actividad.nombre}</h2><p className="suave">El organizador propone puestos y puntos; tú verificas ambos antes de publicarlos oficialmente.</p></div><button type="button" className="boton boton--claro" onClick={onCerrar} aria-label="Cerrar revisión de resultados">Cerrar</button></div>
-    <div className="resultados-modal__flujo"><div><strong>01</strong><span>Organizador registra</span></div><div><strong>02</strong><span>Administrador revisa</span></div><div><strong>03</strong><span>Estudiantes consultan</span></div></div>
+    <div className="resultados-modal__encabezado"><div><h2>{actividad.nombre}</h2><p className="suave">Revisa los puestos y puntos antes de publicarlos.</p></div><button type="button" className="boton boton--claro" onClick={onCerrar} aria-label="Cerrar revisión de resultados">Cerrar</button></div>
+    <ol className="resultados-modal__flujo"><li>El organizador registra</li><li>Tú revisas y publicas</li><li>Los estudiantes lo ven</li></ol>
     {estado.cargando && <p role="status">Cargando participantes…</p>}
     {estado.error && <p className="aviso aviso--error">{estado.error}</p>}
     {!estado.cargando && !estado.error && <>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { definirPassword } from '../services/authService'
-import './Intereses.css'
 import { ResumenIntereses } from './ResumenIntereses'
 import { RolBadge } from './RolBadge'
 
@@ -31,31 +30,13 @@ export function Perfil({ usuario, rol, token, onSalir }) {
     <div className="perfil-contenido">
       <header className="perfil-presentacion">
         <div className="perfil-presentacion__avatar" aria-hidden="true">{iniciales}</div>
-        <div><span>IDENTIDAD INSTITUCIONAL</span><h2>{nombre}</h2><p>{usuario.correo}</p></div>
+        <div><h2>{nombre}</h2><p>{usuario.correo}</p></div>
         <RolBadge rol={rol} />
       </header>
       <section className="perfil-seccion">
-        <h2>Información personal</h2>
-        <dl className="perfil-datos">
-          <div>
-            <dt>Nombre</dt>
-            <dd>{usuario.nombre || '—'}</dd>
-          </div>
-          <div>
-            <dt>Correo</dt>
-            <dd>{usuario.correo}</dd>
-          </div>
-          <div>
-            <dt>Rol</dt>
-            <dd><RolBadge rol={rol} /></dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="perfil-seccion">
-        <h2>Seguridad de mi cuenta</h2>
+        <h2>Contraseña</h2>
         <form className="perfil-password" onSubmit={guardar}>
-          <p className="card-nota">Con una contraseña podrás entrar con tu correo sin usar Google.</p>
+          <p className="card-nota">Crea una contraseña para entrar sin Google.</p>
           <label htmlFor="nueva-password">Nueva contraseña</label>
           <div className="input-box">
             <input
@@ -83,7 +64,7 @@ export function Perfil({ usuario, rol, token, onSalir }) {
       </section>
 
       <section className="perfil-seccion perfil-seccion--ancha">
-        <h2>Preferencias e intereses</h2>
+        <h2>Mis intereses</h2>
         <ResumenIntereses token={token} />
       </section>
 

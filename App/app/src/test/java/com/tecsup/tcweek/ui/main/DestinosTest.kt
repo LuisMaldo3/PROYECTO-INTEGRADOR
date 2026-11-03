@@ -9,7 +9,7 @@ class DestinosTest {
     @Test
     fun elMenuTieneLasCincoPantallasDelEstudianteEnOrden() {
         assertEquals(
-            listOf("Inicio", "Catálogo", "Agenda", "Asistente", "Perfil"),
+            listOf("Inicio", "Actividades", "Agenda", "Asistente", "Perfil"),
             Destino.entries.map { it.titulo }
         )
     }

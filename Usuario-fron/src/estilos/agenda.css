@@ -1,0 +1,162 @@
+/* ---------- Mi agenda ---------- */
+.agenda { display: grid; gap: 20px; }
+.agenda-vistas { justify-self: start; }
+
+.lista-barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lista-barra p { color: var(--texto-2); font-weight: 600; font-size: .92rem; }
+
+/* Un día: bloque de fecha a la izquierda, actividades a la derecha */
+.dia--agenda { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 18px; }
+.dia__bloque {
+  position: sticky; top: 16px;
+  align-self: start;
+  display: grid; justify-items: center;
+  padding: 12px 6px;
+  border-radius: var(--r-m);
+  background: var(--tinta);
+  color: #fff;
+  text-align: center;
+}
+.dia__bloque strong { font-family: var(--fuente-titulo); font-size: 1.8rem; line-height: 1; }
+.dia__bloque span { margin-top: 4px; font-size: .7rem; font-weight: 600; color: rgba(214, 228, 250, .85); }
+.dia__contenido { min-width: 0; }
+.dia__cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.dia__cabecera h2 { font-size: 1.05rem; }
+.dia__cabecera span { font-size: .82rem; color: var(--texto-3); }
+
+.agenda__lista { display: grid; gap: 10px; }
+.agenda-item {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 18px;
+  padding: 16px 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-left: 4px solid var(--area, var(--azul));
+  border-radius: var(--r-m);
+}
+.agenda-item--cruce { border-color: #f6c9c5; border-left-color: var(--error); }
+.agenda-item--cancelada { opacity: .65; }
+.agenda-item__hora { display: grid; align-content: start; }
+.agenda-item__hora strong { font-family: var(--fuente-titulo); font-size: 1.15rem; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.agenda-item__hora small { color: var(--texto-3); font-size: .78rem; }
+.agenda-item__cuerpo { display: grid; gap: 6px; min-width: 0; }
+.agenda-item__etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.agenda-item h3 { font-size: 1.02rem; }
+.agenda-item__descripcion { color: var(--texto-2); font-size: .87rem; }
+.agenda-item__lugar { display: flex; align-items: center; gap: 6px; color: var(--texto-2); font-size: .85rem; }
+.agenda-item__lugar svg { color: var(--texto-3); }
+.agenda-sugerida__motivo { font-size: .85rem; padding: 8px 10px; border-radius: var(--r-s); background: var(--superficie-2); color: var(--texto-2); }
+
+/* Agenda sugerida y horas libres: cabecera sobria */
+.agenda-sugerida__hero, .horario-libre__hero {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  padding: 20px 24px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-l);
+}
+.agenda-sugerida__hero h2, .horario-libre__hero h2 { font-size: 1.25rem; }
+.agenda-sugerida__hero p, .horario-libre__hero p { color: var(--texto-2); margin-top: 2px; max-width: 60ch; }
+.horario-libre__icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 14px; background: var(--azul-suave); color: var(--azul); }
+
+.agenda-sugerida__resumen { display: flex; flex-wrap: wrap; gap: 8px; }
+.agenda-sugerida__dato, .agenda-sugerida__origen {
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--superficie); border: 1px solid var(--linea);
+  font-size: .82rem; color: var(--texto-2);
+}
+.agenda-sugerida__dato strong { color: var(--tinta); }
+.agenda-sugerida__origen--ia { background: var(--area-digital-suave); color: var(--area-digital); border-color: transparent; font-weight: 650; }
+
+/* Cruces de horario */
+.cruces { padding: 18px 20px; border-radius: var(--r-l); background: var(--superficie); border: 1px solid #f6c9c5; border-left: 4px solid var(--error); }
+.cruces--nota { display: flex; align-items: center; gap: 8px; }
+.cruces__cabecera { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+.cruces__icono { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--error-suave); color: var(--error); flex: none; }
+.cruces__cabecera h3 { font-size: 1rem; }
+.cruces__cabecera p { color: var(--texto-2); font-size: .88rem; }
+.cruces__lista { display: grid; gap: 12px; }
+.cruces__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 14px; padding-top: 12px; border-top: 1px solid var(--linea); }
+.cruces__texto { display: grid; gap: 2px; }
+.cruces__texto strong span { font-weight: 400; color: var(--texto-2); }
+.cruces__texto small { color: var(--texto-2); }
+.cruces__alternativas, .cruces__explicacion { grid-column: 1 / -1; padding: 12px 14px; border-radius: var(--r-s); background: var(--superficie-2); font-size: .86rem; }
+.cruces__alternativas-titulo { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.cruces__alternativas-titulo strong { display: flex; align-items: center; gap: 6px; }
+.cruces__alternativas-titulo span { color: var(--texto-3); }
+.cruces__opciones { display: grid; gap: 6px; }
+.cruces__opcion { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 6px; background: var(--superficie); }
+.cruces__opcion div { display: grid; gap: 2px; }
+.cruces__opcion small { display: flex; align-items: center; gap: 4px; color: var(--texto-2); }
+.cruces__opcion > span { align-self: center; color: var(--ok); font-weight: 650; font-size: .78rem; }
+.cruces__nota-alternativas, .cruces__explicacion small { display: block; margin-top: 8px; color: var(--texto-3); font-size: .78rem; }
+
+/* ---------- Horas libres ---------- */
+.horario-libre { display: grid; gap: 18px; }
+.horario-libre__tarjeta, .horario-libre__resultados {
+  display: grid; gap: 14px;
+  padding: 22px 24px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-l);
+}
+.horario-libre__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.horario-libre__cabecera h3 { font-size: 1.05rem; }
+.horario-libre__cabecera p { color: var(--texto-2); font-size: .88rem; }
+.horario-libre__estado:not(.horario-libre__estado--ok) { background: var(--aviso-suave); color: var(--aviso); border-color: #f5dcaa; }
+.horario-libre__resumen { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: var(--r-s); background: var(--superficie-2); }
+.horario-libre__resumen-datos { display: flex; align-items: baseline; gap: 8px; color: var(--texto-2); font-size: .88rem; }
+.horario-libre__resumen-datos strong { font-family: var(--fuente-titulo); font-size: 1.4rem; color: var(--tinta); }
+.horario-libre__toggle { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--azul); font-weight: 650; font-size: .88rem; }
+#horario-editor { display: grid; gap: 14px; }
+.horario-libre__subir {
+  position: relative;
+  display: grid; justify-items: center; gap: 4px;
+  padding: 26px;
+  border: 2px dashed var(--linea-fuerte);
+  border-radius: var(--r-m);
+  background: var(--superficie-2);
+  color: var(--azul);
+  text-align: center;
+  cursor: pointer;
+}
+.horario-libre__subir:hover { border-color: var(--azul); }
+.horario-libre__subir strong { color: var(--tinta); }
+.horario-libre__subir small { color: var(--texto-3); font-weight: 500; }
+.horario-libre__subir input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.horario-libre__subir--busy { opacity: .6; }
+.horario-libre__tabla { display: grid; gap: 6px; overflow-x: auto; }
+.horario-libre__fila-titulos, .horario-libre__fila { display: grid; grid-template-columns: 140px 110px 110px minmax(160px, 1fr) 40px; gap: 8px; min-width: 580px; }
+.horario-libre__fila-titulos span { font-size: .76rem; font-weight: 650; color: var(--texto-3); }
+.horario-libre__fila button { border: 1px solid var(--linea); border-radius: var(--r-s); background: var(--superficie); color: var(--texto-2); font-size: 1.2rem; }
+.horario-libre__fila button:hover { background: var(--error-suave); color: var(--error); border-color: #f6c9c5; }
+.horario-libre__acciones { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+.horario-libre__nota, .horario-libre__origen { color: var(--texto-3); font-size: .8rem; }
+.horario-libre__resultados > p { color: var(--texto-2); font-size: .9rem; }
+.horario-libre__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.horario-libre__sugerencia { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 14px; border: 1px solid var(--linea); border-radius: var(--r-m); }
+.horario-libre__sugerencia-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--azul-suave); color: var(--azul); }
+.horario-libre__sugerencia > div { display: grid; gap: 4px; font-size: .86rem; }
+.horario-libre__sugerencia small, .horario-libre__sugerencia span { color: var(--texto-2); }
+.horario-libre__sugerencia p { color: var(--texto-2); }
+.horario-libre__compatible { color: var(--ok); font-size: .8rem; }
+
+@media (max-width: 760px) {
+  .dia--agenda { grid-template-columns: 1fr; gap: 10px; }
+  .dia__bloque { position: static; justify-self: start; display: flex; gap: 8px; align-items: baseline; padding: 6px 12px; }
+  .dia__bloque strong { font-size: 1.2rem; }
+  .dia__bloque span { margin: 0; }
+  .agenda-item { grid-template-columns: 1fr; gap: 6px; }
+  .agenda-item__hora { display: flex; gap: 8px; align-items: baseline; }
+  .agenda-vistas { display: flex; }
+  .agenda-vistas button { flex: 1; padding: 0 6px; font-size: .8rem; }
+  .cruces__item { grid-template-columns: 1fr; }
+  .horario-libre__tarjeta, .horario-libre__resultados { padding: 18px; }
+}
+
+@media (max-width: 760px) {
+  /* En celular el día ya está en el título: el bloque de fecha sobra */
+  .dia__bloque { display: none; }
+  .dia__cabecera { margin-bottom: 8px; }
+}

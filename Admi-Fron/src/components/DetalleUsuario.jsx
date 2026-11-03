@@ -63,7 +63,6 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
         <button type="button" className="perfil__volver" onClick={onCerrar}>
           <Icono nombre="flecha-izquierda" tam={18} /> Volver a usuarios
         </button>
-        <span className="perfil__ruta">Usuarios <span>/</span> Perfil</span>
       </div>
 
       {cargando && <div className="perfil__cargando" role="status">Cargando información del perfil…</div>}
@@ -74,7 +73,6 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
           <header className="perfil__cabecera">
             <div className="perfil__avatar" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</div>
             <div className="perfil__identidad">
-              <p className="perfil__eyebrow">PERFIL DE LA COMUNIDAD</p>
               <h1 tabIndex={-1} ref={tituloRef}>{nombre}</h1>
               <p className="perfil__correo"><Icono nombre="correo" tam={16} />{usuario.correo}</p>
               <div className="perfil__etiquetas">
@@ -102,7 +100,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
             <div className="perfil__contenido">
               <section className="perfil__tarjeta" aria-labelledby="perfil-datos-titulo">
                 <div className="perfil__tarjeta-cabecera">
-                  <div><h2 id="perfil-datos-titulo">Información de la cuenta</h2><p>Datos registrados en la plataforma institucional.</p></div>
+                  <div><h2 id="perfil-datos-titulo">Información de la cuenta</h2></div>
                   <span className="perfil__subicono"><Icono nombre="usuarios" tam={19} /></span>
                 </div>
                 <dl className="perfil__datos">
@@ -117,9 +115,9 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
               <aside className="perfil__ayuda">
                 <span className="perfil__subicono"><Icono nombre="candado" tam={19} /></span>
                 <h2>Gestiona su acceso</h2>
-                <p>Desde este perfil puedes modificar su rol, activar o desactivar la cuenta y revisar los permisos asignados.</p>
-                <button type="button" className="boton" onClick={() => setPestana('acceso')}>Administrar acceso <Icono nombre="flecha-derecha" tam={17} /></button>
-                <p className="perfil__nota">El nombre y el correo son de solo lectura en este panel.</p>
+                <p>Cambia su rol, verifica su área o desactiva la cuenta.</p>
+                <button type="button" className="boton" onClick={() => setPestana('acceso')}>Administrar acceso</button>
+                <p className="perfil__nota">El nombre y el correo no se pueden editar aquí.</p>
               </aside>
             </div>
           )}
@@ -127,12 +125,12 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
           {pestana === 'acceso' && (
             <div className="perfil__configuracion">
               <section className="perfil__tarjeta">
-                <div className="perfil__tarjeta-cabecera"><div><h2>Rol y responsabilidades</h2><p>Selecciona el rol que tendrá esta cuenta.</p></div></div>
+                <div className="perfil__tarjeta-cabecera"><div><h2>Rol</h2><p>Define qué puede hacer esta cuenta.</p></div></div>
                 <SelectorRol rolActual={usuario.rol} deshabilitado={cambio.enviando} onElegir={cambio.pedir} />
-                <p className="perfil__texto-ayuda">Para proteger los cambios, se solicitará una confirmación antes de actualizar el rol.</p>
+                <p className="perfil__texto-ayuda">Se pedirá confirmación antes de cambiar el rol.</p>
               </section>
               <section className="perfil__tarjeta" aria-label="Área institucional">
-                <div className="perfil__tarjeta-cabecera"><div><h2>Área verificada de Tecsup</h2><p>Solo un administrador puede establecer el área que recibirá puntos por competencias. Sin área verificada no se publicarán puntos atribuidos a la cuenta.</p></div></div>
+                <div className="perfil__tarjeta-cabecera"><div><h2>Área de Tecsup</h2><p>Los puntos de sus competencias se suman a esta área. Sin área verificada no suma puntos.</p></div></div>
                 <form onSubmit={async (e) => { e.preventDefault(); setGuardandoArea(true); setAviso(''); try {
                   const nuevo = await verificarAreaTecsup(token, usuarioId, areaElegida)
                   setEstado(v => ({ ...v, usuario: nuevo })); onRolCambiado?.()
@@ -143,7 +141,7 @@ export default function DetalleUsuario({ token, usuarioId, onCerrar, onSesionExp
                     <option value="">Sin área verificada</option>
                     {['Gestión y Producción','Tecnología Digital','Minería y Procesos Químicos','Electricidad y Electrónica','Mecánica'].map(area => <option key={area} value={area}>{area}</option>)}
                   </select>
-                  <div style={{marginTop: 12}}><button type="submit" className="boton" disabled={guardandoArea || areaElegida === (usuario.areaTecsup || '')}>{guardandoArea ? 'Guardando…' : 'Verificar área institucional'}</button></div>
+                  <div className="perfil__form-acciones"><button type="submit" className="boton" disabled={guardandoArea || areaElegida === (usuario.areaTecsup || '')}>{guardandoArea ? 'Guardando…' : 'Guardar área'}</button></div>
                 </form>
               </section>
               <section className="perfil__tarjeta">

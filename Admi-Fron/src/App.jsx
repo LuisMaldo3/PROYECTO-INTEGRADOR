@@ -4,13 +4,14 @@ import ListaUsuarios from './components/ListaUsuarios'
 import Login from './components/Login'
 import MenuAdmin from './components/MenuAdmin'
 import PantallaActividades from './components/PantallaActividades'
+import PantallaInscritos from './components/PantallaInscritos'
 import PantallaAvisos from './components/PantallaAvisos'
 import ClasificacionGeneral from './components/ClasificacionGeneral'
 import { cerrarSesion, guardarSesion, leerSesion } from './services/authService'
 
 export default function App() {
   const [sesion, setSesion] = useState(() => leerSesion())
-  const [vista, setVista] = useState('usuarios')
+  const [vista, setVista] = useState('actividades')
   const [seleccionadoId, setSeleccionadoId] = useState(null)
   const [aviso, setAviso] = useState('')
   const desplazamientoLista = useRef(0)
@@ -65,17 +66,13 @@ export default function App() {
         onElegir={(id) => {
           setVista(id)
           setSeleccionadoId(null)
+          window.scrollTo({ top: 0 })
         }}
         usuario={sesion.usuario}
         onCerrarSesion={salir}
       />
 
-      <div className="panel__workspace">
-        <header className="panel__topbar">
-          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? (seleccionadoId ? 'Perfil del usuario' : 'Usuarios') : vista === 'actividades' ? 'Actividades' : vista === 'clasificacion' ? 'Clasificación' : 'Avisos'}</strong></div>
-          <div className="panel__topbar-derecha"><span className="panel__online"/> Panel de administración <span className="panel__topbar-avatar">{(sesion.usuario?.nombre || sesion.usuario?.correo || 'A').charAt(0).toUpperCase()}</span></div>
-        </header>
-        <main className="contenido">
+      <main className="contenido" id="contenido">
         {vista === 'usuarios' && (
           <div className="usuarios-vista">
             <div className="usuarios-vista__listado" hidden={Boolean(seleccionadoId)}>
@@ -99,10 +96,10 @@ export default function App() {
           </div>
         )}
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'inscritos' && <PantallaInscritos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'clasificacion' && <ClasificacionGeneral token={sesion.token} />}
-        </main>
-      </div>
+      </main>
     </div>
   )
 }

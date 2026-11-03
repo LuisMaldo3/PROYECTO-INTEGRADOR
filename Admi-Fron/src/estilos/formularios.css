@@ -1,0 +1,48 @@
+/* ---------- Formulario de actividad ---------- */
+.campo-fila { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.campo-fila--dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.competencia-form, .vynk-areas-asignacion {
+  display: grid; gap: 12px;
+  padding: 16px;
+  border-radius: var(--r-m);
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+}
+.vynk-areas-asignacion p { font-size: .84rem; color: var(--texto-2); }
+.vynk-areas-asignacion__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+/* Selector de imagen */
+.portada-actividad { display: grid; gap: 12px; padding: 16px; border-radius: var(--r-m); border: 1px solid var(--linea); background: var(--superficie-2); }
+.portada-actividad__heading h3 { font-size: .98rem; }
+.portada-actividad__heading p { font-size: .84rem; color: var(--texto-2); margin-top: 2px; }
+.portada-actividad__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.portada-actividad__boton { min-height: 36px; font-size: .84rem; }
+.vynk-portada-subir { display: grid; gap: 6px; font-weight: 600; font-size: .84rem; }
+.vynk-portada-subir span { font-weight: 500; color: var(--texto-2); }
+.vynk-portada-manual { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.vynk-portada-manual label { display: grid; gap: 6px; font-weight: 600; font-size: .84rem; }
+.portada-actividad__ayuda { font-size: .82rem; color: var(--texto-3); }
+.portada-actividad__error { font-size: .84rem; color: var(--error); font-weight: 600; }
+.portada-actividad__elegida { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--r-s); background: var(--superficie); border: 1px solid var(--linea); }
+.portada-actividad__elegida img { width: 140px; height: 90px; object-fit: cover; border-radius: 6px; }
+.portada-actividad__elegida-info { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.portada-actividad__elegida-info div { display: grid; }
+.portada-actividad__elegida-info strong { font-size: .88rem; color: var(--tinta); }
+.portada-actividad__elegida-info span { font-size: .8rem; color: var(--texto-2); }
+.portada-actividad__elegida-info button { border: 0; background: none; color: var(--error); font-weight: 650; font-size: .84rem; }
+.portada-actividad__resultados > p { font-size: .84rem; font-weight: 600; margin-bottom: 8px; }
+.portada-actividad__galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.portada-actividad__foto { display: grid; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: var(--superficie); text-align: left; }
+.portada-actividad__foto img { width: 100%; height: 84px; object-fit: cover; }
+.portada-actividad__foto span { padding: 4px 6px; font-size: .68rem; color: var(--texto-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portada-actividad__foto--elegida { border-color: var(--azul); }
+
+@media (max-width: 700px) {
+  .campo-fila, .campo-fila--dos, .vynk-areas-asignacion__grid { grid-template-columns: 1fr; }
+  .modal { padding: 0; align-items: end; }
+  .modal__ventana--ancha { max-height: 94dvh; border-radius: var(--r-l) var(--r-l) 0 0; padding: 0 18px 18px; }
+  .modal__cabecera { margin: 0 -18px; padding: 18px; }
+  .modal__ventana--ancha .modal__acciones { margin: 4px -18px -18px; padding: 12px 18px; bottom: -18px; }
+  .portada-actividad__elegida { grid-template-columns: 1fr; }
+  .vynk-portada-manual { grid-template-columns: 1fr; }
+}

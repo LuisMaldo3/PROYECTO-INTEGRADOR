@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { consultarClasificacion, consultarResultados } from '../services/inscripcionesService'
-import './ResultadosCompetencias.css'
 import { enlaceActividad } from './DetalleActividad'
-import { urlImagenActividad, imagenTematicaActividad } from '../services/portadaActividad'
+import { claveArea } from '../services/areas'
+import { nombreDia } from '../services/presentacion'
 
 export function ResultadosCompetencias() {
   const [datos, setDatos] = useState({ cargando: true, error: '', resultados: [], clasificacion: null })
@@ -16,34 +16,43 @@ export function ResultadosCompetencias() {
     return () => c.abort()
   }, [revision])
   const filtrados = useMemo(() => datos.resultados.filter(r => `${r.nombre} ${(r.posiciones || []).map(p => p.nombre || '').join(' ')}`.toLocaleLowerCase('es-PE').includes(busqueda.toLocaleLowerCase('es-PE').trim())), [datos.resultados, busqueda])
+  const areas = datos.clasificacion?.areas || []
+  const maxPuntos = Math.max(1, ...areas.map(a => Number(a.puntos) || 0))
+  const publicada = datos.clasificacion?.estado === 'publicado'
   return <div className="tc-resultados">
-    <section className="tc-resultados__cabecera"><div><span className="tc-resultados__kicker">T&amp;C WEEK · TU SEDE</span><h2>Resultados de competencias</h2>
-      <p>Sigue las posiciones oficiales y los ganadores de cada competencia. Solo aparecen resultados que el administrador ya validó.</p>
-      <div className="tc-resultados__resumen"><span><strong>{datos.cargando ? '—' : datos.resultados.length}</strong> competencias con resultados</span><span><strong>5</strong> áreas de Tecsup</span></div></div>
-      <button className="tc-accion" type="button" disabled={datos.cargando} onClick={() => setRevision(v => v + 1)}>Actualizar resultados</button></section>
-    {datos.cargando && <div className="tc-vacio" role="status">Consultando los resultados oficiales…</div>}
+    {datos.cargando && <div className="tc-vacio" role="status">Cargando resultados…</div>}
     {datos.error && <div className="tc-error" role="alert">{datos.error} <button type="button" className="tc-accion" onClick={() => setRevision(v => v + 1)}>Reintentar</button></div>}
     {!datos.cargando && !datos.error && <>
-      <section className="tc-resultados__bloque"><div className="tc-resultados__bloque-titulo"><div><span className="tc-resultados__kicker">RESULTADOS VALIDOS</span><h3>Competencias finalizadas</h3></div>
-        {datos.resultados.length > 0 && <label className="tc-resultados__buscar"><span className="tc-visually-hidden">Buscar competencia o participante</span><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar competencia o ganador…" /></label>}</div>
-        {!datos.resultados.length && <div className="tc-vacio"><strong>Aún no hay ganadores publicados</strong><p>El organizador envía las posiciones al administrador, quien debe verificarlas y publicarlas antes de que aparezcan aquí.</p></div>}
-        {datos.resultados.length > 0 && !filtrados.length && <div className="tc-vacio">No encontramos resultados con ese nombre. Prueba otra búsqueda.</div>}
-        <div className="tc-resultados__grid">{filtrados.map(r => <article className="tc-resultado" key={r.actividadId}>
-          <div className="tc-resultado__top"><span className="tc-resultados__kicker">RESULTADO OFICIAL</span><span className="tc-resultado__publicado">Validado</span></div><h4>{r.nombre}</h4><p>{r.fecha || 'Fecha pendiente'} · {r.modalidad === 'equipos' ? 'Por equipos' : 'Individual'}</p>
-          <ol>{(r.posiciones || []).slice().sort((a,b)=>a.puesto-b.puesto).map((p,i) => <li key={`${p.puesto}-${i}`} className={p.puesto === 1 ? 'tc-resultado__ganador' : undefined}>
-            <span className="tc-resultado__puesto">{p.puesto}°</span><div><strong>{p.nombre}</strong><small>{p.areaTecsup || 'Área aún no verificada'}</small></div>{p.puesto === 1 && <span className="tc-resultado__primer-lugar">Ganador</span>}</li>)}</ol>
-          <a className="tc-boton tc-boton--suave tc-detalle-enlace" href={enlaceActividad(r.actividadId)}>Ver competencia y sus ganadores →</a>
-        </article>)}</div>
+      <section className="tc-resultados__bloque tc-clasificacion" aria-labelledby="tc-clasificacion">
+        <div className="tc-resultados__bloque-titulo">
+          <div><h2 id="tc-clasificacion">Clasificación por áreas</h2><p>Puntos acumulados en competencias con resultados oficiales.</p></div>
+          <div className="tc-resultados__acciones"><span className={`tc-resultado__publicado${publicada ? '' : ' tc-resultado__publicado--pendiente'}`}>{publicada ? 'Oficial' : 'Sin resultados aún'}</span>
+            <button className="tc-accion" type="button" onClick={() => setRevision(v => v + 1)}>Actualizar</button></div>
+        </div>
+        {!publicada && <div className="tc-vacio">Todas las áreas empiezan en cero. La tabla se actualiza cuando administración publica resultados.</div>}
+        <ol className="tc-areas">{areas.map((a, i) => <li key={a.area} data-area={claveArea(a.area)}>
+          <span className="tc-areas__pos">{a.posicion || i + 1}</span>
+          <div className="tc-areas__nombre"><strong>{a.area}</strong><small>{a.primerosPuestos ?? 0} {a.primerosPuestos === 1 ? 'primer puesto' : 'primeros puestos'}</small></div>
+          <div className="tc-areas__barra" aria-hidden="true"><span style={{ width: `${Math.round(((Number(a.puntos) || 0) / maxPuntos) * 100)}%` }} /></div>
+          <strong className="tc-areas__puntos">{a.puntos ?? 0}<small> pts</small></strong>
+        </li>)}</ol>
+        {areas.some(a => (a.desglose || []).length) && <div className="tc-resultados__desglose">{areas.filter(a => (a.desglose || []).length).map(a => <details key={a.area}>
+          <summary>{a.area}: detalle de puntos</summary>
+          <ul>{a.desglose.map((item, i) => <li key={`${item.actividadId}-${i}`}><span>{item.competencia}</span><span>{item.puesto}.º · <strong>{item.puntos} pts</strong></span></li>)}</ul>
+        </details>)}</div>}
       </section>
-      <section className="tc-resultados__bloque"><div className="tc-resultados__bloque-titulo"><div><span className="tc-resultados__kicker">CLASIFICACIÓN GENERAL</span><h3>Puntaje acumulado por áreas</h3></div><span className="tc-resultado__publicado">{datos.clasificacion?.estado === 'publicado' ? 'Oficial' : 'Aún sin resultados'}</span></div>
-        {datos.clasificacion?.estado !== 'publicado' && <div className="tc-vacio">Aún no se han publicado competencias con resultados oficiales. Los cinco puntajes empiezan en cero y se actualizan cuando administración valida posiciones y puntos.</div>}
-        <div className="tc-tabla"><table><thead><tr><th>Pos.</th><th>Área de Tecsup</th><th>1.er puesto</th><th>Puntos oficiales</th></tr></thead><tbody>
-          {(datos.clasificacion?.areas || []).map((a, i) => <tr key={a.area}><td>{a.posicion || i + 1}.º</td><td><strong>{a.area}</strong></td><td>{a.primerosPuestos ?? 0}</td><td><strong>{a.puntos ?? 0}</strong></td></tr>)}
-        </tbody></table></div>
-        <div className="tc-resultados__desglose">{(datos.clasificacion?.areas || []).map(a => <details key={a.area}>
-          <summary>{a.area} · {a.puntos ?? 0} puntos — ver competencias</summary>
-          {(a.desglose || []).length ? <ul>{a.desglose.map((item, i) => <li key={`${item.actividadId}-${i}`}><span>{item.competencia}</span><span>{item.puesto}.º · <strong>{item.puntos} puntos</strong></span></li>)}</ul> : <p>Aún sin resultados validados.</p>}
-        </details>)}</div>
+
+      <section className="tc-resultados__bloque" aria-labelledby="tc-ganadores">
+        <div className="tc-resultados__bloque-titulo"><div><h2 id="tc-ganadores">Ganadores por competencia</h2><p>Solo se muestran resultados validados por administración.</p></div>
+          {datos.resultados.length > 0 && <label className="tc-resultados__buscar"><span className="tc-visually-hidden">Buscar competencia o participante</span><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar competencia o ganador" /></label>}</div>
+        {!datos.resultados.length && <div className="tc-vacio">Aún no hay ganadores publicados.</div>}
+        {datos.resultados.length > 0 && !filtrados.length && <div className="tc-vacio">No hay resultados con ese nombre.</div>}
+        <div className="tc-resultados__grid">{filtrados.map(r => <article className="tc-resultado" key={r.actividadId}>
+          <h3>{r.nombre}</h3><p>{r.fecha ? nombreDia(r.fecha) : 'Fecha pendiente'} · {r.modalidad === 'equipos' ? 'Por equipos' : 'Individual'}</p>
+          <ol>{(r.posiciones || []).slice().sort((a,b)=>a.puesto-b.puesto).map((p,i) => <li key={`${p.puesto}-${i}`} data-area={claveArea(p.areaTecsup)} className={p.puesto === 1 ? 'tc-resultado__ganador' : undefined}>
+            <span className="tc-resultado__puesto">{p.puesto}.º</span><div><strong>{p.nombre}</strong><small>{p.areaTecsup || 'Área sin verificar'}</small></div></li>)}</ol>
+          <a className="tc-detalle-enlace" href={enlaceActividad(r.actividadId)}>Ver competencia</a>
+        </article>)}</div>
       </section>
     </>}
   </div>

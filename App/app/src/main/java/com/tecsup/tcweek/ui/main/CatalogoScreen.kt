@@ -70,6 +70,14 @@ import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
 import kotlinx.coroutines.CancellationException
+import androidx.compose.material.icons.filled.Place
+import com.tecsup.tcweek.ui.comun.EtiquetaArea
+import com.tecsup.tcweek.ui.comun.Pildora
+import com.tecsup.tcweek.ui.theme.VynkLine
+import com.tecsup.tcweek.ui.theme.VynkMuted
+import com.tecsup.tcweek.ui.theme.VynkNavy
+import com.tecsup.tcweek.ui.theme.VynkSubtle
+import com.tecsup.tcweek.ui.theme.colorArea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -103,14 +111,13 @@ fun CatalogoScreen() {
 
     val grupos = remember(actividades) { agruparPorDia(actividades, { it.fecha }, { it.horaInicio }) }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F7FA))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF2F5F9))) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color.Black
-                )
+                Text("Actividades", style = MaterialTheme.typography.headlineSmall, color = VynkNavy)
                 Text(
                     if (cargando) "Cargando actividades…" else cantidad(actividades.size, "actividad disponible", "actividades disponibles"),
                     style = MaterialTheme.typography.bodySmall,
@@ -119,7 +126,7 @@ fun CatalogoScreen() {
             }
             TextButton(onClick = { recarga++ }, enabled = !cargando) {
                 Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Actualizar")
+                Text("  Actualizar", style = MaterialTheme.typography.labelLarge)
             }
         }
 
@@ -139,13 +146,13 @@ fun CatalogoScreen() {
 
             actividades.isEmpty() -> EstadoVacio(
                 icono = Icons.Filled.Event,
-                titulo = "Pronto habrá actividades para ti",
-                texto = "Cuando el administrador publique actividades, aparecerán aquí automáticamente."
+                titulo = "Todavía no hay actividades",
+                texto = "Las actividades publicadas aparecerán aquí."
             )
 
             else -> LazyColumn(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 grupos.forEach { grupo ->
                     item(key = "dia-${grupo.fecha}") {
@@ -166,51 +173,39 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
     val categoria = estiloCategoria(id = a.categoriaId)
     val cupos = estadoCupos(a.cupos)
     val descripcion = a.descripcion.takeIf { it.isNotBlank() && it != "null" }
-    val organizador = a.organizador.takeIf { it.isNotBlank() && it != "null" }
+    val area = colorArea(a.areaTecsup)
+    val contexto = LocalContext.current
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, ColorBorde),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, VynkLine),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
+        Box(Modifier.fillMaxWidth()) {
+            if (a.portadaUrl.isNotBlank()) ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
+            else Image(painter = painterResource(id = portadaTematica(a)), contentDescription = null,
+                contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+            if (a.tipoActividad == "competencia") Pildora("Competencia", Color.White, VynkNavy, Modifier.padding(10.dp))
+        }
+        Box(Modifier.fillMaxWidth().height(4.dp).background(area.fuerte))
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (a.portadaUrl.isNotBlank()) {
-                ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
-                if (a.portadaCreditoUrl.startsWith("https://commons.wikimedia.org/")) {
-                    val contexto = LocalContext.current
-                    Text("Foto: ${a.portadaAutor} · ${a.portadaLicencia}",
-                         style = MaterialTheme.typography.labelSmall, color = ColorGris,
-                         modifier = Modifier.clickable {
-                             contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(a.portadaCreditoUrl)))
-                         })
-                }
-            } else {
-                Image(painter = painterResource(id = portadaTematica(a)), contentDescription = "Ilustración de ${a.nombre}",
-                    contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+            if (a.portadaCreditoUrl.startsWith("https://commons.wikimedia.org/")) {
+                Text("Foto: ${a.portadaAutor} · ${a.portadaLicencia}", style = MaterialTheme.typography.labelSmall, color = VynkSubtle,
+                    modifier = Modifier.clickable { contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(a.portadaCreditoUrl))) })
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                EtiquetaCategoria(categoria)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (a.areaTecsup.isNotBlank()) EtiquetaArea(a.areaTecsup) else EtiquetaCategoria(categoria)
                 Spacer(Modifier.weight(1f))
-                Text(cupos.texto, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = cupos.tono.color())
+                Text(cupos.texto, style = MaterialTheme.typography.labelMedium, color = cupos.tono.color())
             }
-            Text(a.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
-            Text(
-                text = descripcion ?: "Sin descripción por ahora.",
-                style = MaterialTheme.typography.bodyMedium,
-                fontStyle = if (descripcion == null) FontStyle.Italic else FontStyle.Normal,
-                color = ColorGris,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (a.areaTecsup.isNotBlank()) Text(a.areaTecsup, color = Color(0xFF246DAB),
-                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Text("Ver detalles e inscribirme  →", color = Color(0xFF1769DB),
-                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-            HorizontalDivider(color = Color(0xFFEDF1F7))
+            Text(a.nombre, style = MaterialTheme.typography.titleMedium, color = VynkNavy)
+            if (descripcion != null) Text(descripcion, style = MaterialTheme.typography.bodySmall, color = VynkMuted,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+            HorizontalDivider(color = VynkLine, modifier = Modifier.padding(vertical = 2.dp))
             DatoConIcono(Icons.Filled.Schedule, rangoHoras(a.horaInicio, a.horaFin))
-            if (organizador != null) DatoConIcono(Icons.Filled.Group, organizador)
+            if (a.ubicacion.isNotBlank()) DatoConIcono(Icons.Filled.Place, a.ubicacion)
         }
     }
 }
@@ -295,7 +290,7 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
     }
     AlertDialog(
         onDismissRequest = alCerrar,
-        title = { Text(a.nombre, color = Color(0xFF102C56), fontWeight = FontWeight.ExtraBold) },
+        title = { Text(a.nombre, color = Color(0xFF0B2A5B), fontWeight = FontWeight.ExtraBold) },
         text = {
             Column(Modifier.fillMaxWidth().heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {

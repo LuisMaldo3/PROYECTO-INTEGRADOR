@@ -2,7 +2,6 @@ import { useIntereses } from '../hooks/useIntereses'
 import { iconoDeInteres, textoAyuda, textoContador } from '../services/intereses'
 import EstadoPantalla from './EstadoPantalla'
 import Icono from './Iconos'
-import './Intereses.css'
 
 /** Pantalla «Mis intereses»: la persona marca los temas que le gustan y los guarda. */
 export function Intereses({ token, onSesionExpirada, primerIngreso = false, onGuardado, onOmitir }) {
@@ -58,7 +57,7 @@ export function Intereses({ token, onSesionExpirada, primerIngreso = false, onGu
       {primerIngreso && (
         <div className="intereses__intro">
           <strong>Personaliza tu experiencia</strong>
-          <p>Elige las actividades que te interesan. También puedes continuar y hacerlo después desde tu perfil.</p>
+          <p>Elige los temas que te gustan y te sugeriremos actividades. Puedes cambiarlos luego desde tu perfil.</p>
         </div>
       )}
       <p className="intereses__guia">{textoAyuda(i.seleccion.length)}</p>

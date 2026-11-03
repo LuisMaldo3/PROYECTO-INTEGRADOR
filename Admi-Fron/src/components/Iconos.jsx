@@ -1,5 +1,31 @@
 /** Íconos SVG del panel (trazo de 2 px, toman el color del texto con currentColor). Uso: <Icono nombre="calendario" /> */
 const DIBUJOS = {
+  grafico: (
+    <>
+      <path d="M3 3v18h18" />
+      <path d="M7 15h4M7 11h9M7 7h6" />
+    </>
+  ),
+  trofeo: (
+    <>
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+      <path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M12 13v4M8 21h8M9 17h6" />
+    </>
+  ),
+  megafono: (
+    <>
+      <path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1Z" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+    </>
+  ),
+  imagen: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="2" />
+      <path d="m21 16-5-5-8 9" />
+    </>
+  ),
+  editar: <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />,
   usuarios: (
     <>
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />

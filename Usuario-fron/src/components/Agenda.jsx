@@ -5,18 +5,18 @@ import { leerSesion } from '../services/authService'
 import { actividadesEnCruce } from '../services/cruces'
 import { obtenerCruces } from '../services/crucesService'
 import { agruparPorDia, bloqueDia, cantidad, estiloCategoria, hoyISO, nombreDia } from '../services/presentacion'
+import { claveArea } from '../services/areas'
 import { AvisoCruces } from './AvisoCruces'
 import EstadoPantalla from './EstadoPantalla'
 import Icono from './Iconos'
 import HorarioLibre from './HorarioLibre'
-import './Actividades.css'
-import './Agenda.css'
 
 function Item({ actividad: a, conflicto, sugerida = false }) {
   const categoria = estiloCategoria({ nombre: a.categoria || a.categoriaId })
+  const area = claveArea(a.areaTecsup)
   const cancelada = a.estado === 'cancelada'
   return (
-    <li className={`agenda-item${conflicto ? ' agenda-item--cruce' : ''}${cancelada ? ' agenda-item--cancelada' : ''}`}>
+    <li data-area={area} className={`agenda-item${conflicto ? ' agenda-item--cruce' : ''}${cancelada ? ' agenda-item--cancelada' : ''}`}>
       <div className="agenda-item__hora">
         <strong>{a.horaInicio || '--:--'}</strong>
         {a.horaFin && <small>hasta {a.horaFin}</small>}
@@ -35,7 +35,7 @@ function Item({ actividad: a, conflicto, sugerida = false }) {
           )}
         </div>
         <h3>{a.nombreActividad || a.nombre || 'Actividad sin título'}</h3>
-        {sugerida && a.id && <a className="vynk-up-agenda-enlace" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles e inscribirme →</a>}
+        {sugerida && a.id && <a className="vynk-up-agenda-enlace" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles</a>}
         {sugerida && a.motivo && <p className="agenda-sugerida__motivo">{a.motivo}</p>}
         {a.descripcion && <p className="agenda-item__descripcion">{a.descripcion}</p>}
         <p className="agenda-item__lugar">
@@ -112,7 +112,7 @@ export function Agenda() {
     return <div className="agenda">
       <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
         <button type="button" aria-pressed="false" onClick={() => setVista('inscritas')}>Mi agenda</button>
-        <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+        <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>Agenda sugerida</button>
         <button type="button" aria-pressed="true">Mis horas libres</button>
       </div>
       <HorarioLibre />
@@ -126,13 +126,13 @@ export function Agenda() {
       <div className="agenda">
         <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
           <button type="button" aria-pressed="false" onClick={() => setVista('inscritas')}>Mi agenda</button>
-          <button type="button" aria-pressed="true">✦ Agenda sugerida</button>
+          <button type="button" aria-pressed="true">Agenda sugerida</button>
           <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
         </div>
         <div className="agenda-sugerida__hero">
-          <div><span className="agenda-sugerida__eyebrow">PLAN PERSONALIZADO</span>
-            <h2>Una agenda creada para ti</h2>
-            <p>Actividades publicadas que puedes combinar con tus inscripciones, sin cruces de horarios.</p>
+          <div>
+            <h2>Agenda sugerida</h2>
+            <p>Actividades que puedes sumar sin que se crucen con tus inscripciones.</p>
           </div>
           <button type="button" className="boton-secundario" disabled={sugerida.cargando} onClick={() => setRefrescarSugerida((n) => n + 1)}>
             <Icono nombre="actualizar" tamano={16} /> Actualizar propuesta
@@ -145,10 +145,10 @@ export function Agenda() {
             <div className="agenda-sugerida__resumen">
               <span className="agenda-sugerida__dato"><strong>{lista.length}</strong> actividades sugeridas</span>
               <span className="agenda-sugerida__dato"><strong>{sugerida.inscripciones.length}</strong> inscripciones consideradas</span>
-              <span className={`agenda-sugerida__origen ${sugerida.origen === 'ia' ? 'agenda-sugerida__origen--ia' : ''}`}>{sugerida.origen === 'ia' ? '✦ Priorizada con Gemini' : sugerida.origen === 'sin_actividades' ? 'Sin actividades compatibles' : 'Propuesta por reglas (sin IA)'}</span>
+              <span className={`agenda-sugerida__origen ${sugerida.origen === 'ia' ? 'agenda-sugerida__origen--ia' : ''}`}>{sugerida.origen === 'ia' ? 'Ordenada con IA' : sugerida.origen === 'sin_actividades' ? 'Sin actividades compatibles' : 'Sin cruces con tus inscripciones'}</span>
             </div>
             {sugerida.aviso && <p className="agenda-sugerida__aviso">{sugerida.aviso}</p>}
-            {lista.length === 0 && <EstadoPantalla icono="calendario" titulo="Sin sugerencias compatibles" texto="No encontramos nuevas actividades sin cruces. Prueba de nuevo cuando las actividades tenga más opciones." />}
+            {lista.length === 0 && <EstadoPantalla icono="calendario" titulo="Sin sugerencias compatibles" texto="No encontramos actividades sin cruces. Vuelve a intentarlo cuando haya nuevas publicaciones." />}
             {gruposSugeridos.map((g) => (
               <section className="dia dia--agenda" key={g.fecha}>
                 <div className="dia__bloque" aria-hidden="true"><strong>{bloqueDia(g.fecha)?.numero}</strong><span>{bloqueDia(g.fecha)?.mes}</span></div>
@@ -168,7 +168,7 @@ export function Agenda() {
       <div className="agenda">
         <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
           <button type="button" aria-pressed="true">Mi agenda</button>
-          <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+          <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>Agenda sugerida</button>
           <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
         </div>
       <EstadoPantalla
@@ -190,7 +190,7 @@ export function Agenda() {
     <div className="agenda">
       <div className="agenda-vistas" role="group" aria-label="Tipo de agenda">
         <button type="button" aria-pressed="true">Mi agenda</button>
-        <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>✦ Agenda sugerida</button>
+        <button type="button" aria-pressed="false" onClick={() => setVista('sugerida')}>Agenda sugerida</button>
         <button type="button" aria-pressed="false" onClick={() => setVista('libres')}>Mis horas libres</button>
       </div>
       <div className="lista-barra">
@@ -212,7 +212,7 @@ export function Agenda() {
       {!cargando && visibles.length === 0 && (
         <EstadoPantalla
           icono="calendario"
-          titulo="Tu agenda está lista para empezar"
+          titulo="Tu agenda está vacía"
           texto={filtro === 'proximas' ? 'No tienes actividades próximas.' : 'Cuando te inscribas en una actividad, aparecerá aquí.'}
         />
       )}

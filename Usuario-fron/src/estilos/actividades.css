@@ -1,0 +1,302 @@
+/* ---------- Catálogo de actividades ---------- */
+.catalogo { display: grid; gap: 18px; }
+
+.vynk-up-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(200px, 1fr) minmax(150px, 190px) minmax(170px, 230px);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-m);
+}
+.vynk-up-search { position: relative; display: block; }
+.vynk-up-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--texto-3); pointer-events: none; }
+.shell-main .vynk-up-search input { padding-left: 38px; }
+
+.vynk-up-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.vynk-up-list-heading > strong { font-size: .92rem; color: var(--texto-2); font-weight: 600; }
+.vynk-up-list-heading__acciones { display: flex; align-items: center; gap: 16px; }
+.vynk-up-enlace { font-weight: 650; font-size: .88rem; text-decoration: none; }
+.vynk-up-enlace:hover { text-decoration: underline; }
+.vynk-up-reload { min-height: 36px; padding: 0 12px; }
+
+.catalogo__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 18px;
+}
+
+/* Tarjeta de actividad: la franja inferior de la foto lleva el color del área */
+.vynk-up-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-l);
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.vynk-up-card:hover { border-color: var(--linea-fuerte); box-shadow: var(--sombra-alta); }
+.vynk-up-card--loading { min-height: 360px; border: 0; }
+.vynk-up-card__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--area, var(--tinta));
+  border-bottom: 5px solid var(--area, var(--azul));
+}
+.vynk-up-card__media img { width: 100%; height: 100%; object-fit: cover; }
+.vynk-up-card__date {
+  position: absolute;
+  left: 14px; bottom: -22px;
+  display: grid;
+  justify-items: center;
+  min-width: 54px;
+  padding: 7px 8px 6px;
+  border-radius: var(--r-s);
+  background: var(--superficie);
+  box-shadow: 0 4px 12px rgba(11, 42, 91, .18);
+  color: var(--texto-2);
+  font-size: .72rem;
+  font-weight: 650;
+  line-height: 1.1;
+}
+.vynk-up-card__date strong { font-family: var(--fuente-titulo); font-size: 1.45rem; color: var(--tinta); }
+.vynk-up-card__credit {
+  position: absolute; right: 8px; top: 8px;
+  padding: 2px 8px; border-radius: 6px;
+  background: rgba(0, 0, 0, .55); color: #fff; font-size: .68rem; text-decoration: none;
+}
+.vynk-up-card__cuerpo { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 18px; }
+.vynk-up-card__top { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; min-height: 26px; padding-left: 64px; }
+.vynk-up-card h3 { font-size: 1.08rem; line-height: 1.3; }
+.vynk-up-card__link { color: var(--tinta); text-decoration: none; }
+.vynk-up-card__link::after { content: ''; position: absolute; inset: 0; }   /* toda la tarjeta es clicable */
+.vynk-up-card__link:hover { color: var(--azul); }
+.vynk-up-card .vynk-tarjeta-area { align-self: flex-start; }
+.vynk-up-card__desc {
+  color: var(--texto-2); font-size: .88rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.vynk-up-card__info { display: grid; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--linea); }
+.vynk-up-card__info span { display: flex; align-items: center; gap: 8px; color: var(--texto-2); font-size: .84rem; }
+.vynk-up-card__info svg { color: var(--texto-3); flex: none; }
+.vynk-up-card__week {
+  position: absolute; left: 12px; top: 12px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--superficie); color: var(--tinta);
+  font-size: .72rem; font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+}
+.vynk-up-card__credit, .vynk-up-card__week { z-index: 1; }
+
+/* Enlace de acción en tarjetas secundarias (recomendaciones, horas libres) */
+.vynk-up-card__action, .vynk-up-agenda-enlace, .rec-enlace, .tc-detalle-enlace, .org-detalle__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  font-size: .88rem;
+  color: var(--azul);
+  text-decoration: none;
+}
+.vynk-up-card__action:hover, .vynk-up-agenda-enlace:hover, .rec-enlace:hover, .tc-detalle-enlace:hover { text-decoration: underline; }
+
+/* ---------- Detalle de actividad ---------- */
+.vynk-detalle { display: grid; gap: 22px; }
+.vynk-up-back, .org-regresar {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--texto-2); font-weight: 600; font-size: .88rem; text-decoration: none;
+}
+.vynk-up-back::before, .org-regresar::before { content: '‹'; font-size: 1.3rem; line-height: 1; margin-top: -2px; }
+.vynk-up-back:hover, .org-regresar:hover { color: var(--azul); }
+
+.vynk-detalle__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  background: var(--tinta);
+  border-radius: var(--r-l);
+  overflow: hidden;
+  color: #fff;
+}
+.vynk-detalle__hero-content { display: flex; flex-direction: column; gap: 14px; padding: clamp(24px, 4vw, 40px); border-top: 6px solid var(--area, var(--celeste)); }
+.vynk-detalle__badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.vynk-detalle__badges span {
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(255, 255, 255, .12); color: #e3edfb;
+  font-size: .78rem; font-weight: 650;
+}
+.vynk-detalle__badges span:first-child { background: var(--area, var(--celeste)); color: #fff; }
+.vynk-detalle__hero h2 { color: #fff; font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 750; letter-spacing: -.02em; }
+.vynk-detalle__hero p { color: rgba(222, 233, 251, .88); max-width: 58ch; }
+.vynk-detalle__hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 6px; }
+.vynk-detalle__hero-imagen { position: relative; min-height: 240px; }
+.vynk-detalle__hero-imagen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vynk-detalle__hero-imagen a { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 6px; background: rgba(0, 0, 0, .55); color: #fff; font-size: .7rem; }
+
+.vynk-detalle__layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 22px; align-items: start; }
+.vynk-detalle__principal { display: grid; gap: 16px; min-width: 0; }
+.vynk-detalle__bloque, .vynk-detalle__registro, .vynk-us22-finalizada {
+  padding: 22px 24px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-l);
+}
+.vynk-detalle__bloque h3 { font-size: 1.1rem; margin-bottom: 14px; }
+.vynk-detalle__nota, .vynk-detalle__bloque > p[role='status'] { color: var(--texto-2); font-size: .9rem; }
+.vynk-detalle__ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0; background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--r-m); overflow: hidden; }
+.vynk-detalle__ficha div { display: grid; gap: 2px; padding: 12px 14px; box-shadow: 0 0 0 .5px var(--linea); }
+.vynk-detalle__ficha span, .vynk-encargados-detalle strong { font-size: .76rem; font-weight: 600; color: var(--texto-3); }
+.vynk-detalle__ficha strong { font-size: .92rem; color: var(--tinta); }
+.vynk-up-richtext { white-space: pre-wrap; color: var(--texto); }
+.vynk-detalle__puntos { margin-top: 14px; display: grid; gap: 8px; }
+.vynk-detalle__puntos > strong { font-size: .86rem; }
+.vynk-detalle__puntos div { display: flex; flex-wrap: wrap; gap: 6px; }
+.vynk-detalle__puntos span { padding: 4px 10px; border-radius: 999px; background: var(--area-suave, var(--azul-suave)); font-size: .8rem; font-weight: 650; }
+.vynk-encargados-detalle { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.vynk-encargados-detalle p { display: grid; gap: 2px; padding: 12px; border-radius: var(--r-s); background: var(--superficie-2); }
+
+.vynk-us22-resultados__estado { display: inline-block; margin-bottom: 12px; padding: 4px 10px; border-radius: 999px; background: var(--ok-suave); color: var(--ok); font-weight: 650; font-size: .8rem; }
+.vynk-us22-ganadores { display: grid; gap: 10px; margin-bottom: 14px; }
+.vynk-us22-ganador { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; padding: 10px; border-radius: var(--r-m); background: #fff7e0; border: 1px solid #f6e0a6; }
+.vynk-us22-ganador img { width: 96px; height: 64px; object-fit: cover; border-radius: var(--r-s); }
+.vynk-us22-ganador div { display: grid; gap: 2px; }
+.vynk-us22-ganador span { font-size: .74rem; font-weight: 700; color: #8a5a00; }
+.vynk-us22-ganador strong { font-size: 1.05rem; color: var(--tinta); }
+.vynk-us22-ganador small { color: var(--texto-2); }
+.vynk-us22-posiciones { list-style: none; display: grid; }
+.vynk-us22-posiciones li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--linea); font-size: .9rem; }
+.vynk-us22-posiciones span { color: var(--texto-2); }
+
+.vynk-us22-similares__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.vynk-us22-similar { display: grid; border: 1px solid var(--linea); border-radius: var(--r-m); overflow: hidden; color: inherit; text-decoration: none; transition: border-color .15s; }
+.vynk-us22-similar:hover { border-color: var(--azul); }
+.vynk-us22-similar img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.vynk-us22-similar div { display: grid; gap: 2px; padding: 10px 12px; }
+.vynk-us22-similar strong { font-size: .9rem; color: var(--tinta); }
+.vynk-us22-similar span { font-size: .78rem; color: var(--texto-2); }
+
+/* Inscripción (columna derecha) */
+.vynk-detalle__sidebar { position: sticky; top: 20px; }
+.vynk-detalle__registro { display: grid; gap: 14px; border-top: 5px solid var(--area, var(--azul)); box-shadow: var(--sombra); }
+.vynk-detalle__registro-head h2 { font-size: 1.25rem; }
+.vynk-detalle__registro-head p { margin-top: 6px; color: var(--texto-2); font-size: .88rem; }
+.vynk-detalle__registro-form, .vynk-detalle__registrado { display: grid; gap: 12px; }
+.vynk-detalle__registrado > strong { color: var(--ok); }
+.vynk-detalle__registrado > p:not([class]) { color: var(--texto-2); font-size: .9rem; margin-top: -8px; }
+.vynk-detalle__registro-actions { display: grid; gap: 8px; }
+.vynk-up-field { display: grid; gap: 6px; }
+.vynk-up-codigo { display: grid; gap: 8px; padding: 12px; border-radius: var(--r-s); background: var(--superficie-2); border: 1px dashed var(--linea-fuerte); }
+.vynk-up-codigo span { font-size: .8rem; color: var(--texto-2); }
+.vynk-up-codigo code { font-size: 1.05rem; font-weight: 700; color: var(--tinta); word-break: break-all; }
+.vynk-up-codigo button { justify-self: start; border: 0; background: none; color: var(--azul); font-weight: 650; padding: 0; }
+.vynk-up-footnote { font-size: .8rem; color: var(--texto-3); }
+.vynk-detalle__registro .vynk-up-tabs { display: flex; }
+.vynk-detalle__registro .vynk-up-tabs button { flex: 1; }
+.vynk-us22-finalizada { display: grid; gap: 6px; }
+.vynk-us22-finalizada p { color: var(--texto-2); font-size: .9rem; }
+
+/* ---------- Recomendaciones ---------- */
+.rec-pagina { display: grid; gap: 18px; }
+.rec-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 22px 26px;
+  border-radius: var(--r-l);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+.rec-hero h2 { font-size: 1.3rem; }
+.rec-hero p { color: var(--texto-2); margin-top: 2px; }
+.rec-hero__acciones { display: flex; align-items: center; gap: 12px; }
+.rec-hero__acciones > span { font-size: .82rem; font-weight: 650; color: var(--area-digital); background: var(--area-digital-suave); padding: 4px 10px; border-radius: 999px; }
+.rec-sin-horario { display: grid; gap: 6px; padding: 18px 20px; border-radius: var(--r-m); background: var(--superficie); border: 1px solid var(--linea); }
+.rec-sin-horario p { color: var(--texto-2); font-size: .9rem; }
+.rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.rec-tarjeta {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-top: 5px solid var(--area, var(--azul));
+  border-radius: var(--r-l);
+}
+.rec-tarjeta__meta { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; font-weight: 650; color: var(--texto-2); }
+.rec-rank { color: var(--azul); }
+.rec-tarjeta h3 { font-size: 1.1rem; }
+.rec-desc { color: var(--texto-2); font-size: .88rem; }
+.rec-datos { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .84rem; color: var(--texto-2); }
+.rec-compatible { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r-s); background: var(--ok-suave); font-size: .82rem; }
+.rec-compatible strong { color: var(--ok); }
+.rec-motivo { padding: 12px 14px; border-radius: var(--r-s); background: var(--superficie-2); font-size: .86rem; }
+.rec-motivo strong { display: block; color: var(--tinta); font-size: .8rem; margin-bottom: 2px; }
+.rec-tarjeta__pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--linea); }
+.rec-tarjeta__nota { font-size: .78rem; color: var(--texto-3); }
+.rec-descartar { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--texto-2); font-weight: 600; font-size: .82rem; padding: 6px 8px; border-radius: 6px; }
+.rec-descartar:hover:not(:disabled) { background: var(--error-suave); color: var(--error); }
+
+@media (max-width: 1080px) {
+  .vynk-up-toolbar { grid-template-columns: 1fr 1fr; }
+  .vynk-up-toolbar .vynk-up-tabs, .vynk-up-toolbar .vynk-up-search { grid-column: 1 / -1; }
+  .vynk-detalle__layout { grid-template-columns: 1fr; }
+  .vynk-detalle__sidebar { position: static; }
+}
+@media (max-width: 760px) {
+  .vynk-detalle__hero { grid-template-columns: 1fr; }
+  .vynk-detalle__hero-imagen { min-height: 180px; order: -1; }
+  .vynk-up-toolbar .vynk-up-tabs { display: flex; }
+  .vynk-up-toolbar .vynk-up-tabs button { flex: 1; }
+  .vynk-detalle__bloque, .vynk-detalle__registro { padding: 18px; }
+}
+
+/* ---------- Ajustes de diseño ---------- */
+/* Detalle: los bloques de información forman una sola tarjeta con separadores */
+.vynk-detalle__principal {
+  gap: 0;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-l);
+  overflow: hidden;
+}
+.vynk-detalle__principal > .vynk-detalle__bloque {
+  border: 0;
+  border-radius: 0;
+  padding: 22px 24px;
+}
+.vynk-detalle__principal > .vynk-detalle__bloque + .vynk-detalle__bloque { border-top: 1px solid var(--linea); }
+.vynk-detalle__bloque h3 { font-size: 1.02rem; margin-bottom: 10px; }
+.vynk-detalle__ficha { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+
+/* Recomendaciones: el aviso del servidor como nota discreta, no como otra caja */
+.rec-aviso { padding: 0; border: 0; background: none; color: var(--texto-2); font-size: .86rem; }
+.rec-hero { padding: 18px 22px; }
+.rec-hero h2 { font-size: 1.15rem; }
+
+@media (max-width: 1080px) {
+  /* La inscripción aparece justo después de la portada */
+  .vynk-detalle__sidebar { order: -1; }
+}
+@media (max-width: 760px) {
+  .vynk-detalle__hero-content { padding: 20px; gap: 10px; }
+  .vynk-detalle__hero h2 { font-size: 1.45rem; }
+  .vynk-detalle__hero-imagen { min-height: 150px; }
+  .vynk-detalle__principal > .vynk-detalle__bloque { padding: 18px; }
+  .vynk-detalle__ficha { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vynk-us22-similares__grid { grid-template-columns: 1fr; gap: 8px; }
+  .vynk-us22-similar { grid-template-columns: 96px minmax(0, 1fr); align-items: center; }
+  .vynk-us22-similar img { height: 100%; aspect-ratio: auto; min-height: 64px; }
+  .rec-hero { padding: 16px; }
+}

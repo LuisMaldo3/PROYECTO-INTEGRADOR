@@ -40,13 +40,13 @@ fun EstadoVacio(
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(if (esError) Color(0xFFFDECEC) else Color(0xFFEAF3FF)),
+                .background(if (esError) Color(0xFFFDECEC) else Color(0xFFE8F0FD)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = icono, contentDescription = null, tint = if (esError) Color(0xFFA12525) else Color(0xFF0B63FF))
+            Icon(imageVector = icono, contentDescription = null, tint = if (esError) Color(0xFFC0322B) else Color(0xFF1557D0))
         }
-        Text(titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF0D1B3E), textAlign = TextAlign.Center)
-        Text(texto, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF6B7A99), textAlign = TextAlign.Center)
+        Text(titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF0B2A5B), textAlign = TextAlign.Center)
+        Text(texto, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF55657E), textAlign = TextAlign.Center)
         if (accion != null) accion()
     }
 }

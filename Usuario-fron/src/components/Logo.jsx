@@ -1,4 +1,4 @@
-/** Nombre de la app: VYN en blanco y la K en celeste (como el logo original). */
+/** Nombre de la app: «VYN» y la «K» en celeste, como el logo original. */
 export function Logo({ className = '' }) {
   return (
     <span className={`logo ${className}`.trim()} aria-label="VYNK">

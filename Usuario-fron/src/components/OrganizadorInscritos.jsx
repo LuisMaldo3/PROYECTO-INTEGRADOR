@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { actividadSeleccionada, obtenerInscritos, reemplazarInscrito, rutaOrganizador } from '../services/organizadorService'
 import { OrganizadorAlumno, OrganizadorSinInscritos } from './OrganizadorAlumno'
-import './Organizador.css'
 
 export function OrganizadorInscritos({ token }) {
   const actividadId = actividadSeleccionada(window.location.hash)
@@ -53,11 +52,11 @@ export function OrganizadorInscritos({ token }) {
   const activa = datos.actividad?.estado === 'programada'
   return (
     <div className="org-pagina">
-      <a className="org-regresar" href="#/organizador-actividades">← Volver a mis actividades</a>
-      <div className="org-interior-hero"><span className="org-eyebrow">GESTIÓN · INSCRIPCIONES</span><h2>Estudiantes inscritos</h2><p>{datos.actividad?.nombre || 'Consulta y gestiona los participantes asignados.'}</p></div>
+      <a className="org-regresar" href="#/organizador-actividades">Volver a mis actividades</a>
+      <div className="org-interior-hero"><h2>{datos.actividad?.nombre || 'Actividad'}</h2></div>
       <div className="org-seccion-titulo org-seccion-titulo--lista">
-        <div><h2>Lista de participantes</h2><span className="org-contador">{consulta ? `${datos.inscritos.length} coincidencia(s) de ${datos.totalInscritos ?? '—'}` : `${datos.totalInscritos ?? datos.inscritos.length} inscritos reales`}</span></div>
-        <div className="org-acciones"><button type="button" className="org-boton org-boton--suave" onClick={() => setRevision(n => n + 1)}>↻ Actualizar</button></div>
+        <div><h2>Lista de participantes</h2><span className="org-contador">{consulta ? `${datos.inscritos.length} coincidencia(s) de ${datos.totalInscritos ?? '—'}` : `${datos.totalInscritos ?? datos.inscritos.length} inscritos`}</span></div>
+        <div className="org-acciones"><button type="button" className="org-boton org-boton--suave" onClick={() => setRevision(n => n + 1)}>Actualizar</button></div>
       </div>
       <div className="org-cupos-fijos" role="note">
         <strong>Límite definido por administración: {datos.actividad?.maximoParticipantes ?? 'por confirmar'} {datos.actividad?.unidadCupo === 'equipos' ? 'equipos' : 'estudiantes'}</strong>
@@ -80,7 +79,7 @@ export function OrganizadorInscritos({ token }) {
       {!activa && datos.actividad && <p className="org-cupos-resumen">Los reemplazos solo están disponibles antes del cierre de la actividad.</p>}
       {seleccionado && <div className="org-reemplazo-fondo" role="presentation" onClick={cerrar}>
         <section className="org-reemplazo" role="dialog" aria-modal="true" aria-labelledby="titulo-reemplazo" onClick={e => e.stopPropagation()}>
-          <div className="org-reemplazo__encabezado"><div><span className="org-eyebrow">SUSTITUCIÓN DE PARTICIPANTE</span><h3 id="titulo-reemplazo">Reemplazar inscrito</h3></div><button type="button" aria-label="Cerrar" className="org-boton org-boton--simple" disabled={guardando} onClick={cerrar}>✕</button></div>
+          <div className="org-reemplazo__encabezado"><div><h3 id="titulo-reemplazo">Reemplazar inscrito</h3></div><button type="button" aria-label="Cerrar" className="org-boton org-boton--simple" disabled={guardando} onClick={cerrar}>✕</button></div>
           <p>Se retirará a <strong>{seleccionado.nombre}</strong> y se inscribirá en su lugar a otro estudiante registrado. <strong>El cupo máximo no cambiará.</strong></p>
           {seleccionado.nombreEquipo && <p className="org-reemplazo__equipo">Equipo: {seleccionado.nombreEquipo}. El reemplazo conservará su posición dentro de este equipo y deberá pertenecer al área correspondiente.</p>}
           <form onSubmit={confirmar} className="org-reemplazo__formulario">

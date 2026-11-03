@@ -52,10 +52,10 @@ fun AvisoCrucesPanel(avisos: List<AvisoAlternativasCruce>, error: String? = null
                         style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = marino)
                     Text("${aviso.cruce.fecha} · ${aviso.cruce.desde}–${aviso.cruce.hasta} · ${aviso.cruce.minutos} min de cruce",
                         color = gris, style = MaterialTheme.typography.bodySmall)
-                    Surface(color = Color(0xFFEAF1FD), shape = RoundedCornerShape(12.dp)) {
+                    Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(12.dp)) {
                         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                Icon(Icons.Filled.EventAvailable, null, tint = Color(0xFF1764B5))
+                                Icon(Icons.Filled.EventAvailable, null, tint = Color(0xFF1557D0))
                                 Text(resumenAlternativas(aviso.alternativas.size, aviso.error), color = marino, fontWeight = FontWeight.ExtraBold)
                             }
                             when {
@@ -65,7 +65,7 @@ fun AvisoCrucesPanel(avisos: List<AvisoAlternativasCruce>, error: String? = null
                                     Surface(color = Color.White, shape = RoundedCornerShape(10.dp), border = BorderStroke(1.dp, Color(0xFFDDE7F4))) {
                                         Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             Text(alternativa.nombre, fontWeight = FontWeight.Bold, color = marino)
-                                            Text("${alternativa.fecha} · ${alternativa.inicio}–${alternativa.fin}", color = Color(0xFF1764B5), style = MaterialTheme.typography.bodySmall)
+                                            Text("${alternativa.fecha} · ${alternativa.inicio}–${alternativa.fin}", color = Color(0xFF1557D0), style = MaterialTheme.typography.bodySmall)
                                             if (alternativa.ubicacion.isNotBlank() && alternativa.ubicacion != "null") {
                                                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(Icons.Filled.Place, null, tint = gris)

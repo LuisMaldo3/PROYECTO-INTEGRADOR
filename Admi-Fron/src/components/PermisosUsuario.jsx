@@ -46,7 +46,7 @@ export default function PermisosUsuario({ token, usuario, onSesionExpirada, onAv
             onChange={(e) => setEdicion((anterior) => ({ ...anterior, [clave]: e.target.checked }))} />
         </label>)}
       </div>
-      <p className="gestion-permisos__ayuda">Solo las cuentas con rol administrador pueden usar las rutas administrativas. Los permisos no sustituyen al rol.</p>
+      <p className="gestion-permisos__ayuda">Los permisos solo se aplican a cuentas con rol de administrador.</p>
       <button type="button" className="boton" disabled={!hayCambios || guardando} onClick={() => setConfirmando(true)}>
         {hayCambios ? `Revisar ${Object.keys(modificados).length} cambio(s)` : 'Sin cambios pendientes'}
       </button>

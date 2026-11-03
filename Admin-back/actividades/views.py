@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from usuarios.auth import exigir_admin
 from usuarios.permisos import exigir_permiso
 
-from . import servicio, organizadores, avisos as servicio_avisos, mongo
+from . import servicio, organizadores, avisos as servicio_avisos, mongo, inscritos as servicio_inscritos
 
 
 @require_http_methods(["GET", "POST"])
@@ -191,3 +191,10 @@ def participantes_competencia(request, actividad_id):
 def clasificacion_general(request):
     from .resultados_competencias import clasificacion_general as calcular
     return JsonResponse(calcular())
+
+
+@require_GET
+@exigir_admin
+def inscritos_por_actividad(request):
+    """US-35: número de inscritos por actividad (personas y, en competencias por equipos, equipos)."""
+    return JsonResponse(servicio_inscritos.inscritos_por_actividad())

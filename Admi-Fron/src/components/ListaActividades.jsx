@@ -4,6 +4,7 @@ import ResultadosCompetencia from './ResultadosCompetencia'
 import { urlPortada } from '../services/portadasService'
 import { portadaTematica } from '../services/portadaTematica'
 import { listarActividades, cancelarActividad } from '../services/actividadesService'
+import { claveArea } from '../services/areas'
 import { formatearFechaActividad, formatearHorario, resumen } from '../services/formatoActividad'
 
 /** Lista de actividades del administrador, por fecha y hora. `version` sube para pedirla de nuevo. */
@@ -60,13 +61,12 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
   return (
     <section className="lista">
       {exitoCancelar && <p className="aviso aviso--ok" role="status">{exitoCancelar}</p>}
-      <header className="lista__cabecera">
+      <header className="pagina__cabecera">
         <div>
-          <p className="eyebrow">PROGRAMACIÓN Y EVENTOS</p>
           <h1>Actividades</h1>
-          <p className="suave">Gestiona competencias, inscripciones y publicaciones del campus desde una sola vista.</p>
+          <p>Crea, edita y cancela actividades. Revisa los resultados de las competencias.</p>
         </div>
-        <div className="lista__acciones">
+        <div className="pagina__acciones">
           <button
             type="button"
             className="boton boton--claro"
@@ -83,14 +83,15 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
         </div>
       </header>
 
-      <div className="metricas-actividad" aria-label="Resumen de actividades">
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><span>Total de actividades</span><strong>{actividades.length}</strong><small>Eventos registrados</small></div>
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles para estudiantes</small></div>
-        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="reloj" tam={20}/></span><span>Canceladas</span><strong>{actividades.filter((a) => a.estado === 'cancelada').length}</strong><small>Con historial preservado</small></div>
-      </div>
+      <dl className="cifras" aria-label="Resumen de actividades">
+        <div><dt>Total</dt><dd>{cargando ? '—' : actividades.length}</dd></div>
+        <div><dt>Activas</dt><dd>{cargando ? '—' : actividades.filter((a) => a.estado !== 'cancelada').length}</dd></div>
+        <div><dt>Competencias</dt><dd>{cargando ? '—' : actividades.filter((a) => a.tipoActividad === 'competencia').length}</dd></div>
+        <div><dt>Canceladas</dt><dd>{cargando ? '—' : actividades.filter((a) => a.estado === 'cancelada').length}</dd></div>
+      </dl>
       <div className="barra-filtros">
         <label className="buscador barra-filtros__busca"><Icono nombre="buscar" tam={18} />
-          <input type="search" placeholder="Buscar actividad o lugar..." value={consulta} onChange={(e) => setConsulta(e.target.value)} aria-label="Buscar actividades" /></label>
+          <input type="search" placeholder="Buscar actividad o lugar" value={consulta} onChange={(e) => setConsulta(e.target.value)} aria-label="Buscar actividades" /></label>
         <div className="pestanas" role="group" aria-label="Filtrar actividades">
           {[['todas', 'Todas'], ['activas', 'Activas'], ['canceladas', 'Canceladas']].map(([id, nombre]) =>
             <button type="button" key={id} className={filtro === id ? 'pestana pestana--activa' : 'pestana'} onClick={() => setFiltro(id)}>{nombre}</button>)}
@@ -105,27 +106,27 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
       {!cargando && !error && actividades.length === 0 && (
         <div className="vacio">
           <Icono nombre="calendario" tam={40} />
-          <p>Todavía no hay actividades. Crea la primera.</p>
+          <p>Todavía no hay actividades. Usa «Nueva actividad» para crear la primera.</p>
         </div>
       )}
 
-      {!cargando && !error && actividades.length > 0 && filtradas.length === 0 && <p className="vacio">No hay actividades que coincidan con los filtros.</p>}
+      {cargando && <div className="cargando" role="status">Cargando actividades…</div>}
+      {!cargando && !error && actividades.length > 0 && filtradas.length === 0 && <p className="vacio">No hay actividades con esos filtros.</p>}
       {filtradas.length > 0 && (
         <div className="tabla-envoltura">
           <table className="tabla tabla--actividades">
             <thead>
               <tr>
                 <th>Actividad</th>
-                <th>Categoría</th>
+                <th>Tipo y área</th>
                 <th>Lugar</th>
-                <th>Fecha</th>
-                <th>Horario</th>
-                <th>Acciones</th>
+                <th>Fecha y hora</th>
+                <th className="tabla__acciones-titulo">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((a) => (
-                <tr key={a.id}>
+                <tr key={a.id} className={a.estado === 'cancelada' ? 'fila--cancelada' : undefined} data-area={claveArea(a.areaTecsup)}>
                   <td>
                     <div className="actividad-admin__principal">
                       <img className="actividad-admin__foto" src={a.portada?.url ? urlPortada(a.portada) : portadaTematica(a)} alt={`Portada de ${a.nombre}`} loading="lazy" referrerPolicy="no-referrer" />
@@ -137,7 +138,8 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
                     </div>
                   </td>
                   <td>
-                    <span className={`etiqueta etiqueta--${a.categoria?.id ?? 'sin'}`}>{a.categoria?.nombre ?? '—'}</span>
+                    <span className={`etiqueta etiqueta--${a.tipoActividad === 'competencia' ? 'concurso' : a.categoria?.id ?? 'sin'}`}>{a.tipoActividad === 'competencia' ? 'Competencia' : a.categoria?.nombre ?? '—'}</span>
+                    {a.areaTecsup && <span className="area-punto" data-area={claveArea(a.areaTecsup)}>{a.areaTecsup}</span>}
                   </td>
                   <td>
                     {a.ubicacion ? (
@@ -148,23 +150,17 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
                       <span className="sin-dato">Sin ubicación</span>
                     )}
                   </td>
-                  <td className={a.fecha ? undefined : 'sin-dato'}>
-                    <span className="hora">{formatearFechaActividad(a.fecha)}</span>
-                  </td>
                   <td>
-                    {a.horaInicio ? (
-                      <span className="hora">
-                        <Icono nombre="reloj" tam={16} /> {formatearHorario(a.horaInicio, a.horaFin)}
-                      </span>
-                    ) : (
-                      <span className="sin-dato">—</span>
-                    )}
+                    <span className="fecha-hora">
+                      <strong className={a.fecha ? undefined : 'sin-dato'}>{formatearFechaActividad(a.fecha)}</strong>
+                      {a.horaInicio ? <small>{formatearHorario(a.horaInicio, a.horaFin)}</small> : <small className="sin-dato">Sin horario</small>}
+                    </span>
                   </td>
-                  <td>
+                  <td className="tabla__acciones-celda">
                     <div className="acciones-actividad">
-                      <button type="button" className="boton boton--claro" disabled={a.estado === 'cancelada'} onClick={() => onEditar(a)}>Editar</button>
-                      {a.tipoActividad === 'competencia' && <button type="button" className="boton boton--claro" onClick={() => setCompetenciaElegida(a)}>Revisar resultados</button>}
-                      {a.estado !== 'cancelada' && <button type="button" className="boton boton--peligro-discreto" onClick={() => { setErrorCancelar(''); setPendiente(a) }}>Cancelar</button>}
+                      <button type="button" className="boton boton--chico" disabled={a.estado === 'cancelada'} onClick={() => onEditar(a)}>Editar</button>
+                      {a.tipoActividad === 'competencia' && <button type="button" className="boton boton--chico" onClick={() => setCompetenciaElegida(a)}>Resultados</button>}
+                      {a.estado !== 'cancelada' && <button type="button" className="boton boton--chico boton--peligro-discreto" onClick={() => { setErrorCancelar(''); setPendiente(a) }}>Cancelar</button>}
                     </div>
                   </td>
                 </tr>

@@ -1,7 +1,12 @@
 package com.tecsup.tcweek.ui.main
 
+import com.tecsup.tcweek.ui.comun.FranjaAreas
+import com.tecsup.tcweek.ui.comun.Tarjeta
+import com.tecsup.tcweek.ui.theme.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -63,15 +68,14 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
         catch (e: Exception) { error = e.message ?: "No se pudieron cargar los puntos oficiales." }
         finally { cargando = false }
     }
-    Column(Modifier.fillMaxSize().background(Color(0xFFF1F5FB))
+    Column(Modifier.fillMaxSize().background(Color(0xFFF2F5F9))
         .verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        TextButton(onClick = onVolver) { Text("← Volver a Inicio") }
-        Surface(color = Color(0xFF102C56), shape = RoundedCornerShape(19.dp)) {
+        TextButton(onClick = onVolver) { Text("‹ Inicio", style = MaterialTheme.typography.labelLarge) }
+        Surface(color = Color(0xFF0B2A5B), shape = RoundedCornerShape(19.dp)) {
             Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("T&C WEEK · UNA SEDE", color = Color(0xFF9BDEFF), fontWeight = FontWeight.Bold)
-                Text("Tabla general", color = Color.White, style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.ExtraBold)
-                Text("Cinco áreas. Puntos registrados por organizadores y publicados por administración.",
+                Text("Resultados de T&C Week", color = Color.White, style = MaterialTheme.typography.titleLarge)
+                FranjaAreas(Modifier.padding(top = 4.dp))
+                Text("Puntos de las cinco áreas en competencias con resultados publicados.",
                     color = Color(0xFFE1EDFF))
             }
         }
@@ -83,8 +87,8 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
         if (!cargando && error.isBlank()) {
             Text("${tabla?.totalCompetencias ?: 0} competencias con resultados oficiales",
                 color = Color(0xFF355978))
-            HorizontalDivider(color = Color(0xFFDCE6F1))
-            Text("Resultados por competencia", color = Color(0xFF11385C),
+            HorizontalDivider(color = Color(0xFFDDE4EE))
+            Text("Resultados por competencia", color = Color(0xFF0B2A5B),
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
             if (errorResultados.isNotBlank()) Text(errorResultados, color = Color(0xFF905261))
             if (resultados.isEmpty() && errorResultados.isBlank())
@@ -98,31 +102,35 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
                             Text(resultado.nombre, color = Color(0xFF133A62), fontWeight = FontWeight.Bold)
                         }
                         resultado.posiciones.firstOrNull { it.puesto == 1 }?.let { ganador ->
-                            Text("🏆 Ganador: ${ganador.nombre}", color = Color(0xFF19618B))
+                            Text("Ganador: ${ganador.nombre}", color = VynkMuted, style = MaterialTheme.typography.bodySmall)
                         }
-                        Text("Ver detalle, posiciones e imagen →", color = Color(0xFF1673B7),
+                        Text("Ver posiciones", color = VynkBlue,
                             style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
-            HorizontalDivider(color = Color(0xFFDCE6F1))
-            Text("Clasificación por áreas", color = Color(0xFF11385C),
+            HorizontalDivider(color = Color(0xFFDDE4EE))
+            Text("Clasificación por áreas", color = Color(0xFF0B2A5B),
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
-            tabla?.areas?.forEach { area ->
-                Surface(color = Color.White, shape = RoundedCornerShape(13.dp),
-                    border = BorderStroke(1.dp, Color(0xFFDCE7F4))) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("${area.posicion}.º · ${area.nombre}", modifier = Modifier.weight(1f),
-                                color = Color(0xFF12345B), fontWeight = FontWeight.ExtraBold)
-                            Text("${area.puntos} pts", color = Color(0xFF0A5D9D), fontWeight = FontWeight.Bold)
-                        }
-                        Text("Primeros puestos: ${area.victorias}", color = Color(0xFF657D96),
-                            style = MaterialTheme.typography.bodySmall)
-                        area.desglose.forEach { item ->
-                            HorizontalDivider(color = Color(0xFFEDF3F9))
-                            Text("${item.nombre} · ${item.puesto}.º · ${item.puntos} puntos",
-                                style = MaterialTheme.typography.bodySmall, color = Color(0xFF375C7A))
+            val maximo = (tabla?.areas?.maxOfOrNull { it.puntos } ?: 0).coerceAtLeast(1)
+            Tarjeta {
+                Column(Modifier.padding(vertical = 6.dp)) {
+                    tabla?.areas?.forEachIndexed { i, area ->
+                        val c = colorArea(area.nombre)
+                        if (i > 0) HorizontalDivider(color = VynkLine)
+                        Row(Modifier.fillMaxWidth().background(if (i == 0) c.suave else Color.Transparent)
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(Modifier.size(30.dp).background(c.fuerte, CircleShape), contentAlignment = Alignment.Center) {
+                                Text("${area.posicion}", color = Color.White, style = MaterialTheme.typography.titleSmall)
+                            }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(area.nombre, color = VynkNavy, style = MaterialTheme.typography.titleSmall)
+                                Box(Modifier.fillMaxWidth().height(8.dp).background(VynkSurface2, RoundedCornerShape(50))) {
+                                    Box(Modifier.fillMaxWidth(area.puntos.toFloat() / maximo).height(8.dp).background(c.fuerte, RoundedCornerShape(50)))
+                                }
+                            }
+                            Text("${area.puntos}", color = VynkNavy, style = MaterialTheme.typography.titleLarge)
                         }
                     }
                 }
@@ -146,7 +154,7 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
                     Text("✓ Resultado oficial validado por administración", color = Color(0xFF176B55),
                         fontWeight = FontWeight.Bold)
                     resultado.posiciones.forEach { posicion ->
-                        Surface(color = if (posicion.puesto == 1) Color(0xFFE7F3FC) else Color(0xFFF6F9FC),
+                        Surface(color = if (posicion.puesto == 1) Color(0xFFE8F0FD) else Color(0xFFF2F5F9),
                             shape = RoundedCornerShape(10.dp)) {
                             Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                 Text("${posicion.puesto}.º · ${posicion.nombre}", fontWeight = FontWeight.Bold,

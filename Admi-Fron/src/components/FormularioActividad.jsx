@@ -11,7 +11,7 @@ import { crearActividad, modificarActividad } from '../services/actividadesServi
 
 const organizadorIdVacio = (organizadores) => organizadores.length === 0
 
-/** Formulario «Nueva actividad» (ventana): datos, categoría, ubicación, fecha y horario. Las revisiones salen del hook. */
+/** Ventana para crear o editar una actividad. Las validaciones están en el hook. */
 export default function FormularioActividad({ token, categorias, ubicaciones = [], organizadores = [], onCreada, onCancelar, onSesionExpirada, actividad = null }) {
   const f = useFormularioActividad(actividad ? datosEdicionActividad(actividad) : null)
   const [enviando, setEnviando] = useState(false)
@@ -65,8 +65,8 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
     <div className="modal">
       <form className="modal__ventana modal__ventana--ancha" role="dialog" aria-modal="true" aria-labelledby="form-titulo" onSubmit={enviar} noValidate>
         <div className="modal__cabecera"><div className="modal__distintivo"><Icono nombre="calendario" tam={21} /></div>
-          <div><p className="eyebrow">GESTIÓN DE ACTIVIDADES</p><h2 id="form-titulo">{actividad ? 'Editar actividad' : 'Nueva actividad'}</h2>
-            <p className="suave">Completa los detalles, lugar y horario del evento.</p></div>
+          <div><h2 id="form-titulo">{actividad ? 'Editar actividad' : 'Nueva actividad'}</h2>
+            <p className="suave">Los campos marcados como opcionales pueden quedar vacíos.</p></div>
           <button type="button" className="detalle__cerrar" aria-label="Cerrar formulario" onClick={onCancelar} disabled={enviando}><Icono nombre="cerrar" /></button>
         </div>
 
@@ -127,11 +127,11 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
             <option value="">Todas las áreas de la sede</option>
             {AREAS_TECSUP.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
-          <span className="campo__ayuda">Si compiten las cinco áreas, deja «Todas». Puedes designar un contacto organizador para cada una.</span>
+          <span className="campo__ayuda">Si participan las cinco áreas, deja «Todas las áreas».</span>
         </label>
         {valores.tipoActividad === 'competencia' && <fieldset className="vynk-areas-asignacion">
           <legend>Encargados por área (opcional)</legend>
-          <p>El organizador principal registra las posiciones. Estos encargados coordinan los equipos de sus áreas.</p>
+          <p>Coordinan los equipos de su área. El organizador principal registra los resultados.</p>
           <div className="vynk-areas-asignacion__grid">
             {AREAS_TECSUP.map(area => <label className="campo" key={area}>{area}
               <select value={valores.encargadosPorArea?.[area] || ''} disabled={enviando}
@@ -143,7 +143,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </div>
         </fieldset>}
         <label className="campo">
-          Organizador principal responsable de resultados
+          Organizador principal
           <select value={valores.organizadorId ?? ''} onChange={(e) => f.cambiar('organizadorId', e.target.value)} {...campo('organizadorId')}>
             <option value="">Elige un organizador</option>
             {organizadores.map((o) => (
@@ -175,7 +175,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
         <div className="campo-fila campo-fila--dos">
           <label className="campo">Tipo de publicación
             <select value={valores.tipoActividad || 'actividad'} onChange={e => f.cambiar('tipoActividad', e.target.value)} {...campo('tipoActividad')}>
-              <option value="actividad">Actividad general</option><option value="competencia">Competencia · T&amp;C Week</option>
+              <option value="actividad">Actividad general</option><option value="competencia">Competencia (T&amp;C Week)</option>
             </select>
           </label>
           {valores.tipoActividad === 'competencia' && <label className="campo">Modalidad
@@ -185,7 +185,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </label>}
         </div>
         {valores.tipoActividad === 'competencia' && <div className="competencia-form">
-          <p className="suave">Competencia de una sede. Los cinco departamentos se usarán en los resultados oficiales.</p>
+          
           <label className="campo">Reglas de la competencia
             <textarea rows={3} maxLength={2000} value={valores.reglasCompetencia || ''} onChange={e => f.cambiar('reglasCompetencia', e.target.value)} {...campo('reglasCompetencia')} />
             {errores.reglasCompetencia && <span className="campo__error">{errores.reglasCompetencia}</span>}
@@ -196,7 +196,7 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
           </label>}
           <label className="campo">Puntos por puesto (según reglamento, opcional)
             <input type="text" value={valores.puntosPorPuesto || ''} placeholder="Ej.: 20, 10, 5" onChange={e => f.cambiar('puntosPorPuesto', e.target.value)} {...campo('puntosPorPuesto')} />
-            <span className="campo__ayuda">1.º, 2.º, 3.º… No se asignarán puntajes inventados.</span>
+            <span className="campo__ayuda">En orden: 1.º, 2.º, 3.º…</span>
             {errores.puntosPorPuesto && <span className="campo__error">{errores.puntosPorPuesto}</span>}
           </label>
         </div>}

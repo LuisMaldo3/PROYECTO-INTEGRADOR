@@ -22,10 +22,10 @@ import com.tecsup.tcweek.data.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-private val MarinoRec = Color(0xFF0C2142)
-private val AzulRec = Color(0xFF1769DB)
-private val CelesteRec = Color(0xFF55B9F7)
-private val FondoRec = Color(0xFFF1F5FB)
+private val MarinoRec = Color(0xFF0B2A5B)
+private val AzulRec = Color(0xFF1557D0)
+private val CelesteRec = Color(0xFF8FD9F5)
+private val FondoRec = Color(0xFFF2F5F9)
 private val VerdeRec = Color(0xFF08796A)
 
 @Composable
@@ -82,19 +82,17 @@ fun RecomendacionesScreen() {
         verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
         item {
-            Surface(shape = RoundedCornerShape(22.dp), shadowElevation = 5.dp) {
+            Surface(shape = RoundedCornerShape(18.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
-                        .background(Brush.linearGradient(listOf(MarinoRec, Color(0xFF1451A3), AzulRec)))
+                        .background(MarinoRec)
                         .padding(23.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("DESCUBRE · VYNK", style = MaterialTheme.typography.labelMedium,
-                        color = Color(0xFF9EDCFF), fontWeight = FontWeight.ExtraBold)
-                    Text("Experiencias que van contigo", style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White, fontWeight = FontWeight.ExtraBold)
-                    Text("Actividades seleccionadas según tus intereses y tu disponibilidad real.",
-                        style = MaterialTheme.typography.bodyMedium, color = Color(0xFFE0EDFF))
+                    Text("Elegidas según tus intereses", style = MaterialTheme.typography.titleLarge,
+                        color = Color.White)
+                    Text("Puedes cambiar tus intereses desde tu perfil.",
+                        style = MaterialTheme.typography.bodyMedium, color = Color(0xFFE8F0FD))
                     OutlinedButton(
                         onClick = { version++ }, enabled = !cargando && descartandoId == null,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
@@ -103,22 +101,8 @@ fun RecomendacionesScreen() {
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(17.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text("Actualizar sugerencias")
+                        Text("Actualizar", style = MaterialTheme.typography.labelLarge)
                     }
-                }
-            }
-        }
-        item {
-            Surface(shape = RoundedCornerShape(14.dp), color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFDDE7F3))) {
-                Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Surface(color = Color(0xFFE7F3FF), shape = RoundedCornerShape(9.dp)) {
-                        Text("PARA TI", modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                            style = MaterialTheme.typography.labelSmall, color = AzulRec, fontWeight = FontWeight.Bold)
-                    }
-                    Text("Tú decides qué quieres descubrir.", color = MarinoRec,
-                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -155,7 +139,7 @@ fun RecomendacionesScreen() {
             }
             if (datos?.actividades.isNullOrEmpty()) item {
                 Surface(shape = RoundedCornerShape(18.dp), color = Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFDCE7F4))) {
+                    border = BorderStroke(1.dp, Color(0xFFDDE4EE))) {
                     Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("No hay más actividades por ahora", color = MarinoRec,
                             fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
@@ -175,21 +159,21 @@ fun RecomendacionesScreen() {
                     Column(Modifier.fillMaxWidth().padding(19.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Surface(color = Color(0xFFE8F2FF), shape = RoundedCornerShape(9.dp)) {
-                                Text("PARA TI  ·  ${index + 1}", Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                            Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(9.dp)) {
+                                Text("Sugerencia ${index + 1}", Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
                                     style = MaterialTheme.typography.labelSmall, color = AzulRec, fontWeight = FontWeight.ExtraBold)
                             }
                             Spacer(Modifier.weight(1f))
-                            Text(a.categoriaId.ifBlank { "VYNK" }, color = Color(0xFF63768D),
+                            Text(estiloCategoria(id = a.categoriaId).nombre, color = Color(0xFF55657E),
                                 style = MaterialTheme.typography.labelSmall)
                         }
                         Text(a.nombre, style = MaterialTheme.typography.titleLarge,
                             color = MarinoRec, fontWeight = FontWeight.ExtraBold)
                         if (a.descripcion.isNotBlank()) Text(a.descripcion,
                             style = MaterialTheme.typography.bodyMedium, color = Color(0xFF526781))
-                        Surface(color = Color(0xFFF3F7FD), shape = RoundedCornerShape(11.dp)) {
+                        Surface(color = Color(0xFFF2F5F9), shape = RoundedCornerShape(11.dp)) {
                             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text("Fecha  ${a.fecha}", color = MarinoRec, style = MaterialTheme.typography.bodySmall)
+                                Text(nombreDia(a.fecha), color = MarinoRec, style = MaterialTheme.typography.bodySmall)
                                 Text("Horario  ${a.horaInicio} – ${a.horaFin}", color = MarinoRec,
                                     style = MaterialTheme.typography.bodySmall)
                             }
@@ -203,7 +187,7 @@ fun RecomendacionesScreen() {
                                 }
                             }
                         }
-                        Surface(color = Color(0xFFEAF3FF), shape = RoundedCornerShape(11.dp)) {
+                        Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(11.dp)) {
                             Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                 Text("Por qué te la recomendamos", color = AzulRec, fontWeight = FontWeight.Bold)
                                 Text(recomendacion.motivo, color = MarinoRec, style = MaterialTheme.typography.bodySmall)

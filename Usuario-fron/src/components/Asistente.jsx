@@ -5,7 +5,6 @@ import { comprobarServicios } from '../services/estadoServicio'
 import { borrarHistorial, guardarHistorial, leerHistorial } from '../services/historialAsistente'
 import { MensajesChat } from './MensajesChat'
 import { PREGUNTAS_NATURALES } from '../services/preguntasNaturales.js'
-import './Asistente.css'
 
 const EJEMPLOS = [
   ...PREGUNTAS_NATURALES,
@@ -16,7 +15,7 @@ const EJEMPLOS = [
   { texto: '¿Dónde se realizará una actividad?', icono: 'ubicacion' },
   { texto: '¿Qué requisitos tiene el taller de robótica?', icono: 'pregunta' },
 ]
-const SALUDO = { rol: 'asistente', contenido: '¡Hola! Soy el asistente de VYNK. Puedo consultar fechas, horarios, ubicaciones y requisitos de las actividades publicadas por administración. ¿Qué te gustaría saber?' }
+const SALUDO = { rol: 'asistente', contenido: 'Hola, soy el asistente de VYNK. Pregúntame por fechas, horarios, lugares, cupos o requisitos de las actividades.' }
 
 /** Iconografía propia, ligera: no requiere instalar bibliotecas. */
 function Icono({ nombre, tamaño = 21 }) {
@@ -34,7 +33,7 @@ function Icono({ nombre, tamaño = 21 }) {
   }
 }
 
-/** Solo se renueva la presentación. Conexión, historial, sesión y peticiones existentes intactos. */
+/** Asistente: preguntas sobre horarios, lugares, cupos y requisitos. */
 export function Asistente() {
   const sesion = leerSesion()
   const correo = sesion?.usuario?.correo ?? ''
@@ -42,7 +41,7 @@ export function Asistente() {
   const [texto, setTexto] = useState('')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
-  const [estado, setEstado] = useState('Listo para consultar')
+  const [estado, setEstado] = useState('En línea')
   const [diagnostico, setDiagnostico] = useState(null)
   const [diagnosticoError, setDiagnosticoError] = useState('')
   const [verificando, setVerificando] = useState(false)
@@ -91,9 +90,9 @@ export function Asistente() {
     try {
       const resultado = await preguntarAsistente({ mensaje: contenido, token, signal: controller.signal })
       setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', requisitos: resultado.requisitos || [], actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
-      setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con las actividades · Gemini' : 'Respuesta de actividades verificadas')
+      setEstado('En línea')
     } catch (e) {
-      if (controller.signal.aborted) { setError('La consulta tardó demasiado. Comprueba que Spring Boot esté activo e inténtalo otra vez.') }
+      if (controller.signal.aborted) { setError('La consulta tardó demasiado. Inténtalo otra vez en unos segundos.') }
       else setError(e.message || 'No fue posible consultar el asistente.')
       setEstado('No se pudo completar la consulta')
     } finally { clearTimeout(reloj); setCargando(false); peticion.current = null }
@@ -112,20 +111,9 @@ export function Asistente() {
     finally { setReiniciando(false) }
   }
   return <section className="v-asistente" aria-label="Asistente de horarios">
-    <div className="v-asistente-hero">
-      <div className="v-asistente-hero__contenido">
-        <div className="v-asistente-hero__simbolo" aria-hidden="true"><Icono nombre="estrella" tamaño={34} /></div>
-        <div className="v-asistente-hero__texto">
-          <h2>Asistente <span>VYNK</span></h2>
-          <p>Consulta horarios, requisitos y ubicaciones de actividades.</p>
-          <span className={`v-asistente-hero__estado${error ? ' v-asistente-hero__estado--error' : ''}`}><span className="v-asistente-punto" />{sincronizando ? 'Sincronizando conversación…' : cargando ? 'Consultando el cronograma…' : error ? 'Revisa la última consulta' : 'Listo para consultar'}</span>
-        </div>
-      </div>
-      <div className="v-asistente-hero__arte" aria-hidden="true" />
-    </div>
     <div className="v-asistente-grid">
       <aside className="v-asistente-side" aria-label="Preguntas sugeridas">
-        <div className="v-asistente-side__cab"><span>EXPLORA</span><h3>¿Qué necesitas saber?</h3><p>Empieza con una consulta rápida o escribe tu propia pregunta.</p></div>
+        <div className="v-asistente-side__cab"><h3>Preguntas frecuentes</h3><p>Toca una para enviarla.</p></div>
         <div className="v-asistente-ejemplos">
           {EJEMPLOS.map(e => <button key={e.texto} type="button" onClick={() => enviar(e.texto)} disabled={cargando || sincronizando || reiniciando}>
             <span className="v-asistente-ejemplos__icono"><Icono nombre={e.icono} /></span>
@@ -133,17 +121,17 @@ export function Asistente() {
             <Icono nombre="flecha" tamaño={17} />
           </button>)}
         </div>
-        <div className="v-asistente-diagnostico">
+        {import.meta.env.DEV && <div className="v-asistente-diagnostico">
           <button type="button" onClick={verificar} disabled={verificando}><Icono nombre="conexion" tamaño={17}/>{verificando ? 'Comprobando…' : 'Comprobar conexiones'}</button>
           {diagnostico && <p role="status">{diagnostico.mongodb === 'conectado' ? '✓ MongoDB conectado' : '⚠ MongoDB sin conexión'} · {diagnostico.actividadesPublicadas} actividades · Gemini {diagnostico.geminiConfigurado ? 'configurado' : 'sin configurar'}</p>}
           {diagnosticoError && <p role="alert">{diagnosticoError}</p>}
-        </div>
-        <div className="v-asistente-fuente"><span className="v-asistente-fuente__icono"><Icono nombre="escudo" tamaño={21}/></span><div><strong>Información confiable</strong><small>El asistente consulta las actividades publicadas por administración. No inventa actividades.</small></div></div>
+        </div>}
+        <div className="v-asistente-fuente"><span className="v-asistente-fuente__icono"><Icono nombre="escudo" tamaño={21}/></span><div><strong>Responde con datos oficiales</strong><small>Solo usa las actividades publicadas por Tecsup.</small></div></div>
       </aside>
       <div className="v-asistente-chat">
-        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true"><Icono nombre="estrella" tamaño={23}/></div><div className="v-asistente-chat__identidad"><h3>Asistente VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || sincronizando || reiniciando || mensajes.length === 0} title="Borrar la conversación en todos tus dispositivos"><Icono nombre="mas" tamaño={19}/> Nueva conversación</button></header>
+        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true"><Icono nombre="estrella" tamaño={23}/></div><div className="v-asistente-chat__identidad"><h3>Asistente de VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || sincronizando || reiniciando || mensajes.length === 0} title="Borrar la conversación en todos tus dispositivos"><Icono nombre="mas" tamaño={19}/> Nueva conversación</button></header>
         <MensajesChat mensajes={mensajes.length ? mensajes : [SALUDO]} texto={texto} onTexto={setTexto} onEnviar={() => enviar()} cargando={cargando || sincronizando || reiniciando} deshabilitado={!correo || sincronizando || reiniciando} />
-        {error && <div className="v-asistente-error" role="alert">⚠ {error} <button type="button" onClick={() => setError('')}>Cerrar</button></div>}
+        {error && <div className="v-asistente-error" role="alert">{error} <button type="button" onClick={() => setError('')}>Cerrar</button></div>}
       </div>
     </div>
   </section>

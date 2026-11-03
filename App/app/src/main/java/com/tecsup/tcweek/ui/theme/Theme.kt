@@ -1,51 +1,58 @@
 package com.tecsup.tcweek.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-// Paleta VYNK propia: evita tonos dinámicos del dispositivo ajenos a la marca.
+// Paleta VYNK propia: la app siempre usa los colores de la marca, sin tonos dinámicos del teléfono.
 private val LightColorScheme = lightColorScheme(
     primary = VynkBlue,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFDCEBFF),
+    primaryContainer = VynkBlueSoft,
     onPrimaryContainer = VynkNavy,
-    secondary = VynkTeal,
+    secondary = VynkNavy,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD9F5F0),
-    onSecondaryContainer = Color(0xFF045B58),
+    secondaryContainer = Color(0xFFE3EAF5),
+    onSecondaryContainer = VynkNavy,
     tertiary = VynkSky,
+    onTertiary = Color.White,
     background = VynkBackground,
     onBackground = VynkText,
     surface = VynkSurface,
     onSurface = VynkText,
-    surfaceVariant = Color(0xFFEAF0F8),
+    surfaceVariant = VynkSurface2,
     onSurfaceVariant = VynkMuted,
-    outline = Color(0xFFCAD7E8),
-    error = Color(0xFFB42332)
+    surfaceContainer = VynkSurface,
+    surfaceContainerLow = VynkSurface,
+    surfaceContainerHigh = VynkSurface2,
+    outline = VynkLineStrong,
+    outlineVariant = VynkLine,
+    error = VynkError,
+    errorContainer = VynkErrorSoft
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF80B9FF),
-    onPrimary = VynkNavy,
-    secondary = Color(0xFF67D2C9),
-    background = Color(0xFF0D182B),
-    onBackground = Color(0xFFF3F6FC),
-    surface = Color(0xFF17263F),
-    onSurface = Color(0xFFF3F6FC)
+private val VynkShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(18.dp),
+    extraLarge = RoundedCornerShape(24.dp)
 )
 
 @Composable
 fun TCWeekTheme(
-    darkTheme: Boolean = false,
-    dynamicColor: Boolean = false,
+    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = false,
+    @Suppress("UNUSED_PARAMETER") dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+        colorScheme = LightColorScheme,
         typography = Typography,
+        shapes = VynkShapes,
         content = content
     )
 }

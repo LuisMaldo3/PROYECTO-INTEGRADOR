@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import { actividadSeleccionada, obtenerDetalleActividad, obtenerResultadosOrganizador, enviarResultadosOrganizador, rutaOrganizador } from '../services/organizadorService'
-import './Organizador.css'
-import './VynkUpgrade.css'
 
 /** El organizador registra puestos; la aprobación y publicación corresponden al administrador. */
 export function OrganizadorResultados({ token }) {
@@ -47,14 +45,11 @@ export function OrganizadorResultados({ token }) {
   }
 
   return <div className="org-pagina org-resultados-up">
-    <a href={rutaOrganizador('organizador-detalle', actividadId)} className="org-regresar">← Volver a la competencia</a>
-    <section className="org-interior-hero vynk-up-hero"><span className="org-eyebrow">ORGANIZACIÓN · T&amp;C WEEK</span>
-      <h2>Registrar resultados</h2><p>Asigna posiciones y propone puntos a los inscritos. El administrador debe validarlos antes de publicarlos.</p>
-    </section>
+    <a href={rutaOrganizador('organizador-detalle', actividadId)} className="org-regresar">Volver a la competencia</a>
     {datos.cargando && <div className="org-cargando" role="status">Cargando participantes y resultados…</div>}
     {datos.error && <div className="org-alerta" role="alert">{datos.error}<button type="button" onClick={() => setRevision(n => n + 1)}>Reintentar</button></div>}
     {!datos.cargando && !datos.error && <div className="org-resultados-up__panel">
-      <div className="org-resultados-up__head"><div><span className="vynk-up-eyebrow">COMPETENCIA</span><h3>{datos.actividad?.nombre}</h3><p>Solo puedes registrar resultados de tus competencias asignadas.</p></div>
+      <div className="org-resultados-up__head"><div><h3>{datos.actividad?.nombre}</h3><p>Solo puedes registrar resultados de tus competencias asignadas.</p></div>
         <span className={`vynk-up-status ${publicado ? 'vynk-up-status--ok' : ''}`}>{publicado ? 'Publicado oficialmente' : datos.resultado?.estado === 'pendiente' ? 'Pendiente de validación' : 'Sin resultados'}</span>
       </div>
       <div className="org-resultados-up__meta"><span>{participantes.length} inscripciones activas</span><span>{datos.actividad?.modalidad === 'equipos' ? 'Competencia por equipos' : 'Competencia individual'}</span></div>
@@ -72,7 +67,7 @@ export function OrganizadorResultados({ token }) {
           {!publicado && <div className="org-resultados-up__acciones"><button type="button" className="org-boton org-boton--suave" disabled={!disponibles.length || guardando} onClick={() => setPuestos(prev => [...prev, { inscripcionId: disponibles[0].inscripcionId, puesto: prev.length ? Math.max(...prev.map(x => x.puesto)) + 1 : 1, puntos: datos.actividad?.puntosPorPuesto?.[prev.length] ?? 0 }])}>+ Agregar posición</button>
             <button type="submit" className="org-boton org-boton--primario" disabled={!valido || guardando}>{guardando ? 'Enviando…' : 'Enviar al administrador'}</button></div>}
         </form>}
-      <p className="org-resultados-up__nota">Las posiciones no serán visibles para los estudiantes hasta que el administrador las valide y publique. El cálculo acumulado por las cinco áreas corresponde al Sprint 3.</p>
+      <p className="org-resultados-up__nota">Las posiciones no serán visibles para los estudiantes hasta que el administrador las valide y publique.</p>
       {aviso && <p className="org-resultados-up__aviso" role="status">{aviso}</p>}
     </div>}
   </div>
