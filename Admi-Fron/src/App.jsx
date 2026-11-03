@@ -6,6 +6,7 @@ import MenuAdmin from './components/MenuAdmin'
 import PantallaActividades from './components/PantallaActividades'
 import PantallaInscritos from './components/PantallaInscritos'
 import PantallaReemplazos from './components/PantallaReemplazos'
+import PantallaDemanda from './components/PantallaDemanda'
 import PantallaAvisos from './components/PantallaAvisos'
 import ClasificacionGeneral from './components/ClasificacionGeneral'
 import { cerrarSesion, guardarSesion, leerSesion } from './services/authService'
@@ -99,6 +100,7 @@ export default function App() {
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'inscritos' && <PantallaInscritos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'reemplazos' && <PantallaReemplazos token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'demanda' && <PantallaDemanda token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'clasificacion' && <ClasificacionGeneral token={sesion.token} />}
       </main>

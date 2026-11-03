@@ -207,3 +207,11 @@ def seguimiento_reemplazos(request):
     """US-36 · Vista administrativa, sin capacidad de escribir reemplazos ni cupos."""
     from .reemplazos import resumen_reemplazos
     return JsonResponse(resumen_reemplazos())
+
+
+@require_GET
+@exigir_admin
+def ranking_demanda(request):
+    """US-37: ranking de demanda; IA opcional bajo solicitud expresa en la web."""
+    from .demanda import obtener_demanda
+    return JsonResponse(obtener_demanda(con_ia=request.GET.get('ia') == '1'))
