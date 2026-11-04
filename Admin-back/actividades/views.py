@@ -223,3 +223,11 @@ def estadisticas_intereses(request):
     """US-38: solamente administración. Datos agregados; Gemini opcional."""
     from .intereses import obtener_intereses
     return JsonResponse(obtener_intereses(con_ia=request.GET.get('ia') == '1'))
+
+
+@require_GET
+@exigir_admin
+def resumen_evento(request):
+    """US-39: resumen estadístico oficial; Gemini solamente bajo solicitud del admin."""
+    from .reporte_evento import obtener_reporte
+    return JsonResponse(obtener_reporte(con_ia=request.GET.get('ia') == '1'))

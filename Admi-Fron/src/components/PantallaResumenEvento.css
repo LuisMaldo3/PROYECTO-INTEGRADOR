@@ -1,0 +1,40 @@
+.reporte-evento { display: grid; gap: 18px; min-width: 0; }
+.reporte-evento__totales { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.reporte-evento__cifra { padding: 18px 20px; border-radius: 14px; border: 1px solid var(--linea); background: var(--superficie, #fff); min-width: 0; }
+.reporte-evento__cifra dt { color: var(--texto-2); font-size: .79rem; font-weight: 650; }
+.reporte-evento__cifra dd { color: var(--tinta); font-size: 1.85rem; font-weight: 800; font-variant-numeric: tabular-nums; margin: 6px 0; }
+.reporte-evento__cifra small { font-size: .77rem; color: var(--texto-2); }
+.reporte-evento__resumen,.reporte-evento__areas,.reporte-evento__competencias { padding: 22px 24px; min-width: 0; display: grid; gap: 15px; }
+.reporte-evento__seccion-cabecera { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.reporte-evento__seccion-cabecera h2 { font-size: 1.13rem; color: var(--tinta); }
+.reporte-evento__seccion-cabecera p { font-size: .85rem; color: var(--texto-2); margin: 5px 0 0; }
+.reporte-evento__seccion-cabecera > span { font-size: .79rem; font-weight: 700; color: var(--texto-2); }
+.reporte-evento__resumen > p,.reporte-evento__texto { color: var(--texto); line-height: 1.7; white-space: pre-line; }
+.reporte-evento__resumen > small,.reporte-evento__nota { font-size: .8rem; line-height: 1.6; color: var(--texto-2); }
+.reporte-evento__ranking { list-style: none; padding: 0; margin: 0; display: grid; }
+.reporte-evento__area { display: grid; grid-template-columns: 32px minmax(0,1fr) 95px; align-items: center; gap: 16px; padding: 15px 0; border-top: 1px solid var(--linea); }
+.reporte-evento__puesto { font-weight: 800; color: var(--azul); font-variant-numeric: tabular-nums; }
+.reporte-evento__area-info { display: grid; gap: 6px; min-width: 0; }
+.reporte-evento__area-info strong { font-size: .92rem; color: var(--tinta); }
+.reporte-evento__area-info small { font-size: .78rem; color: var(--texto-2); }
+.reporte-evento__barra { border-radius: 999px; overflow: hidden; background: var(--linea); height: 8px; }
+.reporte-evento__barra span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--azul), var(--celeste)); }
+.reporte-evento__puntos { text-align: right; color: var(--tinta); font-size: 1.18rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.reporte-evento__puntos small { font-size: .75rem; color: var(--texto-2); }
+.reporte-evento__buscar { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border: 1px solid var(--linea); border-radius: 10px; max-width: 440px; }
+.reporte-evento__buscar input { border: none; outline: none; width: 100%; min-width: 0; background: transparent; color: var(--tinta); font: inherit; font-size: .88rem; }
+.reporte-evento__resultados { display: grid; gap: 13px; }
+.reporte-evento__resultado { padding: 16px; border: 1px solid var(--linea); border-radius: 12px; display: grid; gap: 12px; }
+.reporte-evento__resultado-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.reporte-evento__resultado-cabecera h3 { font-size: 1rem; color: var(--tinta); }
+.reporte-evento__resultado-cabecera small { font-size: .78rem; color: var(--texto-2); }
+.reporte-evento__resultado-cabecera > strong { color: var(--azul); white-space: nowrap; }
+.reporte-evento__ganador { background: var(--fondo, #f6f9ff); padding: 12px 14px; border-radius: 9px; font-size: .85rem; color: var(--texto); line-height: 1.5; }
+.reporte-evento__aviso,.reporte-evento__vacio { color: var(--texto-2); font-size: .85rem; }
+.reporte-evento__resultado details summary { font-size: .83rem; font-weight: 700; color: var(--azul); cursor: pointer; }
+.reporte-evento__posiciones { padding: 0; margin: 12px 0 0; list-style: none; }
+.reporte-evento__posiciones li { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--linea); padding: 9px 0; font-size: .84rem; }
+.reporte-evento__posiciones small { color: var(--texto-2); }
+.reporte-evento__posiciones strong { white-space: nowrap; color: var(--tinta); }
+@media (max-width: 1080px) { .reporte-evento__totales { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 620px) { .reporte-evento__totales { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; } .reporte-evento__cifra { padding: 12px; } .reporte-evento__cifra dd { font-size: 1.5rem; } .reporte-evento__resumen,.reporte-evento__areas,.reporte-evento__competencias { padding: 15px; } .reporte-evento__area { grid-template-columns: 25px minmax(0, 1fr) 66px; gap: 10px; } .reporte-evento__puntos { font-size: 1rem; } }
