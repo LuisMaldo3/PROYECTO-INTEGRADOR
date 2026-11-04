@@ -231,3 +231,11 @@ def resumen_evento(request):
     """US-39: resumen estadístico oficial; Gemini solamente bajo solicitud del admin."""
     from .reporte_evento import obtener_reporte
     return JsonResponse(obtener_reporte(con_ia=request.GET.get('ia') == '1'))
+
+
+@require_GET
+@exigir_admin
+def comparacion_categorias(request):
+    """US-40 · Datos de participación y tabla oficial de solo lectura."""
+    from .comparacion_categorias import obtener_comparacion
+    return JsonResponse(obtener_comparacion())

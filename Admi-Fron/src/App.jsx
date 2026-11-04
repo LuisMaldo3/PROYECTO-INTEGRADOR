@@ -9,6 +9,7 @@ import PantallaReemplazos from './components/PantallaReemplazos'
 import PantallaDemanda from './components/PantallaDemanda'
 import PantallaIntereses from './components/PantallaIntereses'
 import PantallaResumenEvento from './components/PantallaResumenEvento'
+import PantallaComparacionCategorias from './components/PantallaComparacionCategorias'
 import PantallaAvisos from './components/PantallaAvisos'
 import ClasificacionGeneral from './components/ClasificacionGeneral'
 import { cerrarSesion, guardarSesion, leerSesion } from './services/authService'
@@ -104,6 +105,7 @@ export default function App() {
         {vista === 'reemplazos' && <PantallaReemplazos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'demanda' && <PantallaDemanda token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'intereses' && <PantallaIntereses token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'comparacion' && <PantallaComparacionCategorias token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'resumen' && <PantallaResumenEvento token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'clasificacion' && <ClasificacionGeneral token={sesion.token} />}

@@ -126,13 +126,14 @@ def obtener_demanda(con_ia=False):
         ranking['ia'] = {'estado': 'sin_datos', 'texto': None,
                          'mensaje': 'Todavía no hay actividades para analizar.'}
         return ranking
-    clave = os.environ.get('GEMINI_API_KEY', '').strip()
+    from .gemini_config import credenciales_gemini
+    clave, modelo = credenciales_gemini()
     if not clave:
         ranking['ia'] = {'estado': 'sin_configurar', 'texto': None,
                          'mensaje': 'Gemini no está configurado en el backend administrador (GEMINI_API_KEY).'}
         return ranking
     try:
-        texto = _solicitar_gemini(ranking['actividades'], clave)
+        texto = _solicitar_gemini(ranking['actividades'], clave, modelo)
         ranking['ia'] = {'estado': 'disponible', 'texto': texto,
                          'mensaje': 'Interpretación generada por IA a partir de las estadísticas actuales.'}
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, json.JSONDecodeError) as exc:

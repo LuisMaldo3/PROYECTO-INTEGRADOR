@@ -173,37 +173,10 @@ def anunciar(actividad_id, admin_id):
 
 
 def clasificacion_general():
-    """Clasificación recalculada de fuentes oficiales, una sola sede, sin doble conteo."""
-    puntos = {area: 0 for area in AREAS_TECSUP}
-    victorias = {area: 0 for area in AREAS_TECSUP}
-    desglose = {area: [] for area in AREAS_TECSUP}
-    procesadas = set()
-    contadas = 0
-    for doc in mongo.resultados_competencias().find({'estado': 'publicado'}):
-        actividad_id = str(doc.get('actividadId'))
-        if actividad_id in procesadas:
-            continue
-        procesadas.add(actividad_id)
-        actividad = buscar_por_id(mongo.actividades(), actividad_id)
-        if not actividad or actividad.get('estado') == 'cancelada' or actividad.get('tipoActividad') != 'competencia':
-            continue
-        contadas += 1
-        for resultado in doc.get('posiciones') or []:
-            area = resultado.get('areaTecsup')
-            valor = resultado.get('puntos')
-            if area not in puntos or type(valor) is not int or not 0 <= valor <= 10000:
-                continue
-            puntos[area] += valor
-            if resultado.get('puesto') == 1:
-                victorias[area] += 1
-            desglose[area].append({'actividadId': actividad_id,
-                                   'competencia': actividad.get('nombre', 'Competencia'),
-                                   'puesto': resultado.get('puesto'), 'puntos': valor})
-    areas = [{'area': area, 'puntos': puntos[area], 'primerosPuestos': victorias[area],
-              'desglose': desglose[area]} for area in AREAS_TECSUP]
-    areas.sort(key=lambda a: (-a['puntos'], -a['primerosPuestos'], a['area']))
-    for indice, area in enumerate(areas, 1):
-        area['posicion'] = indice
-    return {'estado': 'publicado' if contadas else 'sin_resultados',
-            'totalCompetencias': contadas, 'areas': areas,
+    """Fuente única US-39/US-40 para el ranking y el desglose oficial."""
+    from .reporte_evento import obtener_reporte
+    r = obtener_reporte(con_ia=False)
+    total = r['totales']['competenciasConResultados']
+    return {'estado': 'publicado' if total else 'sin_resultados',
+            'totalCompetencias': total, 'areas': r['areas'],
             'criterioDesempate': 'Más puntos, más primeros puestos y orden alfabético'}

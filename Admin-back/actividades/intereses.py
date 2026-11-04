@@ -146,13 +146,14 @@ def obtener_intereses(con_ia=False):
         resultado['ia'] = {'estado': 'sin_datos', 'texto': None,
                            'mensaje': 'Todavía no hay intereses seleccionados para resumir.'}
         return resultado
-    clave = os.getenv('GEMINI_API_KEY', '').strip()
+    from .gemini_config import credenciales_gemini
+    clave, modelo = credenciales_gemini()
     if not clave:
         resultado['ia'] = {'estado': 'sin_configurar', 'texto': None,
                            'mensaje': 'Gemini no está configurado en el backend (GEMINI_API_KEY).'}
         return resultado
     try:
-        texto = _solicitar_gemini(resultado, clave)
+        texto = _solicitar_gemini(resultado, clave, modelo)
     except (OSError, ValueError, KeyError, TypeError, UnicodeError) as error:
         # No mostrar secretos ni errores internos del proveedor.
         resultado['ia'] = {'estado': 'no_disponible', 'texto': None,

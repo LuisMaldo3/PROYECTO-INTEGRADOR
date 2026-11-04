@@ -1,6 +1,8 @@
 package pe.tecsup.vynk.controller;
 
 import java.util.ArrayList;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -81,61 +83,100 @@ public class ResultadosPublicosController {
         return Map.of("estado", "sin_resultados", "resultado", Map.of());
     }
 
-    /** Sprint 3: los totales se RECONSTRUYEN desde resultados publicados (sin doble conteo).
-     * No se aceptan puntos de la web, resultados pendientes ni afiliaciones sin verificar. */
+    /** US-40-T09/T10: clasificación visible al estudiante autenticado.
+     * La lógica de validación de puestos/puntos y selección de publicación
+     * coincide con US-39/US-40 de Django. Nunca escribe puntajes en MongoDB.
+     */
     @GetMapping("/clasificacion")
     public Map<String, Object> clasificacion() {
         Map<String, Long> puntos = new LinkedHashMap<>();
         Map<String, Integer> primeros = new HashMap<>();
-        Map<String, List<Map<String,Object>>> desglose = new HashMap<>();
+        Map<String, List<Map<String, Object>>> desglose = new HashMap<>();
         for (String area : AREAS) {
-            puntos.put(area, 0L); primeros.put(area, 0); desglose.put(area, new ArrayList<>());
+            puntos.put(area, 0L);
+            primeros.put(area, 0);
+            desglose.put(area, new ArrayList<>());
         }
-        Set<String> actividadesProcesadas = new HashSet<>();
+        // Si existen publicaciones históricas duplicadas, usar la más reciente.
         List<Document> oficiales = mongo.find(new Query(Criteria.where("estado").is("publicado")),
                 Document.class, "resultados_competencias");
+        Map<String, Document> unicos = new HashMap<>();
+        for (Document doc : oficiales) {
+            String id = String.valueOf(doc.get("actividadId"));
+            Document anterior = unicos.get(id);
+            if (anterior == null || compararPublicacion(doc, anterior) > 0) unicos.put(id, doc);
+        }
         int competencias = 0;
-        for (Document resultado : oficiales) {
-            String actividadId = String.valueOf(resultado.get("actividadId"));
-            if (!actividadesProcesadas.add(actividadId)) continue;
+        for (Map.Entry<String, Document> entrada : unicos.entrySet()) {
+            String actividadId = entrada.getKey();
             Object key = org.bson.types.ObjectId.isValid(actividadId)
                     ? new org.bson.types.ObjectId(actividadId) : actividadId;
-            Document actividad = mongo.findOne(new Query(Criteria.where("_id").is(key)), Document.class, "actividades");
-            if (actividad == null || "cancelada".equals(actividad.getString("estado"))) continue;
-            if (!"competencia".equals(actividad.getString("tipoActividad"))) continue;
-            if (!(resultado.get("posiciones") instanceof List<?> posiciones)) continue;
+            Document actividad = mongo.findOne(new Query(Criteria.where("_id").is(key)),
+                    Document.class, "actividades");
+            if (actividad == null || "cancelada".equals(actividad.getString("estado"))
+                    || !"competencia".equals(actividad.getString("tipoActividad"))) continue;
             competencias++;
+            Set<String> inscripcionesVistas = new HashSet<>();
+            Set<Integer> puestosVistos = new HashSet<>();
+            Document resultado = entrada.getValue();
+            if (!(resultado.get("posiciones") instanceof List<?> posiciones)) continue;
             for (Object raw : posiciones) {
-                if (!(raw instanceof Map<?, ?> p)) continue;
-                String area = String.valueOf(p.get("areaTecsup"));
-                if (!puntos.containsKey(area) || !(p.get("puntos") instanceof Number score)) continue;
-                int numero = score.intValue();
-                if (numero < 0 || numero > 10000) continue;
-                puntos.put(area, puntos.get(area) + numero);
-                int puesto = p.get("puesto") instanceof Number n ? n.intValue() : 0;
+                if (!(raw instanceof Map<?, ?> pos)) continue;
+                String inscripcionId = String.valueOf(pos.get("inscripcionId"));
+                String area = String.valueOf(pos.get("areaTecsup"));
+                Object puntaje = pos.get("puntos");
+                Object orden = pos.get("puesto");
+                if (inscripcionId.isBlank() || "null".equals(inscripcionId)
+                        || !(orden instanceof Integer puesto) || puesto < 1 || puesto > 100
+                        || !(puntaje instanceof Integer || puntaje instanceof Long)
+                        || !puntos.containsKey(area)) continue;
+                long valor = ((Number) puntaje).longValue();
+                if (valor < 0 || valor > 10000 || inscripcionesVistas.contains(inscripcionId)
+                        || puestosVistos.contains(puesto)) continue;
+                inscripcionesVistas.add(inscripcionId);
+                puestosVistos.add(puesto);
+                puntos.put(area, puntos.get(area) + valor);
                 if (puesto == 1) primeros.put(area, primeros.get(area) + 1);
                 Map<String, Object> fila = new LinkedHashMap<>();
-                fila.put("actividadId", actividadId); fila.put("competencia", actividad.get("nombre"));
-                fila.put("puesto", puesto); fila.put("puntos", numero);
+                fila.put("actividadId", actividadId);
+                fila.put("competencia", actividad.get("nombre"));
+                fila.put("puesto", puesto);
+                fila.put("puntos", valor);
                 desglose.get(area).add(fila);
             }
         }
         List<Map<String, Object>> areas = new ArrayList<>();
-        for (String nombre : AREAS) {
-            Map<String, Object> a = new LinkedHashMap<>();
-            a.put("area", nombre); a.put("puntos", puntos.get(nombre));
-            a.put("primerosPuestos", primeros.get(nombre)); a.put("desglose", desglose.get(nombre));
-            areas.add(a);
+        for (String area : AREAS) {
+            Map<String, Object> fila = new LinkedHashMap<>();
+            fila.put("area", area);
+            fila.put("puntos", puntos.get(area));
+            fila.put("primerosPuestos", primeros.get(area));
+            fila.put("desglose", desglose.get(area));
+            areas.add(fila);
         }
-        areas.sort(Comparator.comparingLong((Map<String,Object> a) -> ((Number) a.get("puntos")).longValue()).reversed()
-                .thenComparing(Comparator.comparingInt((Map<String,Object> a) -> ((Number) a.get("primerosPuestos")).intValue()).reversed())
+        areas.sort(Comparator.comparingLong((Map<String, Object> a) -> ((Number) a.get("puntos")).longValue())
+                .reversed().thenComparing(Comparator.comparingInt(
+                        (Map<String, Object> a) -> ((Number) a.get("primerosPuestos")).intValue()).reversed())
                 .thenComparing(a -> String.valueOf(a.get("area"))));
         for (int i = 0; i < areas.size(); i++) areas.get(i).put("posicion", i + 1);
         Map<String, Object> respuesta = new LinkedHashMap<>();
         respuesta.put("estado", competencias > 0 ? "publicado" : "sin_resultados");
         respuesta.put("totalCompetencias", competencias);
-        respuesta.put("criterioDesempate", "Mayor puntaje; luego más primeros puestos; finalmente orden alfabético");
+        respuesta.put("criterioDesempate", "Más puntos, más primeros puestos y orden alfabético");
         respuesta.put("areas", areas);
         return respuesta;
+    }
+
+    private static int compararPublicacion(Document nuevo, Document anterior) {
+        int fechas = fechaPublicacion(nuevo).compareTo(fechaPublicacion(anterior));
+        if (fechas != 0) return fechas;
+        return String.valueOf(nuevo.get("_id")).compareTo(String.valueOf(anterior.get("_id")));
+    }
+
+    private static String fechaPublicacion(Document doc) {
+        Object fecha = doc.get("publicadoEn");
+        if (fecha instanceof Date d) return d.toInstant().toString();
+        if (fecha instanceof Instant i) return i.toString();
+        return fecha instanceof String s ? s : "";
     }
 }

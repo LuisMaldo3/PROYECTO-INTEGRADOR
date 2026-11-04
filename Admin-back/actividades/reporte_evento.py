@@ -167,13 +167,14 @@ def obtener_reporte(con_ia=False):
     if not reporte['totales']['actividadesRegistradas']:
         reporte['ia'] = {'estado': 'sin_datos', 'texto': None, 'mensaje': 'No hay actividades registradas para resumir.'}
         return reporte
-    clave = os.getenv('GEMINI_API_KEY', '').strip()
+    from .gemini_config import credenciales_gemini
+    clave, modelo = credenciales_gemini()
     if not clave:
         reporte['ia'] = {'estado': 'sin_configurar', 'texto': None,
                           'mensaje': 'Gemini no está configurado. Agrega GEMINI_API_KEY al backend para generar el texto.'}
         return reporte
     try:
-        texto = _solicitar_gemini(reporte, clave)
+        texto = _solicitar_gemini(reporte, clave, modelo)
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, json.JSONDecodeError):
         reporte['ia'] = {'estado': 'no_disponible', 'texto': None,
                           'mensaje': 'Gemini no pudo generar el resumen. Los datos oficiales siguen disponibles.'}
