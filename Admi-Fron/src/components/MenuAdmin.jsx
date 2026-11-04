@@ -7,6 +7,7 @@ export const OPCIONES = [
   { id: 'inscritos', titulo: 'Inscritos', icono: 'grafico' },
   { id: 'reemplazos', titulo: 'Reemplazos y cupos', icono: 'actualizar' },
   { id: 'demanda', titulo: 'Demanda', icono: 'grafico' },
+  { id: 'intereses', titulo: 'Intereses', icono: 'grafico' },
   { id: 'avisos', titulo: 'Avisos', icono: 'megafono' },
   { id: 'clasificacion', titulo: 'Clasificación', icono: 'trofeo' },
   { id: 'usuarios', titulo: 'Usuarios', icono: 'usuarios' },

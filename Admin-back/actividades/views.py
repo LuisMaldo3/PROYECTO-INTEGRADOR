@@ -215,3 +215,11 @@ def ranking_demanda(request):
     """US-37: ranking de demanda; IA opcional bajo solicitud expresa en la web."""
     from .demanda import obtener_demanda
     return JsonResponse(obtener_demanda(con_ia=request.GET.get('ia') == '1'))
+
+
+@require_GET
+@exigir_admin
+def estadisticas_intereses(request):
+    """US-38: solamente administración. Datos agregados; Gemini opcional."""
+    from .intereses import obtener_intereses
+    return JsonResponse(obtener_intereses(con_ia=request.GET.get('ia') == '1'))
