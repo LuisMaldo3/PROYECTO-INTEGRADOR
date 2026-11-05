@@ -21,8 +21,11 @@ public class SugerenciasHuecosService {
     private final ContextoAgendaSugeridaService contexto;
     private final DisponibilidadService disponibilidad;
     private final GeminiAgendaSugeridaService gemini;
-    public SugerenciasHuecosService(ContextoAgendaSugeridaService contexto, DisponibilidadService disponibilidad, GeminiAgendaSugeridaService gemini) {
+    private final DescartesRecomendacionesService descartes;
+    public SugerenciasHuecosService(ContextoAgendaSugeridaService contexto, DisponibilidadService disponibilidad,
+                                  GeminiAgendaSugeridaService gemini, DescartesRecomendacionesService descartes) {
         this.contexto = contexto; this.disponibilidad = disponibilidad; this.gemini = gemini;
+        this.descartes = descartes;
     }
     public record Franja(LocalTime inicio, LocalTime fin) {}
     private static final LocalTime ABRE = LocalTime.of(8, 0), CIERRA = LocalTime.of(21, 0);
@@ -86,7 +89,10 @@ public class SugerenciasHuecosService {
         var datos = contexto.reunir(usuario);
         List<BloqueOcupado> clases = configuracion.getBloques() == null ? List.of() : configuracion.getBloques();
         Map<LocalDate, List<Franja>> porFecha = new LinkedHashMap<>();
-        List<Map<String, Object>> elegibles = filtrarCompatibles(datos.disponibles(), clases, datos.inscritas());
+        // Excluir ANTES de ordenar con IA y antes de completar alternativas por reglas.
+        List<Map<String, Object>> elegibles = filtrarCompatibles(
+                DescartesRecomendacionesService.excluir(datos.disponibles(), descartes.idsDescartados(usuario)),
+                clases, datos.inscritas());
         for (var a : elegibles) {
             var fecha = LocalDate.parse(String.valueOf(a.get("fecha")));
             porFecha.computeIfAbsent(fecha, d -> huecos(d, clases, datos.inscritas()));
