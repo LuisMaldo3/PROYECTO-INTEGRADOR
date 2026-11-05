@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { leerSesion } from '../services/authService'
-import { preguntarAsistente } from '../services/asistenteService'
+import { consultarConversacion, nuevaConversacion, preguntarAsistente } from '../services/asistenteService'
 import { comprobarServicios } from '../services/estadoServicio'
 import { borrarHistorial, guardarHistorial, leerHistorial } from '../services/historialAsistente'
 import { MensajesChat } from './MensajesChat'
@@ -46,11 +46,26 @@ export function Asistente() {
   const [diagnostico, setDiagnostico] = useState(null)
   const [diagnosticoError, setDiagnosticoError] = useState('')
   const [verificando, setVerificando] = useState(false)
+  const [reiniciando, setReiniciando] = useState(false)
+  const [sincronizando, setSincronizando] = useState(true)
   const peticion = useRef(null)
 
   useEffect(() => {
+    const controller = new AbortController()
     setMensajes(leerHistorial(correo))
-    return () => { peticion.current?.abort() }
+    setSincronizando(true)
+    const token = leerSesion()?.token
+    if (correo && token) {
+      consultarConversacion({ token, signal: controller.signal })
+        .then(historialRemoto => {
+          if (controller.signal.aborted) return
+          setMensajes(historialRemoto)
+          guardarHistorial(correo, historialRemoto)
+        })
+        .catch(e => { if (!controller.signal.aborted) setError(e.message) })
+        .finally(() => { if (!controller.signal.aborted) setSincronizando(false) })
+    } else setSincronizando(false)
+    return () => { controller.abort(); peticion.current?.abort() }
   }, [correo])
   useEffect(() => { guardarHistorial(correo, mensajes) }, [correo, mensajes])
 
@@ -64,18 +79,17 @@ export function Asistente() {
 
   const enviar = useCallback(async (pregunta = texto) => {
     const contenido = String(pregunta).trim()
-    if (!contenido || cargando) return
+    if (!contenido || cargando || sincronizando || reiniciando) return
     const token = leerSesion()?.token
     if (!token) { setError('Inicia sesión para utilizar el asistente.'); return }
     const nuevo = { rol: 'usuario', contenido }
-    const anteriores = mensajes.filter(m => m !== SALUDO).slice(-8)
     const controller = new AbortController()
     peticion.current = controller
     setMensajes(prev => [...prev, nuevo])
     setTexto(''); setCargando(true); setError(''); setEstado('Consultando las actividades publicadas…')
     const reloj = setTimeout(() => controller.abort(), 28000)
     try {
-      const resultado = await preguntarAsistente({ mensaje: contenido, historial: anteriores, token, signal: controller.signal })
+      const resultado = await preguntarAsistente({ mensaje: contenido, token, signal: controller.signal })
       setMensajes(prev => [...prev, { rol: 'asistente', contenido: resultado.respuesta, origen: resultado.origen, aviso: resultado.aviso, ubicaciones: resultado.ubicaciones || [], tipoConsulta: resultado.tipoConsulta || 'general', requisitos: resultado.requisitos || [], actividades: ['momento', 'tema_horario'].includes(resultado.tipoConsulta) ? resultado.actividades || [] : [] }])
       setEstado(resultado.origen === 'gemini' ? 'Respuesta contrastada con el catálogo · Gemini' : 'Respuesta del catálogo verificado')
     } catch (e) {
@@ -83,9 +97,20 @@ export function Asistente() {
       else setError(e.message || 'No fue posible consultar el asistente.')
       setEstado('No se pudo completar la consulta')
     } finally { clearTimeout(reloj); setCargando(false); peticion.current = null }
-  }, [texto, cargando, mensajes])
+  }, [texto, cargando, sincronizando, reiniciando])
 
-  const limpiar = () => { peticion.current?.abort(); borrarHistorial(correo); setMensajes([]); setTexto(''); setError(''); setEstado('Listo para consultar') }
+  const limpiar = async () => {
+    const token = leerSesion()?.token
+    if (!token || cargando || reiniciando || sincronizando) return
+    setReiniciando(true); setError('')
+    try {
+      await nuevaConversacion({ token })
+      borrarHistorial(correo)
+      setMensajes([]); setTexto('')
+      setEstado('Nueva conversación iniciada')
+    } catch (e) { setError(e.message || 'No fue posible borrar el historial.') }
+    finally { setReiniciando(false) }
+  }
   return <section className="v-asistente" aria-label="Asistente de horarios">
     <div className="v-asistente-hero">
       <div className="v-asistente-hero__contenido">
@@ -93,7 +118,7 @@ export function Asistente() {
         <div className="v-asistente-hero__texto">
           <h2>Asistente <span>VYNK</span></h2>
           <p>Consulta horarios, requisitos y ubicaciones de actividades.</p>
-          <span className={`v-asistente-hero__estado${error ? ' v-asistente-hero__estado--error' : ''}`}><span className="v-asistente-punto" />{cargando ? 'Consultando el cronograma…' : error ? 'Revisa la última consulta' : 'Listo para consultar'}</span>
+          <span className={`v-asistente-hero__estado${error ? ' v-asistente-hero__estado--error' : ''}`}><span className="v-asistente-punto" />{sincronizando ? 'Sincronizando conversación…' : cargando ? 'Consultando el cronograma…' : error ? 'Revisa la última consulta' : 'Listo para consultar'}</span>
         </div>
       </div>
       <div className="v-asistente-hero__arte" aria-hidden="true" />
@@ -102,7 +127,7 @@ export function Asistente() {
       <aside className="v-asistente-side" aria-label="Preguntas sugeridas">
         <div className="v-asistente-side__cab"><span>EXPLORA</span><h3>¿Qué necesitas saber?</h3><p>Empieza con una consulta rápida o escribe tu propia pregunta.</p></div>
         <div className="v-asistente-ejemplos">
-          {EJEMPLOS.map(e => <button key={e.texto} type="button" onClick={() => enviar(e.texto)} disabled={cargando}>
+          {EJEMPLOS.map(e => <button key={e.texto} type="button" onClick={() => enviar(e.texto)} disabled={cargando || sincronizando || reiniciando}>
             <span className="v-asistente-ejemplos__icono"><Icono nombre={e.icono} /></span>
             <span className="v-asistente-ejemplos__texto">{e.texto}</span>
             <Icono nombre="flecha" tamaño={17} />
@@ -116,8 +141,8 @@ export function Asistente() {
         <div className="v-asistente-fuente"><span className="v-asistente-fuente__icono"><Icono nombre="escudo" tamaño={21}/></span><div><strong>Información confiable</strong><small>El asistente consulta las actividades publicadas por administración. No inventa actividades.</small></div></div>
       </aside>
       <div className="v-asistente-chat">
-        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true"><Icono nombre="estrella" tamaño={23}/></div><div className="v-asistente-chat__identidad"><h3>Asistente VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || mensajes.length === 0} title="Borrar la conversación de este dispositivo"><Icono nombre="mas" tamaño={19}/> Nueva conversación</button></header>
-        <MensajesChat mensajes={mensajes.length ? mensajes : [SALUDO]} texto={texto} onTexto={setTexto} onEnviar={() => enviar()} cargando={cargando} deshabilitado={!correo} />
+        <header className="v-asistente-chat__header"><div className="v-asistente-chat__logo" aria-hidden="true"><Icono nombre="estrella" tamaño={23}/></div><div className="v-asistente-chat__identidad"><h3>Asistente VYNK</h3><p><span className="v-asistente-online" />{estado}</p></div><button className="v-asistente-reset" type="button" onClick={limpiar} disabled={cargando || sincronizando || reiniciando || mensajes.length === 0} title="Borrar la conversación en todos tus dispositivos"><Icono nombre="mas" tamaño={19}/> Nueva conversación</button></header>
+        <MensajesChat mensajes={mensajes.length ? mensajes : [SALUDO]} texto={texto} onTexto={setTexto} onEnviar={() => enviar()} cargando={cargando || sincronizando || reiniciando} deshabilitado={!correo || sincronizando || reiniciando} />
         {error && <div className="v-asistente-error" role="alert">⚠ {error} <button type="button" onClick={() => setError('')}>Cerrar</button></div>}
       </div>
     </div>

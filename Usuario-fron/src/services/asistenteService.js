@@ -1,5 +1,26 @@
 import { API_URL } from '../config.js'
 
+/** El servidor es la fuente de verdad de la conversación; autentica por JWT. */
+export async function consultarConversacion({ token, signal }) {
+  if (!token) throw new Error('Inicia sesión para ver tu conversación.')
+  const res = await fetch(`${API_URL}/api/asistente/conversacion`, {
+    method: 'GET', signal, headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+  })
+  if (!res.ok) throw new Error(`No se pudo recuperar la conversación (HTTP ${res.status}).`)
+  const datos = await res.json()
+  if (!Array.isArray(datos?.mensajes)) throw new Error('El backend devolvió un historial inválido.')
+  return datos.mensajes.filter(m => ['usuario', 'asistente'].includes(m?.rol) && typeof m.contenido === 'string').slice(-24)
+}
+
+/** Elimina el historial en MongoDB para web y app; solo después se borra la copia local. */
+export async function nuevaConversacion({ token, signal }) {
+  if (!token) throw new Error('Inicia sesión para comenzar una conversación.')
+  const res = await fetch(`${API_URL}/api/asistente/conversacion`, {
+    method: 'DELETE', signal, headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error(`No se pudo borrar la conversación (HTTP ${res.status}).`)
+}
+
 /** Envía una pregunta al backend real. El token nunca se guarda en el historial del chat. */
 export async function preguntarAsistente({ mensaje, historial = [], token, signal }) {
   if (!token) throw new Error('Debes iniciar sesión para consultar los horarios.')
@@ -10,7 +31,8 @@ export async function preguntarAsistente({ mensaje, historial = [], token, signa
     res = await fetch(`${API_URL}/api/asistente/preguntar`, {
       method: 'POST', signal,
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ mensaje: texto, historial: historial.slice(-8).map(m => ({ rol: m.rol, contenido: m.contenido })) }),
+      // El historial del navegador no es fiable; Spring Boot usa MongoDB del usuario autenticado.
+      body: JSON.stringify({ mensaje: texto }),
     })
   } catch (e) {
     if (e.name === 'AbortError') throw e
@@ -21,6 +43,7 @@ export async function preguntarAsistente({ mensaje, historial = [], token, signa
     if (res.status === 403) throw new Error('No tienes permiso para usar el asistente.')
     if (res.status === 503) throw new Error('La base de datos de actividades no está disponible. Intenta nuevamente.')
     if (res.status === 404) throw new Error('No existe el servicio del asistente en Spring Boot. Actualiza el backend y reinícialo.')
+    if (res.status === 409) throw new Error('La conversación se reinició en otro dispositivo. Actualiza la pantalla para continuar.')
     throw new Error(`El servidor no pudo responder (HTTP ${res.status}).`)
   }
   const datos = await res.json()
