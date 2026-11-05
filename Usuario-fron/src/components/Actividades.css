@@ -8,7 +8,7 @@
 .dia__cabecera h2 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--marino); }
 .dia__cabecera span { font-size: .8rem; color: var(--texto-suave); }
 
-/* Categoría (colores del cartel del T&C Week) */
+/* Categorías generales de actividades del campus */
 .categoria { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
 .categoria--cultural { background: #e4efff; color: #0a4aa8; }
 .categoria--concurso { background: #d9f5ee; color: #0b6354; }

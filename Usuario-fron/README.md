@@ -35,13 +35,13 @@ Las pantallas son las del usuario (estudiante). La lista está en un solo lugar:
 
 | Pantalla | Dirección | Estado |
 |---|---|---|
-| Inicio | `#/inicio` | vacía (US-04, US-19) |
-| Catálogo | `#/catalogo` | vacía (US-08, US-14) |
-| Agenda | `#/agenda` | vacía (US-07, US-09) |
-| Asistente | `#/asistente` | vacía (US-12) |
+| Inicio | `#/inicio` | datos reales de agenda y catálogo, eventos próximos |
+| Catálogo | `#/catalogo` | actividades reales; próximas, todas o finalizadas |
+| Agenda | `#/agenda` | inscripciones, agenda sugerida y horas libres plegables |
+| Asistente | `#/asistente` | consultas basadas en datos disponibles |
 | Perfil | `#/perfil` | datos, contraseña opcional y **Cerrar sesión** |
 
-- Cada pantalla vacía tiene su propio archivo en `src/components/` (`Inicio.jsx`, `Catalogo.jsx`, `Agenda.jsx`, `Asistente.jsx`): se llena cuando toque su historia.
+- Las pantallas tienen su propio archivo en `src/components/` (`Inicio.jsx`, `Catalogo.jsx`, `Agenda.jsx`, `Asistente.jsx`), y sus datos se consultan a la API.
 - **Guardar el rol:** el rol viaja en `usuario.rol` y se guarda en `localStorage` con la sesión, siempre en minúsculas. Un rol que no se reconoce (o que falta) se guarda como `usuario`.
 - **Bloqueo:** una pantalla puede limitarse a ciertos roles con `roles: [...]`. Si alguien abre la dirección de una pantalla que no le toca, aparece «Acceso no autorizado»; si la dirección no existe, «Pantalla no encontrada».
 - **Por ahora solo hay pantallas de usuario**, y las ven todos los roles. Las pantallas del organizador se agregan después a `PANTALLAS` con `roles: ['organizador']` y aparecen solas en el menú de quien tenga ese rol. El administrador usa su propia web (React + Django).
@@ -110,6 +110,10 @@ El estudiante elige los temas que le gustan para recibir recomendaciones. Backen
 
 Las dos pantallas siguen el mismo estilo que el resto de la web (colores de la marca, íconos SVG, tarjetas planas, sin emojis).
 
-- **Catálogo:** las actividades agrupadas por día. Cada tarjeta muestra su categoría (azul para las culturales y verde azulado para los concursos, como en el cartel del T&C Week), los cupos (con color si quedan pocos o ninguno), la hora y quién organiza.
+- **Catálogo:** actividades agrupadas por día, con pestañas Próximas / Todas / Finalizadas. Cada tarjeta muestra su categoría (azul para las culturales y verde azulado para los concursos, según el tipo de actividad), los cupos (con color si quedan pocos o ninguno), la hora y quién organiza.
 - **Agenda:** las actividades inscritas por día, con el filtro Todas / Próximas. Las actividades que se cruzan quedan marcadas en ámbar y el aviso de cruces explica cada uno (con IA o automáticamente).
 - La lógica de presentación (días, horas, cupos, categorías) está en `src/services/presentacion.js` con sus pruebas. La detección de cruces, en `src/services/cruces.js`.
+
+## Rediseño VYNK 2.0 — uso institucional permanente
+
+Revisar `docs/MEJORAS_VYNK_2.md` para conocer la nueva escala tipográfica, navegación, horarios plegables, tratamiento temporal de T&C Week, pruebas y referencias. La aplicación **no depende del calendario de una única semana**: el catálogo y las inscripciones continúan con las actividades posteriores que publique el backend.

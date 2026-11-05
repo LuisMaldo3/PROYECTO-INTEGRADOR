@@ -58,9 +58,9 @@ export default function PantallaAvisos({ token, onSesionExpirada }) {
       <button className="boton boton--claro" type="button" onClick={cargar} disabled={cargando}><Icono nombre="actualizar" tam={17}/>{cargando ? 'Cargando…' : 'Actualizar'}</button>
     </header>
     <div className="metricas-actividad avisos-metricas" aria-label="Resumen de avisos">
-      <div className="metrica"><span>Todos los avisos</span><strong>{avisos.length}</strong><small>Comunicaciones creadas</small></div>
-      <div className="metrica"><span>Publicados</span><strong>{publicados.length}</strong><small>Ya visibles para la comunidad</small></div>
-      <div className="metrica"><span>Programados</span><strong>{programados.length}</strong><small>Pendientes de publicación</small></div>
+      <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="correo" tam={20}/></span><span>Todos los avisos</span><strong>{avisos.length}</strong><small>Comunicaciones creadas</small></div>
+      <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><span>Publicados</span><strong>{publicados.length}</strong><small>Ya visibles para la comunidad</small></div>
+      <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><span>Programados</span><strong>{programados.length}</strong><small>Pendientes de publicación</small></div>
     </div>
     {error && <p role="alert" className="aviso aviso--error"><Icono nombre="alerta" tam={18}/>{error}</p>}
     {exito && <p role="status" className="aviso aviso--ok"><Icono nombre="check" tam={18}/>{exito}</p>}

@@ -80,9 +80,9 @@ export default function ListaActividades({ token, version = 0, onNueva, onEditar
       </header>
 
       <div className="metricas-actividad" aria-label="Resumen de actividades">
-        <div className="metrica"><span>Total de actividades</span><strong>{actividades.length}</strong><small>Eventos registrados</small></div>
-        <div className="metrica"><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles en el catálogo</small></div>
-        <div className="metrica"><span>Canceladas</span><strong>{actividades.filter((a) => a.estado === 'cancelada').length}</strong><small>Con historial preservado</small></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="calendario" tam={20}/></span><span>Total de actividades</span><strong>{actividades.length}</strong><small>Eventos registrados</small></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="check" tam={20}/></span><span>Programadas</span><strong>{actividades.filter((a) => a.estado !== 'cancelada').length}</strong><small>Disponibles en el catálogo</small></div>
+        <div className="metrica"><span className="metrica__icono" aria-hidden="true"><Icono nombre="reloj" tam={20}/></span><span>Canceladas</span><strong>{actividades.filter((a) => a.estado === 'cancelada').length}</strong><small>Con historial preservado</small></div>
       </div>
       <div className="barra-filtros">
         <label className="buscador barra-filtros__busca"><Icono nombre="buscar" tam={18} />

@@ -5,12 +5,12 @@ import { Logo } from './Logo'
 export function Portada() {
   return (
     <header className="portada">
-      <img src={portada} alt="Mascotas animando un evento de la T&C Week" className="portada-foto" width="596" height="335" />
+      <img src={portada} alt="Estudiantes participando en actividades del campus" className="portada-foto" width="596" height="335" />
       <div className="portada-texto">
         <h1>
           <Logo />
         </h1>
-        <p>T&amp;C Week · Tecsup</p>
+        <p>Comunidad y actividades · Tecsup</p>
       </div>
     </header>
   )

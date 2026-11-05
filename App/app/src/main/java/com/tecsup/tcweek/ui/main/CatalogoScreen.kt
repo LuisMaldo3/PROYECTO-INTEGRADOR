@@ -83,7 +83,8 @@ fun CatalogoScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Catálogo de actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = ColorMarino)
+                Text("Catálogo de actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color.Black
+                )
                 Text(
                     if (cargando) "Cargando actividades…" else cantidad(actividades.size, "actividad disponible", "actividades disponibles"),
                     style = MaterialTheme.typography.bodySmall,

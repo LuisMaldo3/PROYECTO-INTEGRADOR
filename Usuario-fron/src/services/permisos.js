@@ -31,8 +31,8 @@ export const ETIQUETAS_ROL = {
  * (El administrador usa su propia web, aparte.)
  */
 export const PANTALLAS = [
-  { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Resumen de tu participación en la T&C Week.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
-  { ruta: 'catalogo', titulo: 'Catálogo de actividades', descripcion: 'Actividades disponibles durante la T&C Week.', tituloMenu: 'Catálogo', roles: ROLES_VALIDOS },
+  { ruta: 'inicio', titulo: 'Inicio', descripcion: 'Actividades, novedades y oportunidades para tu vida estudiantil.', tituloMenu: 'Inicio', roles: ROLES_VALIDOS },
+  { ruta: 'catalogo', titulo: 'Catálogo de actividades', descripcion: 'Descubre eventos de Tecsup durante todo el año.', tituloMenu: 'Catálogo', roles: ROLES_VALIDOS },
   { ruta: 'recomendaciones', titulo: 'Recomendaciones para ti', descripcion: 'Descubre actividades según tus intereses, con Gemini cuando esté disponible.', tituloMenu: 'Para ti', roles: ROLES_VALIDOS },
   { ruta: 'agenda', titulo: 'Mi agenda', descripcion: 'Tus actividades inscritas, organizadas por día.', tituloMenu: 'Agenda', roles: ROLES_VALIDOS },
   { ruta: 'asistente', titulo: 'Asistente', descripcion: 'Consulta horarios, ubicaciones y cupos.', tituloMenu: 'Asistente', roles: ROLES_VALIDOS },

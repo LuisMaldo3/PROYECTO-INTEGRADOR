@@ -14,6 +14,8 @@ const DIBUJOS = {
       <path d="M16 2v4M8 2v4M3 10h18" />
     </>
   ),
+  'flecha-derecha': <path d="M5 12h14m-6-6 6 6-6 6" />,
+  'flecha-izquierda': <path d="M19 12H5m6 6-6-6 6-6" />,
   mas: <path d="M12 5v14M5 12h14" />,
   actualizar: (
     <>

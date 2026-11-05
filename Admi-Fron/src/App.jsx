@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import DetalleUsuario from './components/DetalleUsuario'
 import ListaUsuarios from './components/ListaUsuarios'
 import Login from './components/Login'
@@ -12,7 +12,19 @@ export default function App() {
   const [vista, setVista] = useState('usuarios')
   const [seleccionadoId, setSeleccionadoId] = useState(null)
   const [aviso, setAviso] = useState('')
+  const desplazamientoLista = useRef(0)
   const [versionLista, setVersionLista] = useState(0) // sube cuando cambia un rol: la lista se vuelve a pedir
+
+  const abrirPerfil = (id) => {
+    desplazamientoLista.current = window.scrollY
+    setSeleccionadoId(id)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  const cerrarPerfil = () => {
+    setSeleccionadoId(null)
+    requestAnimationFrame(() => window.scrollTo({ top: desplazamientoLista.current, behavior: 'instant' }))
+  }
 
   const salir = useCallback(async () => {
     await cerrarSesion(sesion?.token)
@@ -59,29 +71,31 @@ export default function App() {
 
       <div className="panel__workspace">
         <header className="panel__topbar">
-          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? 'Usuarios' : vista === 'actividades' ? 'Actividades' : 'Avisos'}</strong></div>
+          <div className="panel__ruta"><span>Administración</span><span className="panel__separador">/</span><strong>{vista === 'usuarios' ? (seleccionadoId ? 'Perfil del usuario' : 'Usuarios') : vista === 'actividades' ? 'Actividades' : 'Avisos'}</strong></div>
           <div className="panel__topbar-derecha"><span className="panel__online"/> Panel de administración <span className="panel__topbar-avatar">{(sesion.usuario?.nombre || sesion.usuario?.correo || 'A').charAt(0).toUpperCase()}</span></div>
         </header>
         <main className="contenido">
         {vista === 'usuarios' && (
-          <>
-            <ListaUsuarios
-              token={sesion.token}
-              seleccionadoId={seleccionadoId}
-              onSeleccionar={setSeleccionadoId}
-              onSesionExpirada={sesionExpirada}
-              version={versionLista}
-            />
+          <div className="usuarios-vista">
+            <div className="usuarios-vista__listado" hidden={Boolean(seleccionadoId)}>
+              <ListaUsuarios
+                token={sesion.token}
+                seleccionadoId={seleccionadoId}
+                onSeleccionar={abrirPerfil}
+                onSesionExpirada={sesionExpirada}
+                version={versionLista}
+              />
+            </div>
             {seleccionadoId && (
               <DetalleUsuario
                 token={sesion.token}
                 usuarioId={seleccionadoId}
-                onCerrar={() => setSeleccionadoId(null)}
+                onCerrar={cerrarPerfil}
                 onRolCambiado={() => setVersionLista((n) => n + 1)}
                 onSesionExpirada={sesionExpirada}
               />
             )}
-          </>
+          </div>
         )}
         {vista === 'actividades' && <PantallaActividades token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
