@@ -59,6 +59,14 @@ class OrganizadorReemplazosControllerTest {
         assertEquals(false, resultado.get("cuposModificados"));
         verify(mongo, never()).updateFirst(any(Query.class), any(Update.class), eq("actividades"));
         verify(mongo, never()).updateMulti(any(Query.class), any(Update.class), eq("actividades"));
+        var cambio = org.mockito.ArgumentCaptor.forClass(Update.class);
+        verify(mongo).findAndModify(any(Query.class), cambio.capture(),
+                any(FindAndModifyOptions.class), eq(Inscripcion.class));
+        String registro = cambio.getValue().getUpdateObject().toJson();
+        assertTrue(registro.contains("historialReemplazos"));
+        assertTrue(registro.contains("nombreNuevo"));
+        assertFalse(registro.contains("maximoParticipantes"));
+        assertFalse(registro.contains("participantesInscritos"));
     }
 
     @Test void noPermiteParticipanteDuplicado() {
@@ -78,6 +86,17 @@ class OrganizadorReemplazosControllerTest {
         when(acceso.exigirActividadPropia(responsable, "ajena"))
                 .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
         assertThrows(ResponseStatusException.class, () -> controlador.reemplazar(jwt, "ajena",
+                new OrganizadorReemplazosController.Solicitud("insc1", "nuevo@tecsup.edu.pe", "Cambio autorizado")));
+        verify(mongo, never()).findAndModify(any(Query.class), any(Update.class),
+                any(FindAndModifyOptions.class), eq(Inscripcion.class));
+    }
+
+    @Test void noPermiteSustituirPorOrganizadorNiAdministrador() {
+        preparar();
+        Usuario nuevoOrganizador = new Usuario(); nuevoOrganizador.setId("u2");
+        nuevoOrganizador.setCorreo("nuevo@tecsup.edu.pe"); nuevoOrganizador.setRol("organizador");
+        when(usuarios.findByCorreo("nuevo@tecsup.edu.pe")).thenReturn(Optional.of(nuevoOrganizador));
+        assertThrows(ResponseStatusException.class, () -> controlador.reemplazar(jwt, "act1",
                 new OrganizadorReemplazosController.Solicitud("insc1", "nuevo@tecsup.edu.pe", "Cambio autorizado")));
         verify(mongo, never()).findAndModify(any(Query.class), any(Update.class),
                 any(FindAndModifyOptions.class), eq(Inscripcion.class));

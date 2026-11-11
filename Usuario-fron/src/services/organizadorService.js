@@ -58,6 +58,16 @@ export async function obtenerInscritos(token, actividadId, signal, buscar = '') 
   }
 }
 
+/** US-57: consulta autorizada y separada de la búsqueda de inscritos vigentes. */
+export async function obtenerHistorialReemplazos(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona primero una actividad.')
+  const datos = await peticion(`${BASE}/${encodeURIComponent(actividadId)}/inscritos/historial`, token, { signal })
+  return {
+    historial: Array.isArray(datos?.historial) ? datos.historial : [],
+    total: Number.isInteger(datos?.total) && datos.total >= 0 ? datos.total : 0,
+  }
+}
+
 export async function reemplazarInscrito(token, actividadId, inscripcionId, correoNuevo, motivo) {
   if (!actividadId || !inscripcionId) throw new Error('Selecciona la actividad y el estudiante que deseas reemplazar.')
   const correo = String(correoNuevo || '').trim().toLowerCase()

@@ -96,6 +96,43 @@ public class OrganizadorInscritosController {
                 "equiposRegistrados", equiposRegistrados, "equiposConfirmados", equiposConfirmados);
     }
 
+    /** US-57: bitácora de sustituciones confirmadas; nunca devuelve datos de actividades ajenas. */
+    @GetMapping("/historial")
+    public Map<String, Object> historial(@AuthenticationPrincipal Jwt jwt, @PathVariable String actividadId) {
+        Usuario responsable = acceso.exigirOrganizador(jwt);
+        acceso.exigirActividadPropia(responsable, actividadId);
+        List<Map<String, Object>> movimientos = new ArrayList<>();
+        for (Inscripcion inscripcion : inscripciones.findByActividadId(actividadId)) {
+            if (inscripcion.getHistorialReemplazos() == null) continue;
+            for (Map<String, Object> cambio : inscripcion.getHistorialReemplazos()) {
+                if (cambio == null) continue;
+                Map<String, Object> fila = new LinkedHashMap<>();
+                fila.put("inscripcionId", inscripcion.getId());
+                Object fecha = cambio.get("fecha");
+                fila.put("fecha", fecha instanceof java.util.Date d ? d.toInstant().toString()
+                        : fecha == null ? "" : String.valueOf(fecha));
+                fila.put("estudianteRetirado", nombreDeHistorial(cambio, "nombreRetirado", "estudianteRetiradoId"));
+                fila.put("estudianteNuevo", nombreDeHistorial(cambio, "nombreNuevo", "estudianteNuevoId"));
+                fila.put("motivo", cambio.get("motivo") == null ? "" : String.valueOf(cambio.get("motivo")));
+                fila.put("nombreEquipo", cambio.get("nombreEquipo") == null ? "" : String.valueOf(cambio.get("nombreEquipo")));
+                movimientos.add(fila);
+            }
+        }
+        movimientos.sort(Comparator.comparing((Map<String, Object> fila) -> String.valueOf(fila.get("fecha"))).reversed());
+        int total = movimientos.size();
+        // Un historial extenso no debe saturar el panel; se muestran los últimos 200 movimientos.
+        return Map.of("total", total, "historial", movimientos.subList(0, Math.min(total, 200)));
+    }
+
+    private String nombreDeHistorial(Map<String, Object> cambio, String claveNombre, String claveId) {
+        Object nombreOriginal = cambio.get(claveNombre);
+        if (nombreOriginal instanceof String nombre && !nombre.isBlank()) return nombre;
+        Object id = cambio.get(claveId);
+        if (id == null) return "Estudiante (sin datos)";
+        return usuarios.findById(String.valueOf(id)).map(Usuario::getNombre)
+                .filter(n -> n != null && !n.isBlank()).orElse("Estudiante (cuenta no disponible)");
+    }
+
     private static String normalizar(String valor) {
         return Normalizer.normalize(valor, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT);

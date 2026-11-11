@@ -125,3 +125,34 @@ test('SPRINT 1-2: lista de equipos confirmados conserva métricas reales del bac
   assert.equal(respuesta.totalInscritos, 5)
   assert.equal(respuesta.inscritos[0].equipoHabilitado, true)
 })
+
+test('US-57 consulta el historial de la actividad con JWT, sin añadir filtros de la lista vigente', async t => {
+  const { obtenerHistorialReemplazos } = await import('./organizadorService.js')
+  const anterior = globalThis.fetch
+  t.after(() => { globalThis.fetch = anterior })
+  const cambios = [{ inscripcionId: 'i1', estudianteRetirado: 'Elena', estudianteNuevo: 'Ana', motivo: 'Cambio autorizado', fecha: '2026-11-11T16:00:00Z' }]
+  globalThis.fetch = async (url, opciones) => {
+    assert.match(url, /\/api\/organizador\/actividades\/actividad-1\/inscritos\/historial$/)
+    assert.equal(opciones.headers.Authorization, 'Bearer token-real')
+    assert.equal(opciones.method, 'GET')
+    return { ok: true, json: async () => ({ total: 1, historial: cambios }) }
+  }
+  assert.deepEqual(await obtenerHistorialReemplazos('token-real', 'actividad-1'), { historial: cambios, total: 1 })
+})
+
+test('US-57 sin actividad o sin permiso no devuelve un historial inventado', async t => {
+  const { obtenerHistorialReemplazos } = await import('./organizadorService.js')
+  await assert.rejects(obtenerHistorialReemplazos('token', ''), /Selecciona/)
+  const anterior = globalThis.fetch
+  t.after(() => { globalThis.fetch = anterior })
+  globalThis.fetch = async () => ({ ok: false, status: 404, json: async () => ({}) })
+  await assert.rejects(obtenerHistorialReemplazos('token', 'ajena'), /no está asignada/)
+})
+
+test('US-57 historial vacío se devuelve como lista vacía, no como sustituciones supuestas', async t => {
+  const { obtenerHistorialReemplazos } = await import('./organizadorService.js')
+  const anterior = globalThis.fetch
+  t.after(() => { globalThis.fetch = anterior })
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ total: 0, historial: [] }) })
+  assert.deepEqual(await obtenerHistorialReemplazos('token', 'a1'), { total: 0, historial: [] })
+})

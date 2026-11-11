@@ -27,7 +27,7 @@ import pe.tecsup.vynk.repository.InscripcionRepository;
 import pe.tecsup.vynk.repository.UsuarioRepository;
 import pe.tecsup.vynk.service.OrganizadorAccessService;
 
-/** US-51: sustitución de un inscrito por otro, sin modificar jamás los cupos del administrador. */
+/** US-56: sustitución de un inscrito por otro, sin modificar jamás los cupos del administrador. */
 @RestController
 @RequestMapping("/api/organizador/actividades/{actividadId}/inscritos")
 public class OrganizadorReemplazosController {
@@ -79,6 +79,9 @@ public class OrganizadorReemplazosController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "El nuevo estudiante debe registrarse primero en VYNK"));
         if (!entrante.isActivo()) throw new ResponseStatusException(HttpStatus.CONFLICT, "La nueva cuenta está inactiva");
+        if (!pe.tecsup.vynk.model.Roles.USUARIO.equalsIgnoreCase(entrante.getRol())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El reemplazo debe ser una cuenta de estudiante activa");
+        }
         if (saliente.getEstudianteId().equals(entrante.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El reemplazo debe ser otro estudiante");
         }
@@ -116,7 +119,12 @@ public class OrganizadorReemplazosController {
         Document bitacora = new Document("fecha", java.util.Date.from(Instant.now()))
                 .append("organizadorId", organizador.getId())
                 .append("estudianteRetiradoId", saliente.getEstudianteId())
+                .append("nombreRetirado", saliente.getNombreEstudiante() == null || saliente.getNombreEstudiante().isBlank()
+                        ? usuarios.findById(saliente.getEstudianteId()).map(Usuario::getNombre).orElse("Estudiante")
+                        : saliente.getNombreEstudiante())
                 .append("estudianteNuevoId", entrante.getId())
+                .append("nombreNuevo", entrante.getNombre() == null ? "Estudiante" : entrante.getNombre())
+                .append("nombreEquipo", saliente.getNombreEquipo() == null ? "" : saliente.getNombreEquipo())
                 .append("motivo", motivo);
         String idSaliente = saliente.getEstudianteId();
         boolean marcadorNuevo = false;

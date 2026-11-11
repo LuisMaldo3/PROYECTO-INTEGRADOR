@@ -3,6 +3,7 @@ package pe.tecsup.vynk.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -37,5 +38,45 @@ class OrganizadorInscritosControllerTest {
         assertEquals("María García", ((List<?>) resultado.get("inscritos")).stream()
                 .map(a -> ((java.util.Map<?, ?>) a).get("nombre")).findFirst().orElse(null));
         verify(acceso).exigirActividadPropia(organizador, "act1");
+    }
+
+    @Test void historialDevuelveSoloMovimientosConfirmadosYOrdenados() {
+        var acceso = mock(OrganizadorAccessService.class);
+        var inscripciones = mock(InscripcionRepository.class);
+        var usuarios = mock(UsuarioRepository.class);
+        var jwt = mock(Jwt.class);
+        var organizador = new Usuario(); organizador.setId("org1");
+        when(acceso.exigirOrganizador(jwt)).thenReturn(organizador);
+        when(acceso.exigirActividadPropia(organizador, "act1")).thenReturn(new Document("_id", "act1"));
+        var primera = new Inscripcion(); primera.setId("i1"); primera.setActividadId("act1");
+        primera.setHistorialReemplazos(List.of(
+                java.util.Map.of("fecha", java.util.Date.from(java.time.Instant.parse("2026-11-10T15:00:00Z")),
+                        "nombreRetirado", "Rosa", "nombreNuevo", "Ana", "motivo", "Cambio autorizado"),
+                java.util.Map.of("fecha", java.util.Date.from(java.time.Instant.parse("2026-11-11T15:00:00Z")),
+                        "nombreRetirado", "Ana", "nombreNuevo", "Marta", "motivo", "Solicitud confirmada")));
+        when(inscripciones.findByActividadId("act1")).thenReturn(List.of(primera));
+        var controlador = new OrganizadorInscritosController(acceso, inscripciones, usuarios);
+        Map<String, Object> respuesta = controlador.historial(jwt, "act1");
+        assertEquals(2, respuesta.get("total"));
+        var lista = (List<?>) respuesta.get("historial");
+        assertEquals("Marta", ((Map<?, ?>) lista.get(0)).get("estudianteNuevo"));
+        assertEquals("Rosa", ((Map<?, ?>) lista.get(1)).get("estudianteRetirado"));
+        verify(acceso).exigirActividadPropia(organizador, "act1");
+        verify(inscripciones, never()).findByActividadId("otra");
+    }
+
+    @Test void elHistorialNoPermiteLeerDatosDeActividadesAjenas() {
+        var acceso = mock(OrganizadorAccessService.class);
+        var inscripciones = mock(InscripcionRepository.class);
+        var usuarios = mock(UsuarioRepository.class);
+        var jwt = mock(Jwt.class);
+        var organizador = new Usuario(); organizador.setId("org1");
+        when(acceso.exigirOrganizador(jwt)).thenReturn(organizador);
+        when(acceso.exigirActividadPropia(organizador, "ajena")).thenThrow(
+                new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
+        var controlador = new OrganizadorInscritosController(acceso, inscripciones, usuarios);
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> controlador.historial(jwt, "ajena"));
+        verifyNoInteractions(inscripciones);
     }
 }

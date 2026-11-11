@@ -183,3 +183,16 @@
 .org-reemplazo__formulario input,.org-reemplazo__formulario textarea{background:#f8fbff;width:100%;color:#162d4b;border:1px solid #cddbea;border-radius:11px;padding:12px 13px;resize:vertical}
 .org-reemplazo__acciones{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 @media(max-width:600px){.org-reemplazo{padding:20px}.org-boton--sustituir{margin:8px 0 0;width:100%}.org-reemplazo__acciones>*{flex:1}}
+
+/* US-57: historial de cambios registrados, sin alterar la lista de inscritos vigentes. */
+.org-historial{margin-top:27px;padding:22px;border:1px solid #d5e4f4;border-radius:16px;background:#fff;color:#1a365a}
+.org-historial__encabezado{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:15px}
+.org-historial__encabezado h3{margin:0 0 6px;font-size:1.13rem}
+.org-historial__encabezado p{margin:0;color:#5d708a;font-size:.86rem}
+.org-historial__lista{display:grid;gap:10px}
+.org-historial__fila{padding:14px 16px;background:#f5f9ff;border:1px solid #dce8f7;border-radius:12px}
+.org-historial__fecha{font-size:.8rem;color:#5c7493;margin-bottom:8px}
+.org-historial__personas{display:flex;gap:9px;flex-wrap:wrap;align-items:center;color:#123961;font-size:.91rem}
+.org-historial__personas span{color:#4d7197}
+.org-historial__fila p{margin:8px 0 0;font-size:.85rem;color:#435e7d;overflow-wrap:anywhere}
+.org-historial__vacio{color:#536c87;padding:12px 0;font-size:.9rem}

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { actividadSeleccionada, obtenerInscritos, reemplazarInscrito, rutaOrganizador } from '../services/organizadorService'
+import { actividadSeleccionada, obtenerInscritos, obtenerHistorialReemplazos, reemplazarInscrito } from '../services/organizadorService'
 import { OrganizadorAlumno, OrganizadorSinInscritos } from './OrganizadorAlumno'
 
 export function OrganizadorInscritos({ token }) {
   const actividadId = actividadSeleccionada(window.location.hash)
   const [datos, setDatos] = useState({ cargando: true, error: '', actividad: null, inscritos: [] })
   const [revision, setRevision] = useState(0)
+  const [historial, setHistorial] = useState({ cargando: true, error: '', historial: [], total: 0 })
   const [busqueda, setBusqueda] = useState('')
   const [consulta, setConsulta] = useState('')
   const [seleccionado, setSeleccionado] = useState(null)
@@ -25,6 +26,20 @@ export function OrganizadorInscritos({ token }) {
       .catch(e => { if (!ctrl.signal.aborted) setDatos({ cargando: false, error: e.message, actividad: null, inscritos: [] }) })
     return () => ctrl.abort()
   }, [token, actividadId, revision, consulta])
+  useEffect(() => {
+    const ctrl = new AbortController()
+    setHistorial(previo => ({ ...previo, cargando: true, error: '' }))
+    obtenerHistorialReemplazos(token, actividadId, ctrl.signal)
+      .then(res => { if (!ctrl.signal.aborted) setHistorial({ cargando: false, error: '', ...res }) })
+      .catch(error => { if (!ctrl.signal.aborted) setHistorial({ cargando: false, error: error.message, historial: [], total: 0 }) })
+    return () => ctrl.abort()
+  }, [token, actividadId, revision])
+  function fechaLegible(valor) {
+    if (!valor) return 'Fecha no disponible'
+    const fecha = new Date(valor)
+    return Number.isNaN(fecha.getTime()) ? 'Fecha no disponible'
+      : new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short' }).format(fecha)
+  }
   function elegir(alumno) {
     setSeleccionado(alumno)
     setCorreoNuevo('')
@@ -77,6 +92,27 @@ export function OrganizadorInscritos({ token }) {
         : <OrganizadorSinInscritos />)}
       {!datos.cargando && !datos.error && datos.inscritos.length > 0 && <div className="org-lista"><div className="org-lista__encabezado"><span>ESTUDIANTE</span><span>ACCIÓN</span></div>{datos.inscritos.map((a, i) => <OrganizadorAlumno alumno={a} key={a.inscripcionId || a.estudianteId} indice={i} onReemplazar={elegir} bloqueado={!activa || guardando} />)}</div>}
       {!activa && datos.actividad && <p className="org-cupos-resumen">Los reemplazos solo están disponibles antes del cierre de la actividad.</p>}
+      <section className="org-historial" aria-labelledby="org-titulo-historial">
+        <div className="org-historial__encabezado">
+          <div>
+            <h3 id="org-titulo-historial">Historial de reemplazos</h3>
+            <p>Solo se registran sustituciones confirmadas en esta actividad. El cupo máximo permanece igual.</p>
+          </div>
+          <span className="org-contador">{historial.total} cambio(s)</span>
+        </div>
+        {historial.cargando && <p role="status">Cargando historial de reemplazos…</p>}
+        {historial.error && <div className="org-alerta" role="alert">{historial.error}<button className="org-boton org-boton--simple" type="button" onClick={() => setRevision(n => n + 1)}>Reintentar</button></div>}
+        {!historial.cargando && !historial.error && historial.historial.length === 0 && <p className="org-historial__vacio">Todavía no se han realizado reemplazos en esta actividad.</p>}
+        {!historial.cargando && !historial.error && historial.historial.length > 0 && <div className="org-historial__lista">
+          {historial.historial.map((cambio, i) => <article className="org-historial__fila" key={`${cambio.inscripcionId}-${cambio.fecha}-${i}`}>
+            <div className="org-historial__fecha">{fechaLegible(cambio.fecha)}</div>
+            <div className="org-historial__personas"><strong>{cambio.estudianteRetirado || 'Estudiante anterior'}</strong><span aria-label="sustituido por">→</span><strong>{cambio.estudianteNuevo || 'Estudiante nuevo'}</strong></div>
+            {cambio.nombreEquipo && <p><b>Equipo:</b> {cambio.nombreEquipo}</p>}
+            <p><b>Motivo:</b> {cambio.motivo || 'No registrado'}</p>
+          </article>)}
+          {historial.total > historial.historial.length && <p className="org-historial__vacio">Se muestran los últimos {historial.historial.length} de {historial.total} reemplazos.</p>}
+        </div>}
+      </section>
       {seleccionado && <div className="org-reemplazo-fondo" role="presentation" onClick={cerrar}>
         <section className="org-reemplazo" role="dialog" aria-modal="true" aria-labelledby="titulo-reemplazo" onClick={e => e.stopPropagation()}>
           <div className="org-reemplazo__encabezado"><div><h3 id="titulo-reemplazo">Reemplazar inscrito</h3></div><button type="button" aria-label="Cerrar" className="org-boton org-boton--simple" disabled={guardando} onClick={cerrar}>✕</button></div>
