@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { actividadSeleccionada, obtenerDetalleActividad, actualizarDatosPermitidos, rutaOrganizador } from '../services/organizadorService'
 import { nombreDia, rangoHoras } from '../services/presentacion'
+import { OrganizadorComentarios } from './OrganizadorComentarios'
 
 /** US: detalle de una actividad; solo muestra datos obtenidos del servicio autorizado. */
 export function OrganizadorDetalle({ token }) {
@@ -99,6 +100,7 @@ export function OrganizadorDetalle({ token }) {
                 <span>{c.area}</span><strong>{c.asignado ? c.nombre : 'Sin asignar'}</strong>
               </div>)}</div>
             </section>}
+            {a.puedeEditarOrganizador && <OrganizadorComentarios token={token} actividadId={actividadId}/>}
             {a.ubicacionDetalle?.confirmada && (a.ubicacionDetalle?.sede || a.ubicacionDetalle?.pabellon || a.ubicacionDetalle?.aula || a.ubicacionDetalle?.direccion) && <div className="org-detalle__ubicacion"><strong>Detalles del lugar</strong><p>{[a.ubicacionDetalle.sede, a.ubicacionDetalle.pabellon, a.ubicacionDetalle.aula, a.ubicacionDetalle.direccion].filter(Boolean).join(' · ')}</p></div>}
           </section>
           <aside className="org-detalle__lateral">

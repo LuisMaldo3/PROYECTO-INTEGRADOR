@@ -5,11 +5,12 @@ import { FormularioInscripcion } from './FormularioInscripcion'
 import { urlImagenActividad, creditoPortada, imagenTematicaActividad } from '../services/portadaActividad'
 import EstadoPantalla from './EstadoPantalla'
 import { claveArea } from '../services/areas'
+import { ComentarioParticipante } from './ComentarioParticipante'
 
 export const enlaceActividad = id => `#/actividad?id=${encodeURIComponent(id)}`
 
 /** Detalle de una actividad con su inscripción. */
-export function DetalleActividad() {
+export function DetalleActividad({ token }) {
   const id = new URLSearchParams((window.location.hash.split('?')[1] || '').split('#')[0]).get('id')
   const [estado, setEstado] = useState({ cargando: true, error: '', actividad: null })
   const [revision, setRevision] = useState(0)
@@ -74,6 +75,7 @@ export function DetalleActividad() {
             <ol className="vynk-us22-posiciones">{(oficial.resultado.posiciones || []).slice().sort((x,y) => Number(x.puesto)-Number(y.puesto)).map((p,i) => <li key={`${p.puesto}-${i}`}><strong>{p.puesto}.º — {p.nombre}</strong><span>{p.areaTecsup || 'Área sin verificar'} · {p.puntos ?? 0} pts.</span></li>)}</ol>
           </>}
         </section>}
+        <ComentarioParticipante token={token} actividadId={id}/>
         <section className="vynk-detalle__bloque vynk-us22-similares" aria-label="Actividades similares">
           <h3>Actividades similares</h3>
           {relacionadas.cargando && <p role="status">Cargando actividades similares…</p>}

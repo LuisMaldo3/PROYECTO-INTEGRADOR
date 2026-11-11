@@ -1,0 +1,18 @@
+.comentarios-actividad{background:#fff;border:1px solid #d9e5ef;border-radius:16px;padding:22px;margin:18px 0;color:#173958}
+.comentarios-actividad h3{font-size:1.1rem;margin:0 0 10px;color:#133a63}
+.comentarios-actividad h4{font-size:.96rem;color:#204e77;margin:18px 0 10px}
+.comentarios-actividad p{line-height:1.55;margin:8px 0 12px}
+.comentarios-actividad__cabecera{display:flex;align-items:start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.comentarios-actividad__eyebrow{font-size:.72rem;letter-spacing:.08em;font-weight:750;color:#32749f}
+.comentarios-actividad__indicador{padding:12px 15px;background:#f1f7fc;border-radius:10px}
+.comentarios-actividad__indicador strong{font-size:1.45rem;color:#145282;margin-right:7px}
+.comentarios-actividad__resumen{padding:16px;border:1px solid #dbe9f6;border-radius:12px;background:#f4f8fd;white-space:pre-wrap}
+.comentarios-actividad__etiquetas{display:flex;flex-wrap:wrap;gap:9px}
+.comentarios-actividad__etiqueta{padding:8px 12px;border-radius:100px;background:#e8f3fa;border:1px solid #bcd8ea;font-size:.85rem;color:#1d5779}
+.comentarios-actividad__etiqueta strong{margin-left:7px;color:#0c395e}
+.comentarios-actividad__nota{font-size:.83rem;color:#5d7588}
+.comentarios-actividad__error{color:#9b2d2d}
+.comentarios-actividad--estudiante label{display:block;font-weight:600;margin-bottom:6px}
+.comentarios-actividad--estudiante textarea{box-sizing:border-box;width:100%;min-height:110px;padding:13px;border:1px solid #b8cde0;border-radius:10px;font:inherit;background:#f9fcff;color:#173958}
+.comentarios-actividad__acciones{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap}
+@media(max-width:600px){.comentarios-actividad{padding:16px}.comentarios-actividad__cabecera{flex-direction:column}}
