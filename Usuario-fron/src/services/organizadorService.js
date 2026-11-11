@@ -160,3 +160,16 @@ export async function verificarEquiposActividad(token, actividadId, signal) {
     equipos: Array.isArray(datos?.equipos) ? datos.equipos : [],
   }
 }
+
+/** US-61: índice de ocupación basado en inscripciones, nunca en asistencia. */
+export async function obtenerParticipacionOrganizador(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una actividad para ver su participación.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/participacion`, token, { signal })
+}
+
+/** US-60: genera un resumen por demanda; no envía nombres ni claves de Gemini al navegador. */
+export async function generarResumenOrganizadorIA(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una actividad antes de generar el resumen.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/resumen-inscripciones-ia`, token,
+    { method: 'POST', signal })
+}
