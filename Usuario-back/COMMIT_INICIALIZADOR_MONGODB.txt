@@ -1,0 +1,15 @@
+COMMIT SUGERIDO (PowerShell, desde la raiz de PROYECTO99):
+
+git add -- Usuario-back/src/main/java/pe/tecsup/vynk/config/BaseDatosInicializador.java Usuario-back/src/test/java/pe/tecsup/vynk/config/BaseDatosInicializadorTest.java Usuario-back/INICIALIZACION_AUTOMATICA_MONGODB.md Usuario-back/.env.example Usuario-back/.gitignore
+
+git diff --cached --name-only
+
+git commit -m "feat(db): inicializar MongoDB y catalogos VYNK al arrancar Spring Boot" `
+-m "Inicio automatico: preparar colecciones de usuarios, actividades, inscripciones, equipos, reemplazos, comentarios y resultados compartidas con Django." `
+-m "Catalogos: insertar las cinco areas de Tecsup y las categorias del T&C Week solo cuando falten, respetando registros existentes." `
+-m "Seguridad: no incluir credenciales en ejemplos ni en commits; comprobar conexion MongoDB antes de anunciar inicio correcto." `
+-m "Pruebas: verificar creacion inicial, ejecucion repetida sin duplicados y catalogos inmutables con JUnit y Mockito."
+
+git push origin main
+
+NOTA: Copia el proyecto actualizado sobre Usuario-back, conservando tu archivo .env privado.

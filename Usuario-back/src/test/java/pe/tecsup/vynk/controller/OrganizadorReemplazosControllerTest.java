@@ -88,7 +88,7 @@ class OrganizadorReemplazosControllerTest {
         capitan.setIntegrantes(List.of("lider", "u1"));
         when(inscripciones.findById("cap1")).thenReturn(Optional.of(capitan));
         when(mongo.updateFirst(any(Query.class), any(Update.class), eq(Inscripcion.class)))
-                .thenReturn(UpdateResult.acknowledged(1, 1, null));
+                .thenReturn(UpdateResult.acknowledged(1L, 1L, null));
         var res = controlador.reemplazar(jwt, "act1", new OrganizadorReemplazosController.Solicitud(
                 "insc1", "nuevo@tecsup.edu.pe", "Estudiante anterior enfermo"));
         assertEquals(true, res.get("reemplazado"));
