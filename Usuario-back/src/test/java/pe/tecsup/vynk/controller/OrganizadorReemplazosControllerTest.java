@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
+import java.util.List;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -67,6 +69,37 @@ class OrganizadorReemplazosControllerTest {
         assertTrue(registro.contains("nombreNuevo"));
         assertFalse(registro.contains("maximoParticipantes"));
         assertFalse(registro.contains("participantesInscritos"));
+    }
+
+    @Test void permiteSustitutoQueNoEstabaInscritoEnEquipoSinModificarCupos() {
+        preparar();
+        when(acceso.exigirActividadPropia(any(Usuario.class), eq("act1")))
+                .thenReturn(new Document("_id", "act1").append("estado", "programada")
+                        .append("tipoActividad", "competencia").append("modalidad", "equipos")
+                        .append("maximoParticipantes", 2));
+        Inscripcion integrante = new Inscripcion();
+        integrante.setId("insc1"); integrante.setActividadId("act1");
+        integrante.setEstado("inscrita"); integrante.setEstudianteId("u1");
+        integrante.setRolEquipo("integrante"); integrante.setEquipoId("cap1");
+        when(inscripciones.findById("insc1")).thenReturn(Optional.of(integrante));
+        Inscripcion capitan = new Inscripcion(); capitan.setId("cap1");
+        capitan.setEstado("inscrita"); capitan.setRolEquipo("capitan");
+        capitan.setEstudianteId("lider"); capitan.setEquipoId("cap1");
+        capitan.setIntegrantes(List.of("lider", "u1"));
+        when(inscripciones.findById("cap1")).thenReturn(Optional.of(capitan));
+        when(mongo.updateFirst(any(Query.class), any(Update.class), eq(Inscripcion.class)))
+                .thenReturn(UpdateResult.acknowledged(1, 1, null));
+        var res = controlador.reemplazar(jwt, "act1", new OrganizadorReemplazosController.Solicitud(
+                "insc1", "nuevo@tecsup.edu.pe", "Estudiante anterior enfermo"));
+        assertEquals(true, res.get("reemplazado"));
+        assertEquals(false, res.get("cuposModificados"));
+        var actualizacion = org.mockito.ArgumentCaptor.forClass(Update.class);
+        verify(mongo).updateFirst(any(Query.class), actualizacion.capture(), eq(Inscripcion.class));
+        String json = actualizacion.getValue().getUpdateObject().toJson();
+        assertTrue(json.contains("integrantes"));
+        assertFalse(json.contains("$pull"));
+        assertFalse(json.contains("$addToSet"));
+        verify(inscripciones).findByEstudianteIdAndActividadId("u2", "act1");
     }
 
     @Test void noPermiteParticipanteDuplicado() {

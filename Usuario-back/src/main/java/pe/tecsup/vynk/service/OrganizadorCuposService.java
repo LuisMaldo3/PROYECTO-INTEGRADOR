@@ -52,11 +52,15 @@ public class OrganizadorCuposService {
     }
 
     public static boolean equipoConfirmado(Inscripcion capitan, Map<String, Inscripcion> porAlumno) {
-        if (!esCapitan(capitan) || capitan.getIntegrantes().size() < 2) return false;
+        if (!esCapitan(capitan) || capitan.getId() == null || capitan.getIntegrantes().size() < 2
+                || !capitan.getIntegrantes().contains(capitan.getEstudianteId())
+                || capitan.getIntegrantes().stream().distinct().count() != capitan.getIntegrantes().size()) return false;
         return capitan.getIntegrantes().stream().allMatch(id -> {
             Inscripcion miembro = porAlumno.get(id);
             return miembro != null && "inscrita".equalsIgnoreCase(miembro.getEstado())
-                    && capitan.getId().equals(miembro.getEquipoId());
+                    && capitan.getId().equals(miembro.getEquipoId())
+                    && (id.equals(capitan.getEstudianteId()) ? esCapitan(miembro)
+                            : "integrante".equals(miembro.getRolEquipo()));
         });
     }
 

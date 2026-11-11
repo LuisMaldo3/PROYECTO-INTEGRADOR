@@ -130,15 +130,21 @@ public class OrganizadorReemplazosController {
         boolean marcadorNuevo = false;
         boolean integrantesCambiados = false;
         boolean cambioConfirmado = false;
+        List<String> integrantesAntes = capitan == null ? List.of() : new ArrayList<>(capitan.getIntegrantes());
+        List<String> integrantesDespues = new ArrayList<>(integrantesAntes);
+        if (porEquipos && esMiembro) {
+            integrantesDespues.replaceAll(id -> idSaliente.equals(id) ? entrante.getId() : id);
+        }
         try {
             if (porEquipos) {
                 mongo.insert(new Document("_id", actividadId + ":" + entrante.getId()), "participantes_equipo");
                 marcadorNuevo = true;
                 if (esMiembro) {
-                    Update equipoUpdate = new Update().pull("integrantes", idSaliente)
-                            .addToSet("integrantes", entrante.getId());
+                    // MongoDB no admite $pull y $addToSet sobre el mismo campo en una operación.
+                    // Sustituir el arreglo completo con comprobación optimista evita ese conflicto.
+                    Update equipoUpdate = new Update().set("integrantes", integrantesDespues);
                     var escrito = mongo.updateFirst(new Query(Criteria.where("_id").is(capitan.getId())
-                            .and("estado").is("inscrita").and("integrantes").is(idSaliente)),
+                            .and("estado").is("inscrita").and("integrantes").is(integrantesAntes)),
                             equipoUpdate, Inscripcion.class);
                     if (escrito.getModifiedCount() != 1) {
                         throw new ResponseStatusException(HttpStatus.CONFLICT, "El equipo cambió: actualiza la lista");
@@ -180,19 +186,19 @@ public class OrganizadorReemplazosController {
                     "estudianteNuevo", entrante.getNombre() == null ? "Estudiante" : entrante.getNombre(),
                     "cuposModificados", false);
         } catch (DuplicateKeyException duplicado) {
-            if (!cambioConfirmado && integrantesCambiados) revertirIntegrante(capitan.getId(), idSaliente, entrante.getId());
+            if (!cambioConfirmado && integrantesCambiados) revertirIntegrante(capitan.getId(), integrantesAntes, integrantesDespues);
             if (!cambioConfirmado && marcadorNuevo) quitarMarcador(actividadId, entrante.getId());
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El nuevo estudiante ya tiene una inscripción");
         } catch (RuntimeException error) {
-            if (!cambioConfirmado && integrantesCambiados) revertirIntegrante(capitan.getId(), idSaliente, entrante.getId());
+            if (!cambioConfirmado && integrantesCambiados) revertirIntegrante(capitan.getId(), integrantesAntes, integrantesDespues);
             if (!cambioConfirmado && marcadorNuevo) quitarMarcador(actividadId, entrante.getId());
             throw error;
         }
     }
 
-    private void revertirIntegrante(String capitanId, String anterior, String nuevo) {
+    private void revertirIntegrante(String capitanId, List<String> anterior, List<String> nuevo) {
         mongo.updateFirst(new Query(Criteria.where("_id").is(capitanId).and("integrantes").is(nuevo)),
-                new Update().pull("integrantes", nuevo).addToSet("integrantes", anterior), Inscripcion.class);
+                new Update().set("integrantes", anterior), Inscripcion.class);
     }
     private void quitarMarcador(String actividadId, String estudianteId) {
         mongo.remove(new Query(Criteria.where("_id").is(actividadId + ":" + estudianteId)), "participantes_equipo");
