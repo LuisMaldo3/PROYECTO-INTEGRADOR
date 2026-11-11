@@ -155,3 +155,11 @@
   .org-indicadores div { flex-basis: 100%; }
   .org-indicadores div + div { border-left: 0; border-top: 1px solid var(--linea); }
 }
+
+/* US-48: edición restringida y revisión de puntajes por área */
+.org-edicion-control { margin: 18px 0; }
+.org-edicion-formulario, .org-revisiones-areas { margin: 14px 0; padding: 18px; border: 1px solid #b9d6ed; border-radius: 14px; background: #f4f9ff; color: #123452; }
+.org-edicion-formulario label, .org-revisiones-areas label { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+.org-edicion-formulario textarea, .org-revisiones-areas textarea, .org-revisiones-areas select { font: inherit; border: 1px solid #8eacc6; border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box; }
+.org-revisiones-areas p { margin: 8px 0; }
+.org-resultados-up__fila input[type=url] { min-width: 150px; }

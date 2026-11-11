@@ -48,7 +48,7 @@ public class OrganizadorResultadosController {
 
     private Document verificar(Jwt jwt, String actividadId) {
         var organizador = acceso.exigirOrganizador(jwt);
-        var actividad = acceso.exigirActividadPropia(organizador, actividadId);
+        var actividad = acceso.exigirActividadAsignada(organizador, actividadId);
         if (!"competencia".equals(String.valueOf(actividad.get("tipoActividad")))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta actividad no es una competencia");
         }
@@ -92,14 +92,20 @@ public class OrganizadorResultadosController {
         salida.put("participantes", participantes);
         salida.put("puedeEditar", doc == null || !"publicado".equals(doc.getString("estado")));
         salida.put("origen", doc == null ? null : doc.get("origen"));
+        salida.put("revisionesAreas", doc == null ? Map.of() : doc.getOrDefault("revisionesAreas", Map.of()));
         return salida;
     }
 
     @GetMapping
     public Map<String, Object> consultar(@AuthenticationPrincipal Jwt jwt, @PathVariable String actividadId) {
-        verificar(jwt, actividadId);
-        return respuesta(mongo.findOne(new Query(Criteria.where("actividadId").is(actividadId)),
+        var organizador = acceso.exigirOrganizador(jwt);
+        Document actividad = verificar(jwt, actividadId);
+        Map<String, Object> vista = respuesta(mongo.findOne(new Query(Criteria.where("actividadId").is(actividadId)),
                 Document.class, "resultados_competencias"), participantes(actividadId));
+        boolean principal = acceso.esPrincipal(actividad, organizador);
+        vista.put("puedeEnviar", principal);
+        vista.put("areaRevisionPermitida", principal ? null : acceso.areaCoordinador(actividad, organizador));
+        return vista;
     }
 
     @PutMapping
@@ -144,8 +150,10 @@ public class OrganizadorResultadosController {
                     && tabla.get(numero - 1) instanceof Number numeroPuntos) {
                 puntos = numeroPuntos.intValue();
             }
+            String evidencia = validarEvidencia(puesto.get("evidencia"));
             Map<String, Object> participante = activos.get(id);
             posiciones.add(new Document("inscripcionId", id).append("puesto", numero)
+                    .append("evidencia", evidencia)
                     .append("puntos", puntos)
                     .append("nombre", participante.get("nombre"))
                     .append("areaTecsup", participante.get("areaTecsup")));
@@ -157,6 +165,7 @@ public class OrganizadorResultadosController {
                 Criteria.where("estado").ne("publicado")));
         Update cambios = new Update().set("posiciones", posiciones).set("estado", "pendiente")
                 .set("origen", "organizador").set("registradoPor", organizador.getId())
+                .set("revisionesAreas", new Document())
                 .set("modificadoEn", java.util.Date.from(Instant.now()))
                 .setOnInsert("actividadId", actividadId);
         try {
@@ -170,5 +179,66 @@ public class OrganizadorResultadosController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Los resultados ya están publicados. Contacta al administrador si necesitas una corrección");
         }
+    }
+
+
+    private static String validarEvidencia(Object raw) {
+        if (raw == null || "".equals(raw)) return "";
+        if (!(raw instanceof String enlace) || enlace.length() > 500) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia no es válida");
+        }
+        enlace = enlace.trim();
+        try {
+            java.net.URI uri = java.net.URI.create(enlace);
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
+                    || uri.getUserInfo() != null) {
+                throw new IllegalArgumentException("URL inválida");
+            }
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La evidencia debe ser una URL HTTPS válida");
+        }
+        return enlace;
+    }
+
+    /** El coordinador solo revisa el resultado de su propia área; no aprueba ni publica puntos. */
+    @org.springframework.web.bind.annotation.PostMapping("/revision-area")
+    public Map<String, Object> revisarArea(@AuthenticationPrincipal Jwt jwt,
+            @PathVariable String actividadId, @RequestBody Map<String, Object> cuerpo) {
+        var usuario = acceso.exigirOrganizador(jwt);
+        Document actividad = acceso.exigirActividadAsignada(usuario, actividadId);
+        String area = acceso.areaCoordinador(actividad, usuario);
+        if (area == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo un coordinador de área puede revisar");
+        }
+        if (cuerpo == null || !(cuerpo.get("estado") instanceof String estado)
+                || !("conforme".equals(estado) || "observado".equals(estado))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecciona Conforme u Observado");
+        }
+        String observacion = cuerpo.get("observacion") instanceof String nota ? nota.trim() : "";
+        if (observacion.length() > 800 || ("observado".equals(estado) && observacion.length() < 10)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Si observas un resultado, explica el motivo (10 a 800 caracteres)");
+        }
+        Document propuesta = mongo.findOne(new Query(Criteria.where("actividadId").is(actividadId)
+                .and("estado").is("pendiente")), Document.class, "resultados_competencias");
+        if (propuesta == null) throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "No existe una propuesta pendiente de revisión");
+        Object raw = propuesta.get("posiciones");
+        boolean tienePuestosArea = raw instanceof List<?> lista && lista.stream()
+                .filter(Document.class::isInstance).map(Document.class::cast)
+                .anyMatch(p -> area.equals(p.getString("areaTecsup")));
+        if (!tienePuestosArea) throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "La propuesta no contiene resultados atribuidos a tu área");
+        Document registro = new Document("estado", estado).append("observacion", observacion)
+                .append("revisadoPor", usuario.getId())
+                .append("fecha", java.util.Date.from(Instant.now()));
+        Query filtro = new Query(Criteria.where("actividadId").is(actividadId).and("estado").is("pendiente")
+                .and("modificadoEn").is(propuesta.get("modificadoEn")));
+        Document guardado = mongo.findAndModify(filtro,
+                new Update().set("revisionesAreas." + area, registro),
+                FindAndModifyOptions.options().returnNew(true), Document.class, "resultados_competencias");
+        if (guardado == null) throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "La propuesta cambió. Actualiza los resultados y vuelve a revisar");
+        return consultar(jwt, actividadId);
     }
 }

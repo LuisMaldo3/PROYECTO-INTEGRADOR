@@ -18,6 +18,7 @@ class OrganizadorCuposServiceTest {
         assertEquals(1L, resultado.get("cuposOcupados"));
         assertEquals(2L, resultado.get("cuposDisponibles"));
         assertEquals(1L, resultado.get("inscritosRegistrados"));
+        assertEquals(1L, resultado.get("participantesTotales"));
     }
     @Test void maximaCapacidadNoNegativaYCuposSinMaximoSonDesconocidos() {
         assertNull(OrganizadorCuposService.capacidad(null));
@@ -39,6 +40,8 @@ class OrganizadorCuposServiceTest {
         assertEquals(1L, datos.get("cuposOcupados"));
         assertEquals(2L, datos.get("cuposDisponibles"));
         assertEquals(2L, datos.get("estudiantesInscritos"));
+        assertEquals(2L, datos.get("participantesTotales"));
+        assertEquals(1L, datos.get("participantesCompetitivos"));
         assertEquals(1L, datos.get("equiposRegistrados"));
         assertEquals(1L, datos.get("equiposConfirmados"));
     }

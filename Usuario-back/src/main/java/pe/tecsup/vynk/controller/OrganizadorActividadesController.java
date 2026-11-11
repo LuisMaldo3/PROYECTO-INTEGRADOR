@@ -34,6 +34,8 @@ public class OrganizadorActividadesController {
         var usuario = acceso.exigirOrganizador(jwt);
         var items = acceso.misActividades(usuario).stream().map(doc -> {
             Map<String, Object> item = new LinkedHashMap<>(acceso.resumen(doc));
+            item.put("puedeEditarOrganizador", acceso.esPrincipal(doc, usuario));
+            item.put("areaRevisionPermitida", acceso.areaCoordinador(doc, usuario));
             return horario.enriquecer(cupos.enriquecer(item));
         }).toList();
         horario.marcarProxima(items);

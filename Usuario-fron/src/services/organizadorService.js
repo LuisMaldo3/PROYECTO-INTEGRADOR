@@ -92,6 +92,37 @@ export async function enviarResultadosOrganizador(token, actividadId, posiciones
   })
 }
 
+/** US-48: solo se envían descripción y reglamento; nunca cupos, fecha ni propietario. */
+export async function actualizarDatosPermitidos(token, actividadId, cambios) {
+  if (!actividadId) throw new Error('Selecciona una actividad para editar.')
+  const campos = Object.keys(cambios || {})
+  if (!campos.length || campos.some(k => !['descripcion', 'reglasCompetencia'].includes(k))) {
+    throw new Error('Solo puedes modificar la descripción y el reglamento.')
+  }
+  if (campos.includes('descripcion') && (typeof cambios.descripcion !== 'string'
+      || cambios.descripcion.trim().length < 15 || cambios.descripcion.trim().length > 2500)) {
+    throw new Error('La descripción debe tener entre 15 y 2500 caracteres.')
+  }
+  if (campos.includes('reglasCompetencia') && (typeof cambios.reglasCompetencia !== 'string'
+      || cambios.reglasCompetencia.trim().length > 3000)) {
+    throw new Error('El reglamento debe tener como máximo 3000 caracteres.')
+  }
+  const body = Object.fromEntries(campos.map(k => [k, cambios[k].trim()]))
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/edicion`, token, { method: 'PATCH', body })
+}
+
+export async function revisarResultadosArea(token, actividadId, estado, observacion) {
+  if (!actividadId) throw new Error('Selecciona una competencia.')
+  if (!['conforme', 'observado'].includes(estado)) throw new Error('Elige Conforme u Observado.')
+  const motivo = String(observacion || '').trim()
+  if (motivo.length > 800 || (estado === 'observado' && motivo.length < 10)) {
+    throw new Error('Describe la observación en 10 a 800 caracteres.')
+  }
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/resultados/revision-area`, token, {
+    method: 'POST', body: { estado, observacion: motivo },
+  })
+}
+
 export function rutaOrganizador(pantalla, actividadId) {
   return `#/${pantalla}${actividadId ? `?actividad=${encodeURIComponent(actividadId)}` : ''}`
 }

@@ -28,12 +28,12 @@ export function OrganizadorActividades({ token }) {
     const texto = `${a.nombre || ''} ${a.descripcion || ''}`.toLocaleLowerCase('es-PE')
     return texto.includes(busqueda.toLocaleLowerCase('es-PE')) && (filtro === 'todas' || a.estado === filtro)
   }), [items, busqueda, filtro])
-  const inscritos = items.reduce((s, a) => s + (Number(a.inscritosRegistrados) || 0), 0)
+  const inscritos = items.reduce((s, a) => s + (Number(a.participantesTotales ?? a.estudiantesInscritos) || 0), 0)
   return (
     <div className="org-pagina">
       <div className="org-indicadores">
         <div><span>Actividades asignadas</span><strong>{cargando ? '—' : items.length}</strong><small>En tu cuenta</small></div>
-        <div><span>Estudiantes inscritos</span><strong aria-live="polite">{cargando ? '—' : inscritos}</strong><small>Inscripciones registradas</small></div>
+        <div><span>Total de participantes</span><strong aria-live="polite">{cargando ? '—' : inscritos}</strong><small>Estudiantes con inscripción activa en tus actividades</small></div>
         <div><span>Próximas / programadas</span><strong>{cargando ? '—' : items.filter(a => a.estado === 'programada').length}</strong><small>Por gestionar</small></div>
       </div>
       <div className="org-seccion-titulo">

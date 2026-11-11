@@ -22,7 +22,9 @@ public class OrganizadorCuposService {
                 .filter(i -> "inscrita".equalsIgnoreCase(i.getEstado())).toList();
         boolean equipos = "competencia".equals(actividad.get("tipoActividad"))
                 && "equipos".equals(actividad.get("modalidad"));
-        long alumnos = confirmadas.size();
+        long alumnos = confirmadas.stream().map(i ->
+                i.getEstudianteId() != null && !i.getEstudianteId().isBlank()
+                        ? (Object) i.getEstudianteId() : i).distinct().count();
         long registrados = confirmadas.stream().filter(OrganizadorCuposService::esCapitan).count();
         Map<String, Inscripcion> porAlumno = new HashMap<>();
         for (Inscripcion i : confirmadas) porAlumno.put(i.getEstudianteId(), i);
@@ -30,6 +32,8 @@ public class OrganizadorCuposService {
                 .filter(c -> equipoConfirmado(c, porAlumno)).count();
         long ocupados = equipos ? registrados : alumnos;
         Integer capacidad = capacidad(actividad.get("maximoParticipantes"));
+        resultado.put("participantesTotales", alumnos);
+        resultado.put("participantesCompetitivos", equipos ? habilitados : alumnos);
         resultado.put("inscritosRegistrados", alumnos);
         resultado.put("estudiantesInscritos", alumnos);
         resultado.put("equiposRegistrados", equipos ? registrados : 0L);

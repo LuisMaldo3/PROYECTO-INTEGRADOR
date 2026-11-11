@@ -27,9 +27,17 @@ public class OrganizadorDetalleService {
 
     public Map<String, Object> detalle(Jwt jwt, String actividadId) {
         Usuario organizador = acceso.exigirOrganizador(jwt);
-        Document actividad = acceso.exigirActividadPropia(organizador, actividadId);
+        Document actividad = acceso.exigirActividadAsignada(organizador, actividadId);
         Map<String, Object> respuesta = new LinkedHashMap<>(acceso.resumen(actividad));
-        respuesta.put("organizadorPrincipal", organizador.getNombre());
+        respuesta.put("puedeEditarOrganizador", acceso.esPrincipal(actividad, organizador));
+        respuesta.put("areaRevisionPermitida", acceso.areaCoordinador(actividad, organizador));
+        Object idPrincipal = actividad.get("organizadorId");
+        if (idPrincipal == null && actividad.get("organizador") instanceof Map<?, ?> owner) {
+            idPrincipal = owner.get("id");
+        }
+        String nombrePrincipal = idPrincipal == null ? "" : usuarios.findById(String.valueOf(idPrincipal))
+                .map(Usuario::getNombre).orElse("");
+        respuesta.put("organizadorPrincipal", nombrePrincipal);
         List<Map<String, Object>> coordinadores = new ArrayList<>();
         Object raw = actividad.get("encargadosPorArea");
         Map<?, ?> porArea = raw instanceof Map<?, ?> m ? m : Map.of();

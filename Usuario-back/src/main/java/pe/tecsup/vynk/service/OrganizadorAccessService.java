@@ -21,6 +21,8 @@ import pe.tecsup.vynk.repository.UsuarioRepository;
 /** Identidad y autorización CENTRALIZADA: nunca se acepta organizadorId enviado por el cliente. */
 @Service
 public class OrganizadorAccessService {
+    public static final List<String> AREAS = List.of("Gestión y Producción", "Tecnología Digital",
+            "Minería y Procesos Químicos", "Electricidad y Electrónica", "Mecánica");
     private final MongoTemplate mongo;
     private final UsuarioRepository usuarios;
 
@@ -42,10 +44,14 @@ public class OrganizadorAccessService {
     }
 
     public List<Document> misActividades(Usuario organizador) {
-        Criteria propietario = new Criteria().orOperator(
-                Criteria.where("organizadorId").is(organizador.getId()),
-                Criteria.where("organizador.id").is(organizador.getId()));
-        List<Document> docs = mongo.find(new Query(propietario), Document.class, "actividades");
+        List<Criteria> asignaciones = new java.util.ArrayList<>();
+        asignaciones.add(Criteria.where("organizadorId").is(organizador.getId()));
+        asignaciones.add(Criteria.where("organizador.id").is(organizador.getId()));
+        for (String area : AREAS) {
+            asignaciones.add(Criteria.where("encargadosPorArea." + area).is(organizador.getId()));
+        }
+        List<Document> docs = mongo.find(new Query(new Criteria().orOperator(
+                asignaciones.toArray(Criteria[]::new))), Document.class, "actividades");
         docs.sort(Comparator.comparing((Document d) -> texto(d.get("fecha")))
                 .thenComparing(d -> texto(d.get("horaInicio")))
                 .thenComparing(d -> texto(d.get("nombre"))));
@@ -65,6 +71,33 @@ public class OrganizadorAccessService {
         }
         if (!organizador.getId().equals(texto(propietario))) {
             // No filtrar datos de actividades ajenas ni revelar si existen.
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Actividad no encontrada");
+        }
+        return doc;
+    }
+
+    public boolean esPrincipal(Document actividad, Usuario usuario) {
+        Object id = actividad.get("organizadorId");
+        if (id == null && actividad.get("organizador") instanceof Map<?, ?> datos) id = datos.get("id");
+        return usuario.getId().equals(texto(id));
+    }
+
+    public String areaCoordinador(Document actividad, Usuario usuario) {
+        if (!(actividad.get("encargadosPorArea") instanceof Map<?, ?> asignaciones)) return null;
+        for (String area : AREAS) {
+            if (usuario.getId().equals(texto(asignaciones.get(area)))) return area;
+        }
+        return null;
+    }
+
+    /** Exige titularidad o asignación a una de las cinco áreas institucionales. */
+    public Document exigirActividadAsignada(Usuario usuario, String actividadId) {
+        if (actividadId == null || !actividadId.matches("[a-fA-F0-9]{24}|[a-zA-Z0-9_-]{1,100}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Identificador de actividad inválido");
+        }
+        Object id = ObjectId.isValid(actividadId) ? new ObjectId(actividadId) : actividadId;
+        Document doc = mongo.findOne(new Query(Criteria.where("_id").is(id)), Document.class, "actividades");
+        if (doc == null || (!esPrincipal(doc, usuario) && areaCoordinador(doc, usuario) == null)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Actividad no encontrada");
         }
         return doc;
