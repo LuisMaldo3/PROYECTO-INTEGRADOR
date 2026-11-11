@@ -109,6 +109,7 @@ export function OrganizadorDetalle({ token }) {
               {a.unidadCupo === 'equipos' && <p className="org-cupos-resumen">{a.estudiantesInscritos ?? 0} estudiantes confirmados · {a.equiposConfirmados ?? 0} equipos habilitados · {a.equiposPendientes ?? 0} pendientes</p>}
               <div className="org-detalle__cupos"><span>Total de estudiantes participantes</span><strong>{a.participantesTotales ?? a.estudiantesInscritos ?? 0}</strong></div>
               <div className="org-detalle__cupos"><span>Cupos disponibles</span><strong>{a.cuposDisponibles == null ? 'Por confirmar' : a.cuposDisponibles}</strong></div>
+              {a.puedeEditarOrganizador && <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-cupos', a.id)}>Ver ocupación y equipos</a>}
               {a.puedeEditarOrganizador && <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-inscritos', a.id)}>Consultar participantes</a>}
             </div>
             <div className="org-detalle__panel">

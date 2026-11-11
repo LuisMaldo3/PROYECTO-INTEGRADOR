@@ -141,3 +141,22 @@ export function actividadSeleccionada(hash = '') {
   const consulta = String(hash).split('?')[1] || ''
   return new URLSearchParams(consulta).get('actividad') || ''
 }
+
+/** US-58: cifras reales, sin modificar cupos ni inscripciones. */
+export async function obtenerOcupacionActividad(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una actividad para consultar sus cupos.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/ocupacion`, token, { signal })
+}
+
+/** US-59: inscripción personal y condición de cada equipo registrado. */
+export async function verificarEquiposActividad(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una competencia por equipos.')
+  const datos = await peticion(`${BASE}/${encodeURIComponent(actividadId)}/equipos/verificacion`, token, { signal })
+  return {
+    totalEquipos: Number(datos?.totalEquipos || 0),
+    equiposCompletos: Number(datos?.equiposCompletos || 0),
+    equiposPendientes: Number(datos?.equiposPendientes || 0),
+    limiteIntegrantesEquipo: Number(datos?.limiteIntegrantesEquipo || 0),
+    equipos: Array.isArray(datos?.equipos) ? datos.equipos : [],
+  }
+}

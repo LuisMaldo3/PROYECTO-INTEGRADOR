@@ -41,6 +41,7 @@ export function OrganizadorTarjeta({ actividad }) {
           Ver detalles
         </a>
         <a className="org-boton org-boton--suave" href={rutaOrganizador('organizador-inscritos', a.id)}>Inscritos</a>
+        {a.puedeEditarOrganizador && <a className="org-boton org-boton--simple" href={rutaOrganizador('organizador-cupos', a.id)}>Cupos y equipos</a>}
         <a className="org-boton org-boton--simple" href={rutaOrganizador('organizador-reporte', a.id)}>Reportar</a>
       </div>
     </article>

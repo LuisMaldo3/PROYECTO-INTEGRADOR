@@ -1,0 +1,28 @@
+.org-ocupacion{max-width:1150px;margin:0 auto;color:#19365b}
+.org-ocupacion__navegacion{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.org-ocupacion__cabecera{padding:25px 27px;border:1px solid #cfddf0;background:linear-gradient(115deg,#eff6fd,#fff);border-radius:19px;margin-bottom:21px}
+.org-ocupacion__cabecera>span{font-size:.72rem;letter-spacing:.12em;font-weight:800;color:#3775ac}
+.org-ocupacion__cabecera h2{font-size:1.55rem;margin:8px 0;color:#102d56}
+.org-ocupacion__cabecera p,.org-ocupacion__panel p{color:#59718e;line-height:1.6;font-size:.9rem}
+.org-ocupacion__panel{padding:25px 27px;margin-bottom:19px;background:#fff;border:1px solid #d8e3f0;border-radius:18px;box-shadow:0 8px 27px #06294d0b}
+.org-ocupacion__panel h3{font-size:1.14rem;color:#12355e;margin:0 0 7px}
+.org-ocupacion__fila{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.org-ocupacion__fila>strong{font-size:.83rem;color:#1e5c91}
+.org-ocupacion__fraccion{font-size:1.35rem;font-weight:850;white-space:nowrap;color:#194a7d}
+.org-ocupacion__cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:20px 0}
+.org-ocupacion__cifras>div{background:#f3f7fc;border:1px solid #e1ebf5;border-radius:13px;padding:15px;display:grid;gap:6px}
+.org-ocupacion__cifras span{font-size:.79rem;color:#527091}
+.org-ocupacion__cifras strong{font-size:1.48rem;color:#102f57}
+.org-ocupacion__progreso{margin-top:19px}
+.org-ocupacion__barra{width:100%;height:13px;border-radius:100px;background:#dce9f8;overflow:hidden;margin-top:10px}
+.org-ocupacion__barra>span{height:100%;display:block;background:linear-gradient(90deg,#194e80,#46a5c7);border-radius:100px;transition:width .2s ease}
+.org-ocupacion__nota{border-radius:10px;background:#f1f6fb;padding:10px 13px;margin-top:13px}
+.org-ocupacion__alerta{border-left:3px solid #b96a19;background:#fff8eb;padding:11px 14px;margin-top:12px;border-radius:6px}
+.org-ocupacion__equipo{border:1px solid #dae5f0;border-radius:14px;padding:19px;margin-top:14px}
+.org-ocupacion__equipo h4{font-size:1.04rem;margin:0;color:#183a60}
+.org-ocupacion__equipo ul{list-style:none;margin:13px 0 0;padding:0}
+.org-ocupacion__equipo li{padding:11px 0;border-top:1px solid #ebf0f5;display:flex;justify-content:space-between;gap:13px;align-items:center;flex-wrap:wrap;font-size:.86rem}
+.org-ocupacion__equipo li small{color:#5e7490}
+.org-ocupacion__ok{color:#176650;font-size:.81rem}
+.org-ocupacion__pendiente{color:#9a681a;font-size:.81rem}
+@media(max-width:600px){.org-ocupacion__panel,.org-ocupacion__cabecera{padding:19px}.org-ocupacion__cifras{grid-template-columns:repeat(2,minmax(0,1fr))}}

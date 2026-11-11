@@ -44,6 +44,7 @@ export const PANTALLAS = [
   { ruta: 'organizador-detalle', titulo: 'Detalle de actividad', descripcion: 'Información de tu actividad asignada.', tituloMenu: 'Detalle', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-resultados', titulo: 'Registrar resultados', descripcion: 'Envía posiciones de tus competencias para su validación.', tituloMenu: 'Resultados', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-inscritos', titulo: 'Estudiantes inscritos', descripcion: 'Participantes de una actividad asignada.', tituloMenu: 'Inscritos', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
+  { ruta: 'organizador-cupos', titulo: 'Cupos y equipos', descripcion: 'Verifica ocupación y equipos de tu actividad.', tituloMenu: 'Cupos y equipos', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   { ruta: 'organizador-reporte', titulo: 'Reportar un problema', descripcion: 'Informa incidencias sobre la actividad.', tituloMenu: 'Reportar', roles: [ROLES.ORGANIZADOR], enMenu: false, menuActivo: 'organizador-actividades' },
   // Se abre desde Perfil: no tiene botón propio en el menú y, mientras se está en ella, se marca «Perfil».
   { ruta: 'intereses', titulo: 'Mis intereses', descripcion: 'Elige los temas que te gustan y te recomendaremos actividades.', tituloMenu: 'Intereses', roles: ROLES_VALIDOS, enMenu: false, menuActivo: 'perfil' },

@@ -75,7 +75,7 @@ export function OrganizadorInscritos({ token }) {
       </div>
       <div className="org-cupos-fijos" role="note">
         <strong>Límite definido por administración: {datos.actividad?.maximoParticipantes ?? 'por confirmar'} {datos.actividad?.unidadCupo === 'equipos' ? 'equipos' : 'estudiantes'}</strong>
-        <span>Solo puedes sustituir un inscrito por otro; el máximo no se puede modificar desde aquí.</span>
+        <span>Puedes sustituir a un inscrito por un estudiante que todavía no participe en esta actividad y tenga cuenta VYNK activa. El cupo máximo se mantiene.</span>
       </div>
       {datos.actividad?.modalidad === 'equipos' && !datos.cargando && !datos.error && <p className="org-cupos-resumen" role="status">
         {datos.equiposConfirmados ?? 0} equipos habilitados de {datos.equiposRegistrados ?? 0} registrados. Cada integrante debe tener una inscripción individual.
@@ -116,7 +116,7 @@ export function OrganizadorInscritos({ token }) {
       {seleccionado && <div className="org-reemplazo-fondo" role="presentation" onClick={cerrar}>
         <section className="org-reemplazo" role="dialog" aria-modal="true" aria-labelledby="titulo-reemplazo" onClick={e => e.stopPropagation()}>
           <div className="org-reemplazo__encabezado"><div><h3 id="titulo-reemplazo">Reemplazar inscrito</h3></div><button type="button" aria-label="Cerrar" className="org-boton org-boton--simple" disabled={guardando} onClick={cerrar}>✕</button></div>
-          <p>Se retirará a <strong>{seleccionado.nombre}</strong> y se inscribirá en su lugar a otro estudiante registrado. <strong>El cupo máximo no cambiará.</strong></p>
+          <p>Se retirará a <strong>{seleccionado.nombre}</strong> y se inscribirá en su lugar a un estudiante que aún no esté inscrito en esta actividad (con cuenta institucional VYNK activa). <strong>El cupo máximo no cambiará.</strong></p>
           {seleccionado.nombreEquipo && <p className="org-reemplazo__equipo">Equipo: {seleccionado.nombreEquipo}. El reemplazo conservará su posición dentro de este equipo y deberá pertenecer al área correspondiente.</p>}
           <form onSubmit={confirmar} className="org-reemplazo__formulario">
             <label>Correo institucional del nuevo estudiante<input required type="email" autoComplete="off" maxLength={254} placeholder="estudiante@tecsup.edu.pe" value={correoNuevo} onChange={e => setCorreoNuevo(e.target.value)} /></label>

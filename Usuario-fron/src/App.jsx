@@ -11,6 +11,7 @@ import { OrganizadorActividades } from './components/OrganizadorActividades'
 import { OrganizadorDetalle } from './components/OrganizadorDetalle'
 import { OrganizadorResultados } from './components/OrganizadorResultados'
 import { OrganizadorInscritos } from './components/OrganizadorInscritos'
+import { OrganizadorOcupacion } from './components/OrganizadorOcupacion'
 import { OrganizadorReporte } from './components/OrganizadorReporte'
 import { Login } from './components/Login'
 import { PantallaBloqueada } from './components/PantallaBloqueada'
@@ -24,7 +25,7 @@ import { consultarEstadoIntereses, omitirIntereses } from './services/interesesS
 import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, actividades: Catalogo, actividad: DetalleActividad, resultados: ResultadosCompetencias, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-resultados': OrganizadorResultados, 'organizador-inscritos': OrganizadorInscritos, 'organizador-reporte': OrganizadorReporte }
+const SECCIONES = { inicio: Inicio, actividades: Catalogo, actividad: DetalleActividad, resultados: ResultadosCompetencias, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-resultados': OrganizadorResultados, 'organizador-inscritos': OrganizadorInscritos, 'organizador-cupos': OrganizadorOcupacion, 'organizador-reporte': OrganizadorReporte }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)
