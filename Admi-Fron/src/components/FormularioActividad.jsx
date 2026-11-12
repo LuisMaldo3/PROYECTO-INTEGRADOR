@@ -183,6 +183,12 @@ export default function FormularioActividad({ token, categorias, ubicaciones = [
               <option value="individual">Individual</option><option value="equipos">Por equipos</option>
             </select>
           </label>}
+          {valores.tipoActividad === 'competencia' && <label className="campo">Categoría
+            <select value={valores.categoriaGenero || ''} onChange={e => f.cambiar('categoriaGenero', e.target.value)} {...campo('categoriaGenero')}>
+              <option value="">Sin categoría</option><option value="varones">Varones</option><option value="damas">Damas</option><option value="mixto">Mixto</option>
+            </select>
+            <span className="campo__ayuda">Cada categoría es una competencia aparte, con sus inscritos y sus puntos.</span>
+          </label>}
         </div>
         {valores.tipoActividad === 'competencia' && <div className="competencia-form">
           

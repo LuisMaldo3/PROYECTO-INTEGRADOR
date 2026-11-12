@@ -32,6 +32,7 @@ import pe.tecsup.vynk.model.ConversacionAsistente;
 /** Contesta solo con horarios provenientes del catálogo publicado por el administrador. */
 @Service
 public class AsistenteHorariosService {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AsistenteHorariosService.class);
     private static final Pattern FECHA = Pattern.compile("\\b(20\\d{2}-\\d{2}-\\d{2})\\b");
     private static final Pattern UBICACION = Pattern.compile("\\b(donde|ubicacion(?:es)?|lugar(?:es)?|aula|salon|pabellon|edificio|sede|direccion|ubicad[oa]|como llego)\\b");
     private static final Set<String> OMITIR = Set.of("que", "cual", "cuales", "cuando", "donde", "dónde", "ubicacion", "ubicaciones", "lugar", "lugares", "sede", "aula", "salon", "pabellon", "edificio", "direccion", "ubicado", "ubicada", "realiza", "realizara", "sera", "encuentra", "queda", "llego", "ir", "hacer", "hacerme", "exacta", "exacto", "hora", "horas", "horario", "horarios", "hay", "actividad", "actividades", "del", "las", "los", "una", "uno", "para", "por", "con", "quiero", "saber", "dime", "muestra", "ver", "tienen", "tiene", "empieza", "termina", "inicio", "fin", "puedo", "asistir", "sobre", "evento", "semana", "week", "tecsup", "vynk", "hoy", "manana", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo", "esta", "este", "dia", "fecha", "gracias", "hola", "buenas", "dias", "tarde", "noches", "proximas", "proximos", "disponibles", "programadas", "programados", "estan", "todas", "todos", "a", "de", "en", "el", "la", "y", "es", "se", "al", "un", "mi", "me", "su");
@@ -241,12 +242,11 @@ public class AsistenteHorariosService {
         String payload = json.writeValueAsString(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.1)));
         String nombreModelo = modelo.matches("[A-Za-z0-9._-]+") ? modelo : "gemini-2.5-flash";
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://generativelanguage.googleapis.com/v1beta/models/" + nombreModelo + ":generateContent"))
-                .timeout(Duration.ofSeconds(12)).header("Content-Type", "application/json")
-                .header("x-goog-api-key", clave)
-                .POST(HttpRequest.BodyPublishers.ofString(payload)).build();
-        HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() < 200 || response.statusCode() >= 300) return List.of();
+        HttpResponse<String> response = GeminiCliente.enviar(http, nombreModelo, clave, payload, Duration.ofSeconds(12));
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            LOG.warn("IA del asistente sin respuesta: {}", GeminiCliente.mensaje(response.statusCode(), response.body()));
+            return List.of();
+        }
         String texto = json.readTree(response.body()).path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
         JsonNode ids = json.readTree(texto).path("ids");
         if (!ids.isArray()) return List.of();

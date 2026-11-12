@@ -53,22 +53,9 @@ public class GeminiResumenInscripcionesService {
             if (seguro.startsWith("gemini-2.5-flash")) generacion.put("thinkingConfig", Map.of("thinkingBudget", 0));
             String payload = json.writeValueAsString(Map.of("contents", List.of(
                     Map.of("parts", List.of(Map.of("text", prompt)))) , "generationConfig", generacion));
-            HttpRequest solicitud = HttpRequest.newBuilder(URI.create(
-                    "https://generativelanguage.googleapis.com/v1beta/models/" + seguro + ":generateContent"))
-                    .header("Content-Type", "application/json")
-                    .header("x-goog-api-key", clave)
-                    .timeout(Duration.ofSeconds(30))
-                    .POST(HttpRequest.BodyPublishers.ofString(payload)).build();
-            HttpResponse<String> respuesta = http.send(solicitud, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> respuesta = GeminiCliente.enviar(http, seguro, clave, payload, Duration.ofSeconds(30));
             if (respuesta.statusCode() != 200) {
-                String aviso = switch (respuesta.statusCode()) {
-                    case 400 -> "Gemini rechazó la solicitud; revisa el modelo configurado.";
-                    case 401, 403 -> "Gemini no autorizó la clave configurada.";
-                    case 404 -> "El modelo Gemini configurado no está disponible para esta clave.";
-                    case 429 -> "Gemini alcanzó el límite de solicitudes; intenta más tarde.";
-                    default -> "Gemini no pudo generar el resumen (HTTP " + respuesta.statusCode() + ").";
-                };
-                return new Respuesta("", "no_disponible", aviso);
+                return new Respuesta("", "no_disponible", GeminiCliente.mensaje(respuesta.statusCode(), respuesta.body()));
             }
             JsonNode parts = json.readTree(respuesta.body()).path("candidates").path(0)
                     .path("content").path("parts");

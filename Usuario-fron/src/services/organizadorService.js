@@ -173,3 +173,16 @@ export async function generarResumenOrganizadorIA(token, actividadId, signal) {
   return peticion(`${BASE}/${encodeURIComponent(actividadId)}/resumen-inscripciones-ia`, token,
     { method: 'POST', signal })
 }
+
+/** Tarea 1: los datos que se le pasarán a la IA (participación, comentarios anonimizados y, si la hay, resultado oficial). */
+export async function obtenerDatosSugerenciasOrganizador(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una actividad para ver sus datos.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/datos-sugerencias`, token, { signal })
+}
+
+/** Tarea 2: junta esos datos y le pide a Gemini sugerencias de mejora para futuras actividades. */
+export async function generarSugerenciasOrganizadorIA(token, actividadId, signal) {
+  if (!actividadId) throw new Error('Selecciona una actividad antes de pedir sugerencias.')
+  return peticion(`${BASE}/${encodeURIComponent(actividadId)}/sugerencias-futuras-ia`, token,
+    { method: 'POST', signal })
+}

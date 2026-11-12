@@ -35,7 +35,7 @@
 .tc-areas__pos {
   display: grid; place-items: center;
   width: 34px; height: 34px; border-radius: 50%;
-  background: var(--area); color: #fff;
+  background: var(--area); color: var(--area-texto, #fff);
   font-family: var(--fuente-titulo); font-weight: 750;
 }
 .tc-areas__nombre { display: grid; line-height: 1.3; }

@@ -110,18 +110,9 @@ def _solicitar_gemini(resumen, clave, modelo=MODELO_GEMINI):
         + json.dumps({'estudiantesConIntereses': resumen['totales']['conIntereses'],
                       'intereses': datos[:20]}, ensure_ascii=False)
     )
-    cuerpo = json.dumps({
-        'contents': [{'parts': [{'text': pregunta}]}],
-        'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 450},
-    }).encode('utf-8')
-    peticion = request.Request(
-        f'https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent',
-        data=cuerpo, method='POST', headers={
-            'Content-Type': 'application/json', 'x-goog-api-key': clave,
-        },
-    )
-    with request.urlopen(peticion, timeout=8) as respuesta:
-        datos = json.loads(respuesta.read(180_000).decode('utf-8'))
+    from .gemini_config import llamar_gemini
+    datos = llamar_gemini({'contents': [{'parts': [{'text': pregunta}]}],
+                           'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 450}}, clave, modelo, timeout=10)
     textos = [parte.get('text', '') for candidato in datos.get('candidates', [])
               for parte in candidato.get('content', {}).get('parts', [])
               if isinstance(parte, dict)]
@@ -146,14 +137,16 @@ def obtener_intereses(con_ia=False):
         resultado['ia'] = {'estado': 'sin_datos', 'texto': None,
                            'mensaje': 'Todavía no hay intereses seleccionados para resumir.'}
         return resultado
-    from .gemini_config import credenciales_gemini
+    from .gemini_config import GeminiError, MENSAJES, credenciales_gemini
     clave, modelo = credenciales_gemini()
     if not clave:
         resultado['ia'] = {'estado': 'sin_configurar', 'texto': None,
-                           'mensaje': 'Gemini no está configurado en el backend (GEMINI_API_KEY).'}
+                           'mensaje': MENSAJES['sin_clave']}
         return resultado
     try:
         texto = _solicitar_gemini(resultado, clave, modelo)
+    except GeminiError as error:
+        resultado['ia'] = {'estado': 'no_disponible', 'texto': None, 'mensaje': str(error)}
     except (OSError, ValueError, KeyError, TypeError, UnicodeError) as error:
         # No mostrar secretos ni errores internos del proveedor.
         resultado['ia'] = {'estado': 'no_disponible', 'texto': None,

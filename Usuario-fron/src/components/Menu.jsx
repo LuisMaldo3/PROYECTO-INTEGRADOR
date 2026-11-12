@@ -24,6 +24,7 @@ const ICONOS = {
     </>
   ),
   asistente: <path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1.2-4.2A8 8 0 1 1 21 12z" />,
+  'organizador-competencias': (<><circle cx="12" cy="12" r="9"/><path d="m12 7 4 3-1.5 5h-5L8 10Z"/></>),
   'organizador-actividades': (<><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M8 12h8M8 16h6"/></>),
   perfil: (
     <>

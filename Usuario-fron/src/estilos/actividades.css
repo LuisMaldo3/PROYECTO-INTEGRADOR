@@ -136,7 +136,7 @@
   background: rgba(255, 255, 255, .12); color: #e3edfb;
   font-size: .78rem; font-weight: 650;
 }
-.vynk-detalle__badges span:first-child { background: var(--area, var(--celeste)); color: #fff; }
+.vynk-detalle__badges span:first-child { background: var(--area, var(--celeste)); color: var(--area-texto, #fff); }
 .vynk-detalle__hero h2 { color: #fff; font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 750; letter-spacing: -.02em; }
 .vynk-detalle__hero p { color: rgba(222, 233, 251, .88); max-width: 58ch; }
 .vynk-detalle__hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 6px; }

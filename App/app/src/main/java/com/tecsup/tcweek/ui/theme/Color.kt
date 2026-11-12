@@ -26,7 +26,7 @@ val VynkError = Color(0xFFC0322B)
 val VynkErrorSoft = Color(0xFFFDECEA)
 
 /** Color propio de cada una de las cinco áreas de Tecsup. */
-data class ColorArea(val fuerte: Color, val suave: Color)
+data class ColorArea(val fuerte: Color, val suave: Color, val texto: Color = Color.White)
 
 private val AreaGeneral = ColorArea(VynkBlue, VynkBlueSoft)
 
@@ -35,11 +35,11 @@ fun colorArea(nombre: String?): ColorArea {
         .replace(Regex("\\p{M}+"), "").lowercase()
     return when {
         t.isBlank() -> AreaGeneral
-        "digital" in t -> ColorArea(Color(0xFF6A46F0), Color(0xFFEFEBFF))
-        "electr" in t -> ColorArea(Color(0xFFE09A00), Color(0xFFFFF5D9))
-        "mecanica" in t -> ColorArea(Color(0xFFE0532A), Color(0xFFFDEEE8))
-        "quimic" in t || "mineria" in t -> ColorArea(Color(0xFF0F9A76), Color(0xFFE2F6EF))
-        "gestion" in t || "produccion" in t -> ColorArea(Color(0xFFC2266B), Color(0xFFFCE8F1))
+        "digital" in t -> ColorArea(Color(0xFFDC2626), Color(0xFFFDE3E3))                          // TD · rojo
+        "electr" in t -> ColorArea(Color(0xFF1D6FE0), Color(0xFFE0EDFD))                           // Electricidad · azul
+        "mecanica" in t -> ColorArea(Color(0xFFF5B700), Color(0xFFFFF4CC), Color(0xFF3A2A00))      // Mecánica · amarillo (texto oscuro)
+        "quimic" in t || "mineria" in t -> ColorArea(Color(0xFF12A150), Color(0xFFDDF5E7))         // Química · verde
+        "gestion" in t || "produccion" in t -> ColorArea(Color(0xFF7C3AED), Color(0xFFEDE5FD))    // DPG (por confirmar) · morado
         else -> AreaGeneral
     }
 }

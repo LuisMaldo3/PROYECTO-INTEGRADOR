@@ -107,7 +107,7 @@
 .ranking { list-style: none; display: grid; gap: 4px; }
 .ranking li { display: grid; grid-template-columns: 40px minmax(180px, 1.1fr) minmax(0, 2fr) 84px; align-items: center; gap: 16px; padding: 12px 14px; border-radius: var(--r-m); }
 .ranking li:first-child { background: var(--area-suave); }
-.ranking__pos { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--area); color: #fff; font-family: var(--fuente-titulo); font-weight: 750; }
+.ranking__pos { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--area); color: var(--area-texto, #fff); font-family: var(--fuente-titulo); font-weight: 750; }
 .ranking__nombre { display: grid; line-height: 1.3; }
 .ranking__nombre strong { color: var(--tinta); }
 .ranking__nombre small { font-size: .78rem; color: var(--texto-3); }

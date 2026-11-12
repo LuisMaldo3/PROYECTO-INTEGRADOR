@@ -34,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.tecsup.tcweek.R
 
 /** Sprint 4: clasificación de las cinco áreas desde puntajes oficiales publicados. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClasificacionScreen(onVolver: () -> Unit) {
     val contexto = LocalContext.current
@@ -42,6 +43,7 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
     var error by remember { mutableStateOf("") }
     var cargando by remember { mutableStateOf(true) }
     var version by remember { mutableIntStateOf(0) }
+    var seccion by remember { mutableIntStateOf(0) }
     var resultados by remember { mutableStateOf<List<ResultadoOficial>>(emptyList()) }
     var errorResultados by remember { mutableStateOf("") }
     var seleccionado by remember { mutableStateOf<ResultadoOficial?>(null) }
@@ -79,12 +81,20 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
                     color = Color(0xFFE1EDFF))
             }
         }
-        if (cargando) CircularProgressIndicator(color = Color(0xFF1768B8))
-        if (error.isNotBlank()) {
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            listOf("General", "T&C ARENA").forEachIndexed { i, titulo ->
+                SegmentedButton(selected = seccion == i, onClick = { seccion = i }, shape = SegmentedButtonDefaults.itemShape(i, 2),
+                    colors = SegmentedButtonDefaults.colors(activeContainerColor = VynkBlueSoft, activeContentColor = VynkNavy),
+                    icon = {}) { Text(titulo, style = MaterialTheme.typography.labelLarge) }
+            }
+        }
+        if (seccion == 1) TorneosVista("arena")
+        if (seccion == 0 && cargando) CircularProgressIndicator(color = Color(0xFF1768B8))
+        if (seccion == 0 && error.isNotBlank()) {
             Text(error, color = Color(0xFFB32938))
             Button(onClick = { version++ }) { Text("Volver a intentar") }
         }
-        if (!cargando && error.isBlank()) {
+        if (seccion == 0 && !cargando && error.isBlank()) {
             Text("${tabla?.totalCompetencias ?: 0} competencias con resultados oficiales",
                 color = Color(0xFF355978))
             HorizontalDivider(color = Color(0xFFDDE4EE))
@@ -122,10 +132,11 @@ fun ClasificacionScreen(onVolver: () -> Unit) {
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Box(Modifier.size(30.dp).background(c.fuerte, CircleShape), contentAlignment = Alignment.Center) {
-                                Text("${area.posicion}", color = Color.White, style = MaterialTheme.typography.titleSmall)
+                                Text("${area.posicion}", color = c.texto, style = MaterialTheme.typography.titleSmall)
                             }
+                            Departamentos.deArea(area.nombre)?.let { Image(painterResource(it.escudo), contentDescription = "Escudo de ${it.nombre}", modifier = Modifier.height(32.dp).width(27.dp)) }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(area.nombre, color = VynkNavy, style = MaterialTheme.typography.titleSmall)
+                                Text(Departamentos.deArea(area.nombre)?.nombre ?: area.nombre, color = VynkNavy, style = MaterialTheme.typography.titleSmall)
                                 Box(Modifier.fillMaxWidth().height(8.dp).background(VynkSurface2, RoundedCornerShape(50))) {
                                     Box(Modifier.fillMaxWidth(area.puntos.toFloat() / maximo).height(8.dp).background(c.fuerte, RoundedCornerShape(50)))
                                 }

@@ -25,3 +25,5 @@ export const unirmeEquipo = (id, codigoEquipo) => consultar(`${base(id)}/unirse-
 export const cancelarInscripcion = (id) => consultar(`${base(id)}/inscripcion`, { method: 'DELETE' })
 export const consultarResultados = (signal) => consultar('/api/competencias/resultados', { signal })
 export const consultarClasificacion = (signal) => consultar('/api/competencias/clasificacion', { signal })
+/** T&C ARENA y Karadúo: enfrentamientos, horarios, marcadores y campeones (solo lectura). */
+export const consultarTorneos = (signal) => consultar('/api/competencias/torneos', { signal })

@@ -59,7 +59,8 @@ class PrepararTests(SimpleTestCase):
     def test_crea_las_categorias_de_la_tc_week(self):
         categorias = Coleccion()
         self.assertEqual(preparar(categorias, Coleccion()), (len(CATEGORIAS_INICIALES), 0))
-        self.assertEqual({d["_id"] for d in categorias.docs}, {"actividad-cultural", "concurso-tc-week"})
+        self.assertEqual({d["_id"] for d in categorias.docs}, {i for i, _ in CATEGORIAS_INICIALES})
+        self.assertIn({"_id": "deportes", "nombre": "Deportes"}, categorias.docs)
         self.assertIn({"_id": "concurso-tc-week", "nombre": "Concurso T&C Week"}, categorias.docs)
 
     def test_los_ids_y_nombres_no_se_repiten(self):
@@ -76,12 +77,13 @@ class PrepararTests(SimpleTestCase):
         self.assertEqual(categorias.find_one({"_id": "actividad-cultural"})["nombre"], "Cultura y arte")
 
     def test_retira_las_categorias_viejas_que_nadie_usa(self):
-        categorias = Coleccion([{"_id": "deportes", "nombre": "Deportes"}, {"_id": "cultura", "nombre": "Cultura"}])
+        categorias = Coleccion([{"_id": "academico", "nombre": "Académico"}, {"_id": "cultura", "nombre": "Cultura"}, {"_id": "deportes", "nombre": "Deportes"}])
         actividades = Coleccion([{"_id": 1, "nombre": "Vieja", "categoriaId": "cultura"}])
         creadas, retiradas = preparar(categorias, actividades)
         self.assertEqual(retiradas, 1)
-        self.assertIsNone(categorias.find_one({"_id": "deportes"}))  # sin uso: se borra
+        self.assertIsNone(categorias.find_one({"_id": "academico"}))  # vieja y sin uso: se borra
         self.assertIsNotNone(categorias.find_one({"_id": "cultura"}))  # tiene una actividad: se conserva
+        self.assertIsNotNone(categorias.find_one({"_id": "deportes"}))  # Deportes es oficial de la T&C Week: nunca se borra
 
     def test_crea_los_indices(self):
         categorias, actividades = Coleccion(), Coleccion()

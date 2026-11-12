@@ -28,12 +28,13 @@
   --error: #c0322b;  --error-suave: #fdecea;
 
   /* Las cinco áreas de Tecsup */
-  --area-digital: #6a46f0;   --area-digital-suave: #efebff;
-  --area-electro: #e09a00;   --area-electro-suave: #fff5d9;
-  --area-mecanica: #e0532a;  --area-mecanica-suave: #fdeee8;
-  --area-quimica: #0f9a76;   --area-quimica-suave: #e2f6ef;
-  --area-gestion: #c2266b;   --area-gestion-suave: #fce8f1;
-  --area-general: #1557d0;   --area-general-suave: #e8f0fd;
+  /* Los cinco departamentos que compiten (colores definidos para el proyecto) */
+  --area-quimica: #12A150;   --area-quimica-suave: #DDF5E7;   --area-quimica-texto: #FFFFFF;      /* Química · verde */
+  --area-mecanica: #F5B700;  --area-mecanica-suave: #FFF4CC;  --area-mecanica-texto: #3A2A00;     /* Mecánica · amarillo */
+  --area-digital: #DC2626;   --area-digital-suave: #FDE3E3;   --area-digital-texto: #FFFFFF;      /* TD · rojo */
+  --area-electro: #1D6FE0;   --area-electro-suave: #E0EDFD;   --area-electro-texto: #FFFFFF;      /* Electricidad · azul */
+  --area-gestion: #7C3AED;   --area-gestion-suave: #EDE5FD;   --area-gestion-texto: #FFFFFF;      /* DPG (por confirmar) · morado */
+  --area-general: #1557D0;   --area-general-suave: #E8F0FD;   --area-general-texto: #FFFFFF;
 
   /* Tipografía */
   --fuente-titulo: 'Archivo', 'Segoe UI', system-ui, sans-serif;
@@ -50,12 +51,12 @@
 }
 
 /* Color de área: cualquier elemento con data-area recibe --area y --area-suave */
-[data-area='digital']  { --area: var(--area-digital);  --area-suave: var(--area-digital-suave); }
-[data-area='electro']  { --area: var(--area-electro);  --area-suave: var(--area-electro-suave); }
-[data-area='mecanica'] { --area: var(--area-mecanica); --area-suave: var(--area-mecanica-suave); }
-[data-area='quimica']  { --area: var(--area-quimica);  --area-suave: var(--area-quimica-suave); }
-[data-area='gestion']  { --area: var(--area-gestion);  --area-suave: var(--area-gestion-suave); }
-[data-area='general']  { --area: var(--area-general);  --area-suave: var(--area-general-suave); }
+[data-area='quimica'], [data-area='dep-quimica']   { --area: var(--area-quimica);  --area-suave: var(--area-quimica-suave);  --area-texto: var(--area-quimica-texto); }
+[data-area='mecanica'], [data-area='dep-mecanica'] { --area: var(--area-mecanica); --area-suave: var(--area-mecanica-suave); --area-texto: var(--area-mecanica-texto); }
+[data-area='digital'], [data-area='dep-td']        { --area: var(--area-digital);  --area-suave: var(--area-digital-suave);  --area-texto: var(--area-digital-texto); }
+[data-area='electro'], [data-area='dep-electricidad'] { --area: var(--area-electro); --area-suave: var(--area-electro-suave); --area-texto: var(--area-electro-texto); }
+[data-area='gestion'], [data-area='dep-dpg']       { --area: var(--area-gestion);  --area-suave: var(--area-gestion-suave);  --area-texto: var(--area-gestion-texto); }
+[data-area='general']  { --area: var(--area-general);  --area-suave: var(--area-general-suave); --area-texto: var(--area-general-texto); }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }

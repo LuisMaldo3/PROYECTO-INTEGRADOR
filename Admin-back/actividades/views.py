@@ -3,7 +3,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
-from usuarios.auth import exigir_admin
+from usuarios.auth import exigir_admin, exigir_organizador
 from usuarios.permisos import exigir_permiso
 
 from . import servicio, organizadores, avisos as servicio_avisos, mongo, inscritos as servicio_inscritos
@@ -239,3 +239,264 @@ def comparacion_categorias(request):
     """US-40 · Datos de participación y tabla oficial de solo lectura."""
     from .comparacion_categorias import obtener_comparacion
     return JsonResponse(obtener_comparacion())
+
+
+# ---------- T&C ARENA (torneos de eliminación directa entre departamentos) ----------
+from . import cierre as servicio_cierre, departamentos as catalogo_departamentos, puntajes as servicio_puntajes, torneos as servicio_torneos  # noqa: E402
+from .gemini_config import GeminiError  # noqa: E402
+
+
+def _cuerpo_json(request):
+    try:
+        cuerpo = json.loads(request.body or b"{}")
+    except ValueError:
+        return None, JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "El cuerpo debe ser JSON válido."}, status=400)
+    if not isinstance(cuerpo, dict):
+        return None, JsonResponse({"codigo": "JSON_INVALIDO", "mensaje": "Se espera un objeto JSON."}, status=400)
+    return cuerpo, None
+
+
+def _ejecutar(accion):
+    """Traduce los errores del servicio de torneos a respuestas HTTP con el formato del proyecto."""
+    try:
+        return JsonResponse(accion())
+    except servicio.DatosInvalidos as e:
+        return JsonResponse({"codigo": "DATOS_INVALIDOS", "mensaje": str(e), "errores": e.errores}, status=400)
+    except servicio_torneos.NoEncontrado as e:
+        return JsonResponse({"codigo": "NO_ENCONTRADO", "mensaje": str(e)}, status=404)
+    except servicio_torneos.PermisoDenegado as e:
+        return JsonResponse({"codigo": "PERMISO_DENEGADO", "mensaje": str(e)}, status=403)
+    except (servicio_torneos.Conflicto, servicio_puntajes.Conflicto, servicio_cierre.Conflicto) as e:
+        return JsonResponse({"codigo": "CONFLICTO", "mensaje": str(e)}, status=409)
+    except GeminiError as e:
+        return JsonResponse({"codigo": "IA_NO_DISPONIBLE", "tipo": e.tipo, "mensaje": str(e)}, status=503)
+
+
+@require_GET
+@exigir_admin
+def lista_departamentos(request):
+    return JsonResponse({"departamentos": catalogo_departamentos.DEPARTAMENTOS})
+
+
+@require_http_methods(["GET", "POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def torneos(request):
+    """GET ?tipo=arena: lista de torneos. POST: crea un torneo y genera sus llaves."""
+    if request.method == "GET":
+        return JsonResponse({"torneos": servicio_torneos.listar(request.GET.get("tipo"))})
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    respuesta = _ejecutar(lambda: servicio_torneos.crear_torneo(cuerpo, request.admin_id))
+    if respuesta.status_code == 200:
+        respuesta.status_code = 201
+    return respuesta
+
+
+@require_http_methods(["GET", "DELETE"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def detalle_torneo(request, torneo_id):
+    """GET: el torneo con su historial. DELETE: lo elimina (y sus puntos dejan de contar en la tabla acumulada)."""
+    if request.method == "DELETE":
+        return _ejecutar(lambda: servicio_torneos.eliminar_torneo(torneo_id, request.admin_id))
+    return _ejecutar(lambda: servicio_torneos.detalle(torneo_id))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def enviar_puestos_torneo(request, torneo_id):
+    """Puestos finales con los puntos escritos a mano ({"puntos": {"1": 10, ...}, "publicar": true})."""
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_torneos.enviar_puestos(torneo_id, request.admin_id, cuerpo.get("puntos"), cuerpo.get("publicar") is True))
+
+
+@require_GET
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def participantes_torneo(request):
+    """Equipos o alumnos confirmados de una competencia, para armar el torneo."""
+    return _ejecutar(lambda: servicio_torneos.participantes_disponibles(request.GET.get("actividadId", "")))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def programar_partido(request, torneo_id, partido_id):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_torneos.programar(torneo_id, partido_id, cuerpo, request.admin_id))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def estado_partido(request, torneo_id, partido_id):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_torneos.cambiar_estado(torneo_id, partido_id, cuerpo.get("estado"), request.admin_id))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def resultado_partido(request, torneo_id, partido_id):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_torneos.registrar_resultado(torneo_id, partido_id, cuerpo, request.admin_id))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.validar")
+def validar_partido(request, torneo_id, partido_id):
+    return _ejecutar(lambda: servicio_torneos.validar_resultado(torneo_id, partido_id, request.admin_id))
+
+
+# ---------- IA: propuesta de sorteo (propone; no crea ni decide nada) ----------
+
+@require_http_methods(["POST"])
+@exigir_admin
+@exigir_permiso("torneos.gestionar")
+def propuesta_ia_torneo(request):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_torneos.proponer_sorteo(cuerpo.get("actividadId"), cuerpo.get("participantes"), modo=cuerpo.get("modoParticipantes") or "departamentos"))
+
+
+# ---------- Gymkanas y concursos por puntos ----------
+
+@require_GET
+@exigir_admin
+def competencias_puntajes(request):
+    return JsonResponse({"competencias": servicio_torneos.competencias_de_organizador(request.admin_id, "administrador")})
+
+
+@require_http_methods(["GET", "PUT"])
+@exigir_admin
+def hoja_puntajes(request, actividad_id):
+    if request.method == "GET":
+        return _ejecutar(lambda: servicio_puntajes.hoja(actividad_id))
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_puntajes.guardar(actividad_id, cuerpo, request.admin_id))
+
+
+@require_http_methods(["POST"])
+@exigir_admin
+def enviar_puestos_puntajes(request, actividad_id):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+    return _ejecutar(lambda: servicio_puntajes.enviar_puestos(actividad_id, request.admin_id, cuerpo.get("puntos"), cuerpo.get("publicar") is True))
+
+
+# ---------- Cierre de la T&C Week ----------
+
+@require_http_methods(["GET", "POST", "DELETE"])
+@exigir_admin
+def cierre_semana(request):
+    """GET: líder y estado. POST: cierra y publica el ganador (con aviso). DELETE: reabre si hubo un error."""
+    if request.method == "POST":
+        return _ejecutar(lambda: servicio_cierre.cerrar(request.admin_id))
+    if request.method == "DELETE":
+        return _ejecutar(lambda: servicio_cierre.reabrir(request.admin_id))
+    return _ejecutar(servicio_cierre.estado)
+
+
+# ---------- Organizador: solo sus competencias; no valida, no elimina y no publica ----------
+
+@require_GET
+@exigir_organizador
+def organizador_competencias(request):
+    return JsonResponse({"competencias": servicio_torneos.competencias_de_organizador(request.usuario_id, request.rol)})
+
+
+@require_http_methods(["GET", "POST"])
+@exigir_organizador
+def organizador_torneos(request):
+    if request.method == "GET":
+        return JsonResponse({"torneos": servicio_torneos.listar_de_organizador(request.usuario_id, request.rol)})
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+
+    def crear():
+        servicio_torneos.exigir_organizador_de(cuerpo.get("actividadId"), request.usuario_id, request.rol)
+        return servicio_torneos.crear_torneo({**cuerpo, "tipo": "arena"}, request.usuario_id)
+    respuesta = _ejecutar(crear)
+    if respuesta.status_code == 200:
+        respuesta.status_code = 201
+    return respuesta
+
+
+@require_GET
+@exigir_organizador
+def organizador_torneo(request, torneo_id):
+    return _ejecutar(lambda: servicio_torneos.ver(torneo_id, request.usuario_id, request.rol))
+
+
+@require_http_methods(["POST"])
+@exigir_organizador
+def organizador_accion_partido(request, torneo_id, partido_id, accion):
+    """programar | estado | resultado (marcadores). Validar, eliminar y publicar quedan para administración."""
+    if accion not in ("programar", "estado", "resultado"):
+        return JsonResponse({"codigo": "NO_ENCONTRADO", "mensaje": "Acción no disponible."}, status=404)
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+
+    def hacer():
+        servicio_torneos.verificar_organizador(torneo_id, request.usuario_id, request.rol)
+        if accion == "programar":
+            return servicio_torneos.programar(torneo_id, partido_id, cuerpo, request.usuario_id)
+        if accion == "estado":
+            return servicio_torneos.cambiar_estado(torneo_id, partido_id, cuerpo.get("estado"), request.usuario_id)
+        return servicio_torneos.registrar_resultado(torneo_id, partido_id, cuerpo, request.usuario_id)
+    return _ejecutar(hacer)
+
+
+@require_http_methods(["POST"])
+@exigir_organizador
+def organizador_propuesta_ia(request):
+    cuerpo, error = _cuerpo_json(request)
+    if error:
+        return error
+
+    def proponer():
+        servicio_torneos.exigir_organizador_de(cuerpo.get("actividadId"), request.usuario_id, request.rol)
+        return servicio_torneos.proponer_sorteo(cuerpo.get("actividadId"), cuerpo.get("participantes"), modo=cuerpo.get("modoParticipantes") or "departamentos")
+    return _ejecutar(proponer)
+
+
+@require_http_methods(["GET", "PUT"])
+@exigir_organizador
+def organizador_puntajes(request, actividad_id):
+    if request.method == "PUT":
+        cuerpo, error = _cuerpo_json(request)
+        if error:
+            return error
+
+    def hacer():
+        servicio_torneos.exigir_organizador_de(actividad_id, request.usuario_id, request.rol)
+        if request.method == "GET":
+            return servicio_puntajes.hoja(actividad_id)
+        return servicio_puntajes.guardar(actividad_id, cuerpo, request.usuario_id)
+    return _ejecutar(hacer)
+
+
+@require_GET
+@exigir_admin
+def estado_ia(request):
+    """Estado de la IA; con ?probar=1 hace una prueba real con Google (sin mostrar la clave)."""
+    from .gemini_config import diagnostico
+    return JsonResponse(diagnostico(probar=request.GET.get("probar") == "1"))

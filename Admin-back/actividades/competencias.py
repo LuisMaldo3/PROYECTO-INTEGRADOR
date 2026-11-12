@@ -10,6 +10,9 @@ AREAS_TECSUP = (
     "Mecánica",
 )
 
+# Categoría de una competencia. Cada categoría es una competencia aparte (con sus inscritos, llaves y puntos).
+CATEGORIAS_GENERO = ("", "varones", "damas", "mixto")
+
 
 def validar_configuracion(datos):
     from .servicio import DatosInvalidos
@@ -18,7 +21,7 @@ def validar_configuracion(datos):
         raise DatosInvalidos({"tipoActividad": "Elige actividad o competencia."})
     if tipo != "competencia":
         return {"tipoActividad": "actividad", "modalidad": None,
-                "maxIntegrantesEquipo": None, "reglasCompetencia": "", "puntosPorPuesto": []}
+                "maxIntegrantesEquipo": None, "reglasCompetencia": "", "puntosPorPuesto": [], "categoriaGenero": ""}
     modalidad = datos.get("modalidad", "individual")
     errores = {}
     if modalidad not in ("individual", "equipos"):
@@ -33,8 +36,11 @@ def validar_configuracion(datos):
     if (not isinstance(puntajes, list) or len(puntajes) > 20 or
             any(type(p) is not int or not 0 <= p <= 10000 for p in puntajes)):
         errores["puntosPorPuesto"] = "Indica hasta 20 valores enteros no negativos."
+    categoria = datos.get("categoriaGenero", "") or ""
+    if categoria not in CATEGORIAS_GENERO:
+        errores["categoriaGenero"] = "Elige varones, damas o mixto (o déjalo sin categoría)."
     if errores:
         raise DatosInvalidos(errores)
-    return {"tipoActividad": tipo, "modalidad": modalidad,
+    return {"tipoActividad": tipo, "modalidad": modalidad, "categoriaGenero": categoria,
             "maxIntegrantesEquipo": maximo, "reglasCompetencia": reglas.strip(),
             "puntosPorPuesto": puntajes}

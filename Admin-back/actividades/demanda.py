@@ -99,16 +99,9 @@ def _solicitar_gemini(actividades, api_key, modelo=MODELO_POR_DEFECTO):
         'Si no hay inscritos, indícalo. Datos JSON: '
         + json.dumps(filas, ensure_ascii=False)
     )
-    cuerpo = json.dumps({
-        'contents': [{'parts': [{'text': pregunta}]}],
-        'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 450}
-    }).encode('utf-8')
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent'
-    peticion = request.Request(url, data=cuerpo, method='POST', headers={
-        'Content-Type': 'application/json', 'x-goog-api-key': api_key,
-    })
-    with request.urlopen(peticion, timeout=8) as respuesta:
-        datos = json.loads(respuesta.read(180_000).decode('utf-8'))
+    from .gemini_config import llamar_gemini
+    datos = llamar_gemini({'contents': [{'parts': [{'text': pregunta}]}],
+                           'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 450}}, api_key, modelo, timeout=10)
     textos = [p.get('text', '') for c in datos.get('candidates', [])
               for p in c.get('content', {}).get('parts', []) if isinstance(p, dict)]
     texto = ' '.join(textos).strip()
@@ -126,16 +119,18 @@ def obtener_demanda(con_ia=False):
         ranking['ia'] = {'estado': 'sin_datos', 'texto': None,
                          'mensaje': 'Todavía no hay actividades para analizar.'}
         return ranking
-    from .gemini_config import credenciales_gemini
+    from .gemini_config import GeminiError, MENSAJES, credenciales_gemini
     clave, modelo = credenciales_gemini()
     if not clave:
         ranking['ia'] = {'estado': 'sin_configurar', 'texto': None,
-                         'mensaje': 'Gemini no está configurado en el backend administrador (GEMINI_API_KEY).'}
+                         'mensaje': MENSAJES['sin_clave']}
         return ranking
     try:
         texto = _solicitar_gemini(ranking['actividades'], clave, modelo)
         ranking['ia'] = {'estado': 'disponible', 'texto': texto,
                          'mensaje': 'Interpretación generada por IA a partir de las estadísticas actuales.'}
+    except GeminiError as exc:
+        ranking['ia'] = {'estado': 'no_disponible', 'texto': None, 'mensaje': str(exc)}
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, json.JSONDecodeError) as exc:
         # No revelar la clave, URL completa, cabeceras ni respuesta privada del proveedor.
         ranking['ia'] = {'estado': 'no_disponible', 'texto': None,

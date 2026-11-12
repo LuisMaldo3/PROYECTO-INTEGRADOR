@@ -1,3 +1,4 @@
+import OrganizadorCompetencias from './components/OrganizadorCompetencias'
 import { useEffect, useState } from 'react'
 import { Agenda } from './components/Agenda'
 import { Asistente } from './components/Asistente'
@@ -25,7 +26,7 @@ import { consultarEstadoIntereses, omitirIntereses } from './services/interesesS
 import { debeSolicitarIntereses } from './services/intereses'
 
 // Pantallas sin datos de sesión: cada una tiene su archivo para llenarla cuando toque su historia.
-const SECCIONES = { inicio: Inicio, actividades: Catalogo, actividad: DetalleActividad, resultados: ResultadosCompetencias, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-resultados': OrganizadorResultados, 'organizador-inscritos': OrganizadorInscritos, 'organizador-cupos': OrganizadorOcupacion, 'organizador-reporte': OrganizadorReporte }
+const SECCIONES = { 'organizador-competencias': OrganizadorCompetencias, inicio: Inicio, actividades: Catalogo, actividad: DetalleActividad, resultados: ResultadosCompetencias, agenda: Agenda, asistente: Asistente, recomendaciones: Recomendaciones, 'organizador-actividades': OrganizadorActividades, 'organizador-detalle': OrganizadorDetalle, 'organizador-resultados': OrganizadorResultados, 'organizador-inscritos': OrganizadorInscritos, 'organizador-cupos': OrganizadorOcupacion, 'organizador-reporte': OrganizadorReporte }
 
 function App() {
   const [sesion, setSesion] = useState(leerSesion)

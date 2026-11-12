@@ -160,3 +160,26 @@
   .dia__bloque { display: none; }
   .dia__cabecera { margin-bottom: 8px; }
 }
+
+/* ---------- Agenda sugerida: más color y orden ---------- */
+.agenda-sugerida__hero { background: linear-gradient(120deg, var(--tinta) 0%, #16408a 100%); color: #fff; border: 0; }
+.agenda-sugerida__hero h2 { color: #fff; }
+.agenda-sugerida__hero p { color: rgba(255, 255, 255, .82); }
+.agenda-sugerida__hero .boton-secundario { background: #fff; color: var(--tinta); border-color: #fff; }
+.agenda-sugerida__dato { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-size: .86rem; font-weight: 600; border: 0; }
+.agenda-sugerida__dato--azul { background: var(--azul-suave); color: var(--azul); }
+.agenda-sugerida__dato--verde { background: var(--ok-suave); color: var(--ok); }
+.agenda-sugerida__dato--celeste { background: #E0F4FB; color: #0A7BA5; }
+.agenda-sugerida__dato strong { color: inherit; font-size: 1rem; }
+.agenda-sugerida__aviso { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--r-m); border: 1px solid transparent; }
+.agenda-sugerida__aviso p { margin: 2px 0 0; font-size: .9rem; }
+.agenda-sugerida__aviso strong { font-size: .95rem; }
+.agenda-sugerida__aviso-icono { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%; }
+.agenda-sugerida__aviso--ia { background: linear-gradient(120deg, #EEF3FF, #F3EEFF); border-color: #d6defa; color: var(--tinta); }
+.agenda-sugerida__aviso--ia .agenda-sugerida__aviso-icono { background: var(--azul); color: #fff; }
+.agenda-sugerida__aviso--reglas { background: var(--aviso-suave); border-color: #f5dcaa; color: #6d4a07; }
+.agenda-sugerida__aviso--reglas .agenda-sugerida__aviso-icono { background: var(--aviso); color: #fff; }
+.agenda-sugerida__motivo { display: flex; gap: 8px; align-items: flex-start; background: var(--azul-suave); color: var(--tinta); border-left: 3px solid var(--azul); }
+.agenda-sugerida__motivo svg { flex: none; margin-top: 2px; color: var(--azul); }
+.dia--agenda .dia__bloque { background: linear-gradient(160deg, var(--tinta), #1d4fa3); }
+.agenda-item { border-left-width: 5px; }

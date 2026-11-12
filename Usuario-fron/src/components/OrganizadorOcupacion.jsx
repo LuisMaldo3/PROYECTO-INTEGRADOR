@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { actividadSeleccionada, obtenerOcupacionActividad, verificarEquiposActividad, rutaOrganizador } from '../services/organizadorService'
 import './OrganizadorOcupacion.css'
 import { OrganizadorAnalitica } from './OrganizadorAnalitica'
+import { OrganizadorSugerencias } from './OrganizadorSugerencias'
 
 /** Sprint 3 · US-58/59. Panel de consulta: nunca puede modificar el aforo del administrador. */
 export function OrganizadorOcupacion({ token }) {
@@ -84,6 +85,7 @@ export function OrganizadorOcupacion({ token }) {
         </article>)}
       </section>}
       <OrganizadorAnalitica token={token} actividadId={actividadId} revision={revision} />
+      <OrganizadorSugerencias token={token} actividadId={actividadId} />
       <a className="org-boton org-boton--primario" href={rutaOrganizador('organizador-inscritos', actividadId)}>Ver inscritos y reemplazos</a>
     </>}
   </main>

@@ -1,0 +1,9 @@
+.org-sugerencias{color:#163a61}
+.org-sugerencias__cabecera{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.org-sugerencias__cabecera p{color:#58718e;font-size:.9rem;margin:4px 0 0}
+.org-sugerencias__resumen{margin:18px 0 0;padding:14px 16px;background:#f5f9ff;border:1px solid #dce8f4;border-radius:12px;color:#243e61;line-height:1.6}
+.org-sugerencias__lista{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.org-sugerencias__item{border:1px solid #dce8f4;background:#f3f7fc;border-radius:12px;padding:14px 16px}
+.org-sugerencias__item strong{display:block;color:#174577;margin-bottom:4px}
+.org-sugerencias__item p{margin:0;color:#3a5876;font-size:.92rem;line-height:1.55}
+.org-sugerencias button:disabled{opacity:.65;cursor:wait}

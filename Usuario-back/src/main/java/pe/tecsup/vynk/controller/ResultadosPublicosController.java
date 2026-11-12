@@ -163,6 +163,13 @@ public class ResultadosPublicosController {
         respuesta.put("estado", competencias > 0 ? "publicado" : "sin_resultados");
         respuesta.put("totalCompetencias", competencias);
         respuesta.put("criterioDesempate", "Más puntos, más primeros puestos y orden alfabético");
+        // Ganador general: solo cuando el administrador cerró la T&C Week (colección cierre_tcweek).
+        Document cierre = mongo.findOne(new Query(Criteria.where("_id").is("tcweek")), Document.class, "cierre_tcweek");
+        if (cierre != null && "cerrada".equals(cierre.getString("estado")) && cierre.get("ganador") instanceof Document g) {
+            Map<String, Object> ganador = new LinkedHashMap<>();
+            ganador.put("area", g.get("area")); ganador.put("puntos", g.get("puntos")); ganador.put("departamento", g.get("departamento"));
+            respuesta.put("ganadorGeneral", ganador);
+        }
         respuesta.put("areas", areas);
         return respuesta;
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { consultarClasificacionAdmin } from '../services/competenciasService'
 import { claveArea } from '../services/areas'
+import CierreSemana from './CierreSemana'
 
 export default function ClasificacionGeneral({ token }) {
   const [estado, setEstado] = useState({ cargando: true, error: '', tabla: null })
@@ -15,6 +16,7 @@ export default function ClasificacionGeneral({ token }) {
   return <div className="clasificacion-admin">
     <header className="pagina__cabecera"><div><h1>Clasificación</h1><p>Puntos por área según las competencias con resultados publicados.</p></div>
       <div className="pagina__acciones"><button className="boton boton--claro" type="button" onClick={() => { setEstado(s => ({ ...s, cargando: true })); setVersion(n => n + 1) }}>Actualizar</button></div></header>
+    <CierreSemana token={token} />
     {estado.cargando && <p className="cargando" role="status">Cargando clasificación…</p>}
     {estado.error && <p className="aviso aviso--error" role="alert">{estado.error}</p>}
     {estado.tabla && <section className="tarjeta clasificacion-admin__tabla">

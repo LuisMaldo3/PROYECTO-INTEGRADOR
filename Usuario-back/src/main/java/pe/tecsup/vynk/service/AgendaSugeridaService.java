@@ -17,6 +17,7 @@ import pe.tecsup.vynk.model.Inscripcion;
 /** Planifica sobre datos reales y comprueba los cruces aun si Gemini devuelve una propuesta incorrecta. */
 @Service
 public class AgendaSugeridaService {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AgendaSugeridaService.class);
     private final ContextoAgendaSugeridaService contexto;
     private final GeminiAgendaSugeridaService gemini;
     private final DescartesRecomendacionesService descartes;
@@ -73,7 +74,8 @@ public class AgendaSugeridaService {
         List<Map<String, String>> ocupadas = datos.inscritas().stream().map(i -> Map.of(
                 "nombre", valor(i.getNombreActividad()), "fecha", valor(i.getFecha()),
                 "inicio", valor(i.getHoraInicio()), "fin", valor(i.getHoraFin()))).toList();
-        List<GeminiAgendaSugeridaService.Eleccion> decisiones = gemini.elegir(datos.intereses(), candidatas, ocupadas);
+        GeminiAgendaSugeridaService.Resultado ia = gemini.elegirConEstado(datos.intereses(), candidatas, ocupadas);
+        List<GeminiAgendaSugeridaService.Eleccion> decisiones = ia.elecciones();
         Map<String, Map<String, Object>> porId = new HashMap<>();
         candidatas.forEach(a -> porId.put(valor(a.get("id")), a));
         List<Map<String, Object>> ordenadas = new ArrayList<>();
@@ -104,9 +106,11 @@ public class AgendaSugeridaService {
                 "horaFin", valor(i.getHoraFin()))).toList();
         String origen = propuesta.isEmpty() ? "sin_actividades" : conIa ? "ia" : "reglas";
         String aviso = propuesta.isEmpty() ? "No hay actividades disponibles compatibles con tu agenda actual."
-                : conIa ? "Gemini priorizó actividades reales. Sus horarios fueron validados para evitar cruces."
-                : "Propuesta calculada sin IA, a partir de intereses y horarios publicados.";
-        return Map.of("origen", origen, "aviso", aviso, "intereses", datos.intereses(),
+                : conIa ? "Gemini eligió estas actividades según tus intereses. Revisamos que ninguna se cruce con tus inscripciones."
+                : "La IA no pudo armar la propuesta: " + (ia.mensaje().isBlank() ? "eligió actividades que se cruzaban con tu agenda" : ia.mensaje())
+                  + ". Mientras tanto, te sugerimos actividades según tus intereses y horarios.";
+        if (!conIa && !propuesta.isEmpty()) LOG.warn("Agenda sugerida sin IA: {} ({})", ia.mensaje(), ia.estado());
+        return Map.of("origen", origen, "aviso", aviso, "iaEstado", conIa ? "ok" : ia.estado(), "intereses", datos.intereses(),
                 "inscripciones", inscripciones, "actividades", propuesta, "total", propuesta.size());
     }
 

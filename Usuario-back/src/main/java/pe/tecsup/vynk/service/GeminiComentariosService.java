@@ -69,15 +69,9 @@ public class GeminiComentariosService {
             if (seguro.startsWith("gemini-2.5-flash")) generacion.put("thinkingConfig", Map.of("thinkingBudget", 0));
             String payload = json.writeValueAsString(Map.of("contents", List.of(
                     Map.of("parts", List.of(Map.of("text", prompt)))), "generationConfig", generacion));
-            HttpRequest req = HttpRequest.newBuilder(URI.create(
-                    "https://generativelanguage.googleapis.com/v1beta/models/" + seguro + ":generateContent"))
-                    .header("Content-Type", "application/json")
-                    .header("x-goog-api-key", clave)
-                    .timeout(Duration.ofSeconds(35))
-                    .POST(HttpRequest.BodyPublishers.ofString(payload)).build();
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> resp = GeminiCliente.enviar(http, seguro, clave, payload, Duration.ofSeconds(35));
             if (resp.statusCode() != 200) return new Respuesta("", List.of(), "no_disponible",
-                    mensajeGemini(resp.statusCode()), textos.size());
+                    GeminiCliente.mensaje(resp.statusCode(), resp.body()), textos.size());
             JsonNode partes = json.readTree(resp.body()).path("candidates").path(0).path("content").path("parts");
             StringBuilder texto = new StringBuilder();
             if (partes.isArray()) for (JsonNode parte : partes) texto.append(parte.path("text").asText(""));

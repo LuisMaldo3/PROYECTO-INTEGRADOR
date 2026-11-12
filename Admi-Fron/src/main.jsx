@@ -5,6 +5,7 @@ import './estilos/panel.css'
 import './estilos/login.css'
 import './estilos/pantallas.css'
 import './estilos/formularios.css'
+import './estilos/torneos.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

@@ -5,14 +5,21 @@ Se ejecuta con:  python manage.py preparar_actividades
 """
 
 # (id, nombre). El id es un texto fijo y legible; es lo que guarda cada actividad en categoriaId.
-# Salen de la programación de la T&C Week 2026: «Actividad cultural» y «Concurso T&C Week».
+# Salen de la programación de la T&C Week: deportes, música y canto, Karadúo, videojuegos, gymkanas,
+# concursos culturales y tecnológicos, y charlas o talleres. (Spring crea las mismas al arrancar.)
 CATEGORIAS_INICIALES = [
     ("actividad-cultural", "Actividad cultural"),
     ("concurso-tc-week", "Concurso T&C Week"),
+    ("deportes", "Deportes"),
+    ("musica-canto", "Música y canto"),
+    ("karaduo", "Karadúo"),
+    ("videojuegos", "Videojuegos"),
+    ("gymkana", "Gymkana"),
+    ("charlas-talleres", "Charlas y talleres"),
 ]
 
 # Categorías de la primera versión de prueba. Se borran solo si ninguna actividad las usa.
-CATEGORIAS_RETIRADAS = ["academico", "cultura", "deportes", "social", "tecnologia", "voluntariado"]
+CATEGORIAS_RETIRADAS = ["academico", "cultura", "social", "tecnologia", "voluntariado"]
 
 
 def retirar_obsoletas(categorias, actividades):

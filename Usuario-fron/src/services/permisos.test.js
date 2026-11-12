@@ -42,7 +42,7 @@ test('MENÚ: el usuario ve las siete pantallas, en orden', () => {
 })
 
 test('MENÚ: el organizador ve sus actividades y los demás roles no', () => {
-  assert.deepEqual(rutas('organizador'), [...TODAS, 'organizador-actividades'])
+  assert.deepEqual(rutas('organizador'), [...TODAS, 'organizador-actividades', 'organizador-competencias'])
   assert.deepEqual(rutas('administrador'), TODAS)
   assert.deepEqual(rutas('hacker'), TODAS)
   assert.deepEqual(rutas(undefined), TODAS)
@@ -84,7 +84,7 @@ test('BLOQUEO: una pantalla de organizador queda bloqueada para el usuario', () 
 
 test('BLOQUEO: el organizador sí entra a su pantalla y ve su menú', () => {
   assert.equal(resolverRuta('#/mis-actividades', 'organizador', CON_ORGANIZADOR).estado, 'permitida')
-  assert.deepEqual(rutas('organizador', CON_ORGANIZADOR), [...TODAS, 'organizador-actividades', 'mis-actividades'])
+  assert.deepEqual(rutas('organizador', CON_ORGANIZADOR), [...TODAS, 'organizador-actividades', 'organizador-competencias', 'mis-actividades'])
   assert.deepEqual(rutas('usuario', CON_ORGANIZADOR), TODAS)
 })
 
@@ -116,7 +116,10 @@ test('US-46/51/50: organizador accede a todas sus pantallas y usuario queda bloq
     assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'usuario').estado, 'bloqueada')
     assert.equal(resolverRuta(`#/${ruta}?actividad=abc`, 'administrador').estado, 'bloqueada')
   }
-  assert.equal(rutas('organizador').filter(r => r.startsWith('organizador')).length, 1)
+  assert.equal(rutas('organizador').filter(r => r.startsWith('organizador')).length, 2, 'Mis actividades y Mis competencias')
+  assert.equal(resolverRuta('#/organizador-competencias', 'organizador').estado, 'permitida')
+  assert.equal(resolverRuta('#/organizador-competencias', 'usuario').estado, 'bloqueada', 'un estudiante no entra')
+  assert.equal(resolverRuta('#/organizador-competencias', 'administrador').estado, 'bloqueada')
   assert.equal(resolverRuta('#/organizador-inscritos', 'organizador').pantalla.menuActivo, 'organizador-actividades')
 })
 

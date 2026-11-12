@@ -36,7 +36,13 @@ public class CatalogoController {
         List<Document> docs = mongo.find(new Query(Criteria.where("estado").is("programada")), Document.class, "actividades");
         Map<String, String> ubicaciones = ubicaciones();
         List<Map<String, Object>> actividades = new ArrayList<>();
-        for (Document doc : docs) actividades.add(mapearActividad(doc, ubicaciones));
+        Map<String, String> categorias = nombresDeCategorias();
+        for (Document doc : docs) {
+            Map<String, Object> a = mapearActividad(doc, ubicaciones);
+            Object nombre = categorias.get(String.valueOf(doc.get("categoriaId")));
+            if (nombre != null) a.put("categoria", nombre);  // nombre legible; la web nunca debe mostrar el código
+            actividades.add(a);
+        }
         actividades.sort(Comparator.comparing((Map<String, Object> a) -> String.valueOf(a.getOrDefault("fecha", "")))
                 .thenComparing(a -> String.valueOf(a.getOrDefault("horaInicio", ""))));
         return Map.of("total", actividades.size(), "actividades", actividades);
@@ -80,7 +86,7 @@ public class CatalogoController {
         a.put("id", String.valueOf(doc.get("_id")));
         for (String campo : List.of("nombre", "descripcion", "areaTecsup", "fecha", "horaInicio", "horaFin",
                 "estado", "maximoParticipantes", "tipoActividad", "modalidad", "maxIntegrantesEquipo",
-                "reglasCompetencia", "puntosPorPuesto", "categoriaId", "ubicacionId")) a.put(campo, doc.get(campo));
+                "reglasCompetencia", "puntosPorPuesto", "categoriaId", "ubicacionId", "categoriaGenero")) a.put(campo, doc.get(campo));
         a.put("encargadosPorArea", doc.getOrDefault("encargadosPorArea", Map.of()));
         Object portada = doc.get("portada");
         if (portada instanceof Map<?, ?> mapa) {
@@ -104,5 +110,15 @@ public class CatalogoController {
         Object org = doc.get("organizador");
         a.put("organizador", org instanceof Map<?, ?> m ? String.valueOf(m.get("nombre") == null ? "" : m.get("nombre")) : org == null ? "" : String.valueOf(org));
         return a;
+    }
+
+    /** id → nombre de cada categoría («deportes» → «Deportes»). */
+    private Map<String, String> nombresDeCategorias() {
+        Map<String, String> m = new java.util.HashMap<>();
+        for (Document c : mongo.findAll(Document.class, "categorias")) {
+            Object nombre = c.get("nombre");
+            if (nombre != null) m.put(String.valueOf(c.get("_id")), String.valueOf(nombre));
+        }
+        return m;
     }
 }

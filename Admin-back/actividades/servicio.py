@@ -126,6 +126,7 @@ def a_json(doc, nombres_categoria, nombres_ubicacion=None):
         "maxIntegrantesEquipo": doc.get("maxIntegrantesEquipo"),
         "reglasCompetencia": doc.get("reglasCompetencia", ""),
         "puntosPorPuesto": doc.get("puntosPorPuesto", []),
+        "categoriaGenero": doc.get("categoriaGenero", ""),
         "portada": doc.get("portada"),
         "portadaUrl": doc.get("portada", {}).get("url") if isinstance(doc.get("portada"), dict) else None,
         "unidadCupo": "equipos" if doc.get("tipoActividad") == "competencia" and doc.get("modalidad") == "equipos" else "estudiantes",

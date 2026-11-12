@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { consultarClasificacion, consultarResultados } from '../services/inscripcionesService'
 import { enlaceActividad } from './DetalleActividad'
 import { claveArea } from '../services/areas'
+import { departamentoDeArea } from '../services/departamentos'
+import Escudo from './Escudo'
+import TorneosEstudiante from './TorneosEstudiante'
 import { nombreDia } from '../services/presentacion'
 
-export function ResultadosCompetencias() {
+function ResultadosGenerales() {
   const [datos, setDatos] = useState({ cargando: true, error: '', resultados: [], clasificacion: null })
   const [revision, setRevision] = useState(0)
   const [busqueda, setBusqueda] = useState('')
@@ -32,7 +35,8 @@ export function ResultadosCompetencias() {
         {!publicada && <div className="tc-vacio">Todas las áreas empiezan en cero. La tabla se actualiza cuando administración publica resultados.</div>}
         <ol className="tc-areas">{areas.map((a, i) => <li key={a.area} data-area={claveArea(a.area)}>
           <span className="tc-areas__pos">{a.posicion || i + 1}</span>
-          <div className="tc-areas__nombre"><strong>{a.area}</strong><small>{a.primerosPuestos ?? 0} {a.primerosPuestos === 1 ? 'primer puesto' : 'primeros puestos'}</small></div>
+          <Escudo id={departamentoDeArea(a.area)?.id} tam={32} decorativo />
+          <div className="tc-areas__nombre"><strong>{departamentoDeArea(a.area)?.nombre ?? a.area}</strong><small>{departamentoDeArea(a.area) ? `${a.area} · ` : ''}{a.primerosPuestos ?? 0} {a.primerosPuestos === 1 ? 'primer puesto' : 'primeros puestos'}</small></div>
           <div className="tc-areas__barra" aria-hidden="true"><span style={{ width: `${Math.round(((Number(a.puntos) || 0) / maxPuntos) * 100)}%` }} /></div>
           <strong className="tc-areas__puntos">{a.puntos ?? 0}<small> pts</small></strong>
         </li>)}</ol>
@@ -56,4 +60,37 @@ export function ResultadosCompetencias() {
       </section>
     </>}
   </div>
+}
+
+/** Departamento ganador, cuando el administrador cierra la T&C Week. */
+function GanadorGeneral() {
+  const [g, setG] = useState(null)
+  useEffect(() => {
+    const c = new AbortController()
+    consultarClasificacion(c.signal).then((t) => { if (!c.signal.aborted) setG(t?.ganadorGeneral ?? null) }).catch(() => {})
+    return () => c.abort()
+  }, [])
+  if (!g) return null
+  return (
+    <section className="ganador-general" data-area={claveArea(g.area)} aria-label="Ganador de la T&C Week">
+      <Escudo id={departamentoDeArea(g.area)?.id} tam={72} decorativo />
+      <div><p className="ganador-general__etiqueta">Ganador de la T&amp;C Week</p><h2>{g.area}</h2><p>{g.puntos} puntos en la tabla acumulada</p></div>
+    </section>
+  )
+}
+
+const SECCIONES_RESULTADOS = [['general', 'Clasificación y ganadores'], ['arena', 'T&C ARENA']]
+
+/** Resultados: clasificación general y ganadores (lo de siempre) más los torneos de T&C ARENA y Karadúo. */
+export function ResultadosCompetencias() {
+  const [seccion, setSeccion] = useState('general')
+  return (
+    <div className="tc-seccion">
+      <GanadorGeneral />
+      <div className="segmentos tc-seccion__pestanas" role="group" aria-label="Qué quieres ver">
+        {SECCIONES_RESULTADOS.map(([id, texto]) => <button key={id} type="button" aria-pressed={seccion === id} onClick={() => setSeccion(id)}>{texto}</button>)}
+      </div>
+      {seccion === 'general' ? <ResultadosGenerales /> : <TorneosEstudiante key={seccion} tipo={seccion} />}
+    </div>
+  )
 }

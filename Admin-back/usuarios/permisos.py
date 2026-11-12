@@ -14,6 +14,8 @@ CATALOGO = {
     "usuarios.cambiar_estado": "Activar o desactivar cuentas",
     "actividades.gestionar": "Administrar actividades",
     "avisos.publicar": "Publicar avisos",
+    "torneos.gestionar": "Administrar T&C ARENA",
+    "torneos.validar": "Validar resultados de torneos",
 }
 
 

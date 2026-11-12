@@ -47,6 +47,11 @@ ROL_ADMIN = "administrador"
 
 CORS_ALLOWED_ORIGINS = [
     o.strip()
-    for o in os.environ.get("CORS_ORIGINS", "http://localhost:5174").split(",")
+    for o in os.environ.get("CORS_ORIGINS", "http://localhost:5174,http://localhost:5173").split(",")
     if o.strip()
 ]
+# En desarrollo (DJANGO_DEBUG=true) se acepta cualquier puerto de localhost/127.0.0.1: el panel y la web de estudiantes
+# corren en puertos distintos y antes uno de los dos quedaba bloqueado si CORS_ORIGINS solo tenía una dirección.
+# En producción (DEBUG=false) solo valen las direcciones de CORS_ORIGINS.
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"] if DEBUG else []
+

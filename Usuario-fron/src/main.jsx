@@ -9,6 +9,8 @@ import './estilos/agenda.css'
 import './estilos/asistente.css'
 import './estilos/perfil.css'
 import './estilos/resultados.css'
+import './estilos/torneos.css'
+import './estilos/organizador-torneos.css'
 import './estilos/organizador.css'
 import App from './App.jsx'
 

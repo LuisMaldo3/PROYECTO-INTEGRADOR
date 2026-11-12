@@ -12,7 +12,8 @@ import Icono from './Iconos'
 import HorarioLibre from './HorarioLibre'
 
 function Item({ actividad: a, conflicto, sugerida = false }) {
-  const categoria = estiloCategoria({ nombre: a.categoria || a.categoriaId })
+  // Nunca se muestra el código interno de la categoría: si falta su nombre, se usa el tipo de actividad.
+  const categoria = estiloCategoria({ nombre: a.categoria || (a.tipoActividad === 'competencia' ? 'Competencia' : 'Actividad') })
   const area = claveArea(a.areaTecsup)
   const cancelada = a.estado === 'cancelada'
   return (
@@ -36,7 +37,7 @@ function Item({ actividad: a, conflicto, sugerida = false }) {
         </div>
         <h3>{a.nombreActividad || a.nombre || 'Actividad sin título'}</h3>
         {sugerida && a.id && <a className="vynk-up-agenda-enlace" href={`#/actividad?id=${encodeURIComponent(a.id)}`}>Ver detalles</a>}
-        {sugerida && a.motivo && <p className="agenda-sugerida__motivo">{a.motivo}</p>}
+        {sugerida && a.motivo && <p className="agenda-sugerida__motivo"><Icono nombre="chispa" tamano={15} /><span><strong>Por qué te la sugerimos:</strong> {a.motivo}</span></p>}
         {a.descripcion && <p className="agenda-item__descripcion">{a.descripcion}</p>}
         <p className="agenda-item__lugar">
           <Icono nombre="ubicacion" tamano={16} />
@@ -143,11 +144,15 @@ export function Agenda() {
         {!sugerida.cargando && !sugerida.error && (
           <>
             <div className="agenda-sugerida__resumen">
-              <span className="agenda-sugerida__dato"><strong>{lista.length}</strong> actividades sugeridas</span>
-              <span className="agenda-sugerida__dato"><strong>{sugerida.inscripciones.length}</strong> inscripciones consideradas</span>
-              <span className={`agenda-sugerida__origen ${sugerida.origen === 'ia' ? 'agenda-sugerida__origen--ia' : ''}`}>{sugerida.origen === 'ia' ? 'Ordenada con IA' : sugerida.origen === 'sin_actividades' ? 'Sin actividades compatibles' : 'Sin cruces con tus inscripciones'}</span>
+              <span className="agenda-sugerida__dato agenda-sugerida__dato--azul"><Icono nombre="calendario" tamano={16} /><strong>{lista.length}</strong> {lista.length === 1 ? 'actividad sugerida' : 'actividades sugeridas'}</span>
+              <span className="agenda-sugerida__dato agenda-sugerida__dato--verde"><Icono nombre="check" tamano={16} /><strong>{sugerida.inscripciones.length}</strong> {sugerida.inscripciones.length === 1 ? 'inscripción tuya' : 'inscripciones tuyas'}</span>
+              <span className="agenda-sugerida__dato agenda-sugerida__dato--celeste"><Icono nombre="reloj" tamano={16} />Sin cruces de horario</span>
             </div>
-            {sugerida.aviso && <p className="agenda-sugerida__aviso">{sugerida.aviso}</p>}
+            {sugerida.aviso && (
+              <div className={`agenda-sugerida__aviso agenda-sugerida__aviso--${sugerida.origen === 'ia' ? 'ia' : 'reglas'}`} role="status">
+                <span className="agenda-sugerida__aviso-icono" aria-hidden="true"><Icono nombre={sugerida.origen === 'ia' ? 'chispa' : 'alerta'} tamano={20} /></span>
+                <div><strong>{sugerida.origen === 'ia' ? 'Propuesta hecha con IA (Gemini)' : sugerida.origen === 'sin_actividades' ? 'Sin actividades compatibles' : 'Propuesta sin IA por ahora'}</strong><p>{sugerida.aviso}</p></div>
+              </div>)}
             {lista.length === 0 && <EstadoPantalla icono="calendario" titulo="Sin sugerencias compatibles" texto="No encontramos actividades sin cruces. Vuelve a intentarlo cuando haya nuevas publicaciones." />}
             {gruposSugeridos.map((g) => (
               <section className="dia dia--agenda" key={g.fecha}>

@@ -80,6 +80,7 @@ dependencies {
 
     // Pruebas
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303") // solo pruebas: en JVM, org.json de Android viene vacío
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

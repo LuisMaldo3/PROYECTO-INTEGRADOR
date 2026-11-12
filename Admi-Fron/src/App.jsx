@@ -1,3 +1,6 @@
+import PantallaTorneos from './components/PantallaTorneos'
+import PantallaPuntajes from './components/PantallaPuntajes'
+import PantallaIA from './components/PantallaIA'
 import { useCallback, useRef, useState } from 'react'
 import DetalleUsuario from './components/DetalleUsuario'
 import ListaUsuarios from './components/ListaUsuarios'
@@ -108,6 +111,9 @@ export default function App() {
         {vista === 'comparacion' && <PantallaComparacionCategorias token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'resumen' && <PantallaResumenEvento token={sesion.token} onSesionExpirada={sesionExpirada} />}
         {vista === 'avisos' && <PantallaAvisos token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'ia' && <PantallaIA token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'puntajes' && <PantallaPuntajes token={sesion.token} onSesionExpirada={sesionExpirada} />}
+        {vista === 'arena' && <PantallaTorneos token={sesion.token} tipo="arena" onSesionExpirada={sesionExpirada} onIrA={setVista} />}
         {vista === 'clasificacion' && <ClasificacionGeneral token={sesion.token} />}
       </main>
     </div>

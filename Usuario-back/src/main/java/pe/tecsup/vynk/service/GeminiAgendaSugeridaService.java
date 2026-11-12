@@ -24,16 +24,27 @@ public class GeminiAgendaSugeridaService {
     @Value("${GEMINI_MODEL:gemini-2.5-flash}") private String modelo;
 
     public record Eleccion(String id, String motivo) {}
+    /** Lo que eligió la IA y, si no pudo, por qué (estado: ok, sin_clave, error, sin_conexion, respuesta_invalida). */
+    public record Resultado(List<Eleccion> elecciones, String estado, String mensaje) {
+        public static Resultado fallo(String estado, String mensaje) { return new Resultado(List.of(), estado, mensaje); }
+    }
     public GeminiAgendaSugeridaService(ObjectMapper json) { this.json = json; }
 
     public List<Eleccion> elegir(List<String> intereses, List<Map<String, Object>> candidatas,
                                 List<Map<String, String>> ocupadas) {
-        if (clave == null || clave.isBlank() || candidatas.isEmpty()) return List.of();
+        return elegirConEstado(intereses, candidatas, ocupadas).elecciones();
+    }
+
+    public Resultado elegirConEstado(List<String> intereses, List<Map<String, Object>> candidatas,
+                                     List<Map<String, String>> ocupadas) {
+        if (candidatas.isEmpty()) return Resultado.fallo("sin_candidatas", "No hay actividades disponibles para proponer.");
+        if (clave == null || clave.isBlank())
+            return Resultado.fallo("sin_clave", "falta configurar la clave de Gemini (GEMINI_API_KEY) en Usuario-back/.env");
         try {
             List<Map<String, String>> opciones = candidatas.stream().limit(35).map(a -> Map.of(
                     "id", String.valueOf(a.get("id")), "nombre", String.valueOf(a.getOrDefault("nombre", "")),
                     "descripcion", String.valueOf(a.getOrDefault("descripcion", "")),
-                    "categoria", String.valueOf(a.getOrDefault("categoriaId", "")),
+                    "categoria", String.valueOf(a.getOrDefault("categoria", a.getOrDefault("categoriaId", ""))),
                     "fecha", String.valueOf(a.get("fecha")),
                     "inicio", String.valueOf(a.get("horaInicio")), "fin", String.valueOf(a.get("horaFin"))
             )).toList();
@@ -49,15 +60,13 @@ public class GeminiAgendaSugeridaService {
                     "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                     "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.15)));
             String seguro = modelo.matches("[A-Za-z0-9._-]+") ? modelo : "gemini-2.5-flash";
-            HttpRequest peticion = HttpRequest.newBuilder(URI.create(
-                            "https://generativelanguage.googleapis.com/v1beta/models/" + seguro + ":generateContent"))
-                    .timeout(Duration.ofSeconds(17)).header("Content-Type", "application/json")
-                    .header("x-goog-api-key", clave).POST(HttpRequest.BodyPublishers.ofString(payload)).build();
-            HttpResponse<String> respuesta = http.send(peticion, HttpResponse.BodyHandlers.ofString());
-            if (respuesta.statusCode() / 100 != 2) return List.of();
+            HttpResponse<String> respuesta = GeminiCliente.enviar(http, seguro, clave, payload, Duration.ofSeconds(17));
+            if (respuesta.statusCode() / 100 != 2) return Resultado.fallo("error", GeminiCliente.mensaje(respuesta.statusCode(), respuesta.body()));
             String texto = json.readTree(respuesta.body()).path("candidates").path(0)
                     .path("content").path("parts").path(0).path("text").asText("");
-            JsonNode seleccion = json.readTree(texto).path("actividades");
+            JsonNode seleccion;
+            try { seleccion = json.readTree(texto).path("actividades"); }
+            catch (Exception e) { return Resultado.fallo("respuesta_invalida", "la IA respondió algo que no se pudo leer"); }
             Set<String> permitidos = new HashSet<>();
             opciones.forEach(a -> permitidos.add(a.get("id")));
             Set<String> vistos = new HashSet<>();
@@ -69,10 +78,13 @@ public class GeminiAgendaSugeridaService {
                     resultado.add(new Eleccion(id, motivo.length() > 250 ? motivo.substring(0, 250) : motivo));
                 }
             }
-            return resultado;
+            if (resultado.isEmpty()) return Resultado.fallo("respuesta_invalida", "la IA no eligió actividades válidas");
+            return new Resultado(resultado, "ok", "");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return List.of();
-        } catch (Exception e) { return List.of(); }
+            return Resultado.fallo("sin_conexion", "se interrumpió la consulta a Google");
+        } catch (java.io.IOException e) {
+            return Resultado.fallo("sin_conexion", "no se pudo conectar con Google (revisa la conexión a internet del servidor)");
+        } catch (Exception e) { return Resultado.fallo("error", "la IA no pudo responder"); }
     }
 }

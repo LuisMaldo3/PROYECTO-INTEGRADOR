@@ -81,8 +81,14 @@ public class BaseDatosInicializador implements ApplicationRunner {
         // Misma definición usada por Django en actividades/preparacion.py.
         insertarCatalogoSiFalta("categorias", "actividad-cultural", "Actividad cultural", 1);
         insertarCatalogoSiFalta("categorias", "concurso-tc-week", "Concurso T&C Week", 2);
+        insertarCatalogoSiFalta("categorias", "deportes", "Deportes", 3);
+        insertarCatalogoSiFalta("categorias", "musica-canto", "Música y canto", 4);
+        insertarCatalogoSiFalta("categorias", "karaduo", "Karadúo", 5);
+        insertarCatalogoSiFalta("categorias", "videojuegos", "Videojuegos", 6);
+        insertarCatalogoSiFalta("categorias", "gymkana", "Gymkana", 7);
+        insertarCatalogoSiFalta("categorias", "charlas-talleres", "Charlas y talleres", 8);
 
-        log.info("MongoDB preparado: {} colecciones nuevas ({} verificadas); 5 areas y 2 categorias garantizadas sin sobrescribir registros. Los roles e intereses se inicializan por sus runners existentes.",
+        log.info("MongoDB preparado: {} colecciones nuevas ({} verificadas); 5 areas y 8 categorias garantizadas sin sobrescribir registros. Los roles e intereses se inicializan por sus runners existentes.",
                 creadas, COLECCIONES.size());
     }
 

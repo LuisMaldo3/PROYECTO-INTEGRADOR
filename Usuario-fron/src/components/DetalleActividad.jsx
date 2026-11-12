@@ -1,3 +1,4 @@
+import { etiquetaCategoria } from '../services/puntajes'
 import { useEffect, useState } from 'react'
 import { obtenerDetalleActividad, obtenerActividadesSimilares, obtenerResultadoOficial, ganadoresOficiales } from '../services/detalleCompetenciaService'
 import { nombreDia, rangoHoras } from '../services/presentacion'
@@ -52,7 +53,7 @@ export function DetalleActividad({ token }) {
         <section className="vynk-detalle__bloque"><h3>Detalles</h3>
           <div className="vynk-detalle__ficha"><div><span>Fecha</span><strong>{nombreDia(a.fecha)}</strong></div><div><span>Horario</span><strong>{rangoHoras(a.horaInicio, a.horaFin)}</strong></div>
             <div><span>Ubicación</span><strong>{typeof a.ubicacion === 'string' ? a.ubicacion : a.ubicacion?.nombre || 'Por confirmar'}</strong></div><div><span>Organiza</span><strong>{typeof a.organizador === 'string' ? a.organizador : a.organizador?.nombre || 'Tecsup'}</strong></div>
-            <div><span>Área</span><strong>{a.areaTecsup || 'Todas las áreas'}</strong></div><div><span>Modalidad</span><strong>{a.tipoActividad !== 'competencia' ? 'Actividad' : a.modalidad === 'equipos' ? 'Por equipos' : 'Individual'}</strong></div><div><span>Capacidad</span><strong>{a.maximoParticipantes == null ? 'Por confirmar' : `${a.maximoParticipantes} ${a.modalidad === 'equipos' ? 'equipos' : 'participantes'}`}</strong></div>
+            <div><span>Área</span><strong>{a.areaTecsup || 'Todas las áreas'}</strong></div><div><span>Modalidad</span><strong>{a.tipoActividad !== 'competencia' ? 'Actividad' : a.modalidad === 'equipos' ? 'Por equipos' : 'Individual'}</strong></div>{a.categoriaGenero && <div><span>Categoría</span><strong>{etiquetaCategoria(a.categoriaGenero)}</strong></div>}<div><span>Capacidad</span><strong>{a.maximoParticipantes == null ? 'Por confirmar' : `${a.maximoParticipantes} ${a.modalidad === 'equipos' ? 'equipos' : 'participantes'}`}</strong></div>
             {a.modalidad === 'equipos' && <div><span>Integrantes por equipo</span><strong>Entre 2 y {a.maxIntegrantesEquipo || '—'} estudiantes con inscripción personal</strong></div>}</div>
         </section>
         {a.encargadosPorArea && Object.keys(a.encargadosPorArea).length > 0 && <section className="vynk-detalle__bloque"><h3>Responsables por área</h3><div className="vynk-encargados-detalle">{Object.entries(a.encargadosPorArea).map(([area, info]) => <p key={area}><strong>{area}</strong><span>{info?.nombre || 'Sin asignar'}</span></p>)}</div></section>}
