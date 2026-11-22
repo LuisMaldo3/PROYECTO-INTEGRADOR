@@ -243,3 +243,4 @@
 
 .puntos-torneo__campo { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-weight: 650; color: var(--tinta); }
 .puntos-torneo__campo input { width: 84px; min-height: 38px; text-align: center; font-weight: 700; }
+.propuesta-ia__error { margin-top: 2px; }

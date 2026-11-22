@@ -38,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -53,8 +54,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.tcweek.data.AuthRepository
+import com.tecsup.tcweek.data.AvisoPendiente
 import com.tecsup.tcweek.data.ErrorIntereses
 import com.tecsup.tcweek.data.InteresesApi
+import com.tecsup.tcweek.recordatorios.RegistroDispositivo
 import kotlinx.coroutines.CancellationException
 
 private val AzulVynk = VynkBlue
@@ -115,6 +118,13 @@ fun MainScreen(onLogout: () -> Unit) {
             comprobandoIntereses = false
         }
     }
+
+    // Recordatorios: este celular queda registrado con la cuenta que acaba de entrar.
+    LaunchedEffect(user.llave) {
+        RegistroDispositivo(context).sincronizar()
+    }
+    // Actividad del recordatorio que el estudiante tocó: se abre cuando ya pasó la pantalla de intereses.
+    val avisoActividadId by AvisoPendiente.actividadId.collectAsState()
 
     val entradaActual by navMenu.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
@@ -233,6 +243,11 @@ fun MainScreen(onLogout: () -> Unit) {
                 RecomendacionesScreen()
             }
         }
+    }
+
+    val abrirActividad = avisoActividadId
+    if (abrirActividad != null && !comprobandoIntereses && !primerIngreso) {
+        ActividadDeAviso(abrirActividad, user.llave, alCerrar = AvisoPendiente::consumir)
     }
 }
 

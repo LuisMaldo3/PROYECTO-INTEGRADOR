@@ -23,6 +23,7 @@ export default function FormularioTorneo({ token, tipo, actividadInicial = '', o
   const [pensando, setPensando] = useState(false)
   const [errores, setErrores] = useState({})
   const [error, setError] = useState('')
+  const [errorIA, setErrorIA] = useState('')  // aparte de `error`: se muestra junto al botón, no arriba del todo
   const [guardando, setGuardando] = useState(false)
   const primero = useRef(null)
 
@@ -61,9 +62,9 @@ export default function FormularioTorneo({ token, tipo, actividadInicial = '', o
   const sobran = descansos(elegidos.length)
 
   async function pedirPropuesta() {
-    setPensando(true); setError('')
+    setPensando(true); setErrorIA('')
     try { const r = await proponerSorteo(token, actividadId, elegidos, modo); setElegidos(r.orden); setSorteo(false); setPropuesta(r) }
-    catch (e) { if (e?.estado === 401) { onSesionExpirada?.(e.detalle); return } setError(e?.message || 'La IA no pudo proponer el sorteo. Usa el sorteo automático o el orden manual.') }
+    catch (e) { if (e?.estado === 401) { onSesionExpirada?.(e.detalle); return } setErrorIA(e?.message || 'La IA no pudo proponer el sorteo. Usa el sorteo automático o el orden manual.') }
     finally { setPensando(false) }
   }
 
@@ -141,6 +142,7 @@ export default function FormularioTorneo({ token, tipo, actividadInicial = '', o
           </div>
           <p className="campo__ayuda">{sorteo ? 'El sistema sortea las llaves y guarda la semilla del sorteo en el historial.' : 'El orden en que marques a los participantes define la siembra: el 1 y el 2 solo se cruzan en la final.'}</p>
           <button type="button" className="boton boton--claro boton--chico propuesta-ia__boton" onClick={pedirPropuesta} disabled={pensando || elegidos.length < 2}><Icono nombre="chispa" tam={16} /> {pensando ? 'La IA está pensando…' : 'Proponer con IA'}</button>
+          {errorIA && <p className="aviso aviso--error propuesta-ia__error" role="alert"><Icono nombre="alerta" tam={18} />{errorIA}</p>}
           {propuesta && (
             <div className="propuesta-ia" role="status">
               <p><strong>Propuesta de la IA</strong> (puedes cambiar el orden desmarcando y marcando): {propuesta.explicacion}</p>

@@ -7,6 +7,8 @@ public interface InscripcionRepository extends MongoRepository<Inscripcion, Stri
     List<Inscripcion> findByEstudianteId(String estudianteId);
     List<Inscripcion> findByActividadId(String actividadId);
     Optional<Inscripcion> findByEstudianteIdAndActividadId(String estudianteId, String actividadId);
+    /** Inscripciones con ese estado cuya actividad es en alguna de las fechas yyyy-MM-dd dadas. */
+    List<Inscripcion> findByEstadoAndFechaIn(String estado, java.util.Collection<String> fechas);
     @org.springframework.data.mongodb.repository.Query("{'integrantes': ?0, 'estado': 'inscrita'}")
     List<Inscripcion> buscarPorIntegrante(String estudianteId);
 }

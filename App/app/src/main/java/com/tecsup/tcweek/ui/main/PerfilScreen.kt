@@ -48,6 +48,7 @@ import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.DatosDeEntrada
+import com.tecsup.tcweek.recordatorios.RegistroDispositivo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -107,6 +108,10 @@ fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit, onInte
                 closing = true
 
                 scope.launch {
+                    // 0) Dejar de recibir recordatorios de esta cuenta en este celular. Necesita la llave de
+                    //    la sesión, por eso va antes de borrarla; si falla no impide cerrar la sesión.
+                    AuthRepository(context).currentSession()?.let { RegistroDispositivo(context).olvidar(it.llave) }
+
                     // 1) Borrar los datos de la sesión del celular: siempre, pase lo que pase después.
                     AuthRepository(context).logout()
 

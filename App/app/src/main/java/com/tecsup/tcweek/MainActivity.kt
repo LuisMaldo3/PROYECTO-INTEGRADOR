@@ -1,6 +1,7 @@
 package com.tecsup.tcweek
 
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,14 +16,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import com.tecsup.tcweek.data.AvisoPendiente
+import com.tecsup.tcweek.recordatorios.NotificadorAvisos
 import com.tecsup.tcweek.ui.denied.AccessDeniedScreen
 import com.tecsup.tcweek.ui.login.LoginScreen
 import com.tecsup.tcweek.ui.main.MainScreen
 
 class MainActivity : ComponentActivity() {
 
-    private val pedirRedLocal =
+    // Una sola petición de permiso a la vez: Android cancela la segunda si se lanzan juntas.
+    private val pedirNotificaciones =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    private val pedirRedLocal =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { pedirNotificacionesSiFalta() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +40,14 @@ class MainActivity : ComponentActivity() {
             checkSelfPermission(PERMISO_RED_LOCAL) != PackageManager.PERMISSION_GRANTED
         ) {
             pedirRedLocal.launch(PERMISO_RED_LOCAL)
+        } else {
+            pedirNotificacionesSiFalta()
         }
+
+        // Recordatorios de actividades: el canal debe existir para que el estudiante pueda ajustarlo en Ajustes.
+        NotificadorAvisos.crearCanal(this)
+        // Con la app cerrada, tocar un recordatorio la abre aquí; al girar la pantalla no se debe repetir.
+        if (savedInstanceState == null) recibirAviso(intent)
 
         setContent {
             TCWeekTheme {
@@ -41,9 +55,33 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    /** Con la app abierta (MainActivity es singleTop), tocar un recordatorio llega por aquí. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        recibirAviso(intent)
+    }
+
+    /** Guarda la actividad del recordatorio tocado; la pantalla principal la abre cuando ya hay sesión. */
+    private fun recibirAviso(intent: Intent?) {
+        val actividadId = intent?.getStringExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID) ?: return
+        intent.removeExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID) // ya se atendió: no repetir tras recrear la pantalla
+        AvisoPendiente.abrir(actividadId)
+    }
+
+    /** Android 13+: sin este permiso los recordatorios no se muestran. Si lo niega, la app sigue igual. */
+    private fun pedirNotificacionesSiFalta() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(PERMISO_NOTIFICACIONES) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pedirNotificaciones.launch(PERMISO_NOTIFICACIONES)
+        }
+    }
 }
 
 private const val PERMISO_RED_LOCAL = "android.permission.ACCESS_LOCAL_NETWORK"
+private const val PERMISO_NOTIFICACIONES = "android.permission.POST_NOTIFICATIONS"
 
 @Composable
 fun AppNav() {

@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // Lee app/google-services.json para que Firebase Cloud Messaging (recordatorios) sepa a qué proyecto pertenece.
+    alias(libs.plugins.google.services)
 }
 
 // Direccion del backend. Por defecto sirve para el EMULADOR (10.0.2.2 = tu PC).
@@ -67,6 +69,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Recordatorios de actividades: el backend los envía con Firebase Cloud Messaging
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
