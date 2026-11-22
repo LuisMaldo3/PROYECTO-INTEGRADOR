@@ -41,6 +41,14 @@ object CatalogoApi {
         return (0 until lista.length()).map { parsear(lista.getJSONObject(it)) }
     }
 
+    /** US-73: catálogo con filtros de horario, categoría y área, más las opciones para armar los filtros. */
+    suspend fun buscar(token: String, filtros: FiltrosCatalogo): ResultadoCatalogo {
+        val json = obtener(token, "/api/catalogo" + filtros.consulta())
+        val lista = json.optJSONArray("actividades")
+        val actividades = if (lista == null) emptyList() else (0 until lista.length()).map { parsear(lista.getJSONObject(it)) }
+        return ResultadoCatalogo(actividades, leerOpcionesFiltro(json.optJSONObject("filtros")))
+    }
+
     /** US-22: abre incluso un evento finalizado que ya salió del catálogo de inscripciones. */
     suspend fun detalle(token: String, actividadId: String): ActividadCatalogo =
         parsear(obtener(token, "/api/catalogo/${codificar(actividadId)}"))
@@ -64,7 +72,11 @@ object CatalogoApi {
             if (token.isNotBlank()) conn.setRequestProperty("Authorization", "Bearer $token")
             val status = conn.responseCode
             if (status !in 200..299) {
-                throw IllegalStateException(if (status == 401 || status == 403) "Tu sesión no tiene acceso a las actividades. Inicia sesión nuevamente." else "No se pudo consultar la actividad (HTTP $status).")
+                throw IllegalStateException(when (status) {
+                    401, 403 -> "Tu sesión no tiene acceso a las actividades. Inicia sesión nuevamente."
+                    400 -> "Uno de los filtros no es válido."
+                    else -> "No se pudo consultar la actividad (HTTP $status)."
+                })
             }
             JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
         } finally { conn.disconnect() }

@@ -16,8 +16,10 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.tecsup.vynk.service.ActividadesSimilaresService;
+import pe.tecsup.vynk.service.FiltrosCatalogo;
 import pe.tecsup.vynk.service.UbicacionesActividadesService;
 
 /** Catálogo del estudiante: incluye detalle individual y recomendaciones US-22. */
@@ -32,7 +34,31 @@ public class CatalogoController {
         this.similares = similares;
     }
 
+    /**
+     * US-73: GET /api/catalogo con filtros opcionales por horario (franja=manana|tarde|noche, desde/hasta=HH:mm,
+     * fecha=AAAA-MM-DD), categoría (categoria=id) y área (area=una de las cinco). Sin filtros devuelve todo, como antes.
+     * Además entrega «filtros» (opciones con su cantidad) y «aplicados».
+     */
     @GetMapping
+    public Map<String, Object> buscar(@RequestParam(required = false) String franja,
+                                      @RequestParam(required = false) String desde,
+                                      @RequestParam(required = false) String hasta,
+                                      @RequestParam(required = false) String fecha,
+                                      @RequestParam(required = false) String categoria,
+                                      @RequestParam(required = false) String area) {
+        FiltrosCatalogo filtros = FiltrosCatalogo.desde(franja, desde, hasta, fecha, categoria, area);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> todas = (List<Map<String, Object>>) listar().get("actividades");
+        List<Map<String, Object>> elegidas = filtros.aplicar(todas);
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("total", elegidas.size());
+        respuesta.put("actividades", elegidas);
+        respuesta.put("filtros", FiltrosCatalogo.opciones(todas));
+        respuesta.put("aplicados", filtros.aplicados());
+        return respuesta;
+    }
+
+    /** Todas las actividades programadas, sin filtros. La usan otros servicios (agenda sugerida, asistente, etc.). */
     public Map<String, Object> listar() {
         List<Document> docs = mongo.find(new Query(Criteria.where("estado").is("programada")), Document.class, "actividades");
         Map<String, Document> ubicaciones = ubicaciones();

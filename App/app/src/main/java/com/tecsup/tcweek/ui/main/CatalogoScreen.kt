@@ -69,6 +69,10 @@ import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
+import com.tecsup.tcweek.data.FiltrosCatalogo
+import com.tecsup.tcweek.data.Franja
+import com.tecsup.tcweek.data.OpcionesFiltro
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.tecsup.tcweek.data.CambiosAgenda
 import com.tecsup.tcweek.data.RespaldoPortada
 import com.tecsup.tcweek.data.portadaRemotaSegura
@@ -99,12 +103,21 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
     var error by remember { mutableStateOf<String?>(null) }
     var recarga by remember { mutableIntStateOf(0) }
     var seleccionada by remember { mutableStateOf<ActividadCatalogo?>(null) }
+    // US-73: filtros elegidos (se conservan al girar la pantalla) y opciones que ofrece el servidor.
+    var franjaId by rememberSaveable { mutableStateOf("") }
+    var categoriaId by rememberSaveable { mutableStateOf("") }
+    var areaId by rememberSaveable { mutableStateOf("") }
+    val filtros = FiltrosCatalogo(Franja.de(franjaId), categoriaId, areaId)
+    var opciones by remember { mutableStateOf(OpcionesFiltro()) }
 
-    LaunchedEffect(token, recarga) {
+    // US-73 T03: cada cambio de filtro pide al servidor la lista filtrada; el pedido anterior se cancela solo.
+    LaunchedEffect(token, recarga, filtros) {
         cargando = true
         error = null
         try {
-            actividades = CatalogoApi.cargar(token)
+            val resultado = CatalogoApi.buscar(token, filtros)
+            actividades = resultado.actividades
+            opciones = resultado.opciones
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -124,7 +137,11 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
             Column(modifier = Modifier.weight(1f)) {
                 Text("Actividades", style = MaterialTheme.typography.headlineSmall, color = VynkNavy)
                 Text(
-                    if (cargando) "Cargando actividades…" else cantidad(actividades.size, "actividad disponible", "actividades disponibles"),
+                    when {
+                        cargando -> "Cargando actividades…"
+                        filtros.activos > 0 -> cantidad(actividades.size, "actividad", "actividades") + " con estos filtros"
+                        else -> cantidad(actividades.size, "actividad disponible", "actividades disponibles")
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = ColorGris
                 )
@@ -139,6 +156,12 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
             }
         }
 
+        BarraFiltros(filtros, opciones) { nuevo ->
+            franjaId = nuevo.franja?.id.orEmpty()
+            categoriaId = nuevo.categoria
+            areaId = nuevo.area
+        }
+
         when {
             cargando -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = ColorAzul)
@@ -151,6 +174,14 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
                 esError = true
             ) {
                 OutlinedButton(onClick = { recarga++ }) { Text("Reintentar") }
+            }
+
+            actividades.isEmpty() && filtros.activos > 0 -> EstadoVacio(
+                icono = Icons.Filled.Event,
+                titulo = "Ninguna actividad coincide",
+                texto = "Prueba con otro horario, categoría o área."
+            ) {
+                OutlinedButton(onClick = { franjaId = ""; categoriaId = ""; areaId = "" }) { Text("Quitar filtros") }
             }
 
             actividades.isEmpty() -> EstadoVacio(

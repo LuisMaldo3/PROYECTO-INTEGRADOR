@@ -100,6 +100,9 @@ fun InicioScreen(
     ) {
         Bienvenida(primerNombre, agenda.size, onCatalogo, onRecomendaciones)
 
+        // US-72: lo que empieza pronto en el campus.
+        TarjetaProximamente(token)
+
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             TituloSeccion("Avisos de Tecsup")
             val lista = avisos
