@@ -40,10 +40,15 @@ public class ContextoAgendaSugeridaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
         if (!usuario.isActivo()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
-        List<Inscripcion> actuales = inscripciones.findByEstudianteId(usuario.getId()).stream()
+        List<Inscripcion> todas = inscripciones.findByEstudianteId(usuario.getId()).stream()
                 .filter(i -> i != null && !"cancelada".equalsIgnoreCase(i.getEstado())
                         && !"cancelado".equalsIgnoreCase(i.getEstado()))
                 .toList();
+        // US-77-T06: la agenda de un integrante cuyo equipo ya no está activo no queda ocupada por esa competencia.
+        var sincronizadas = EquiposAgenda.sincronizar(todas, inscripciones::findById,
+                inscripciones::findByEstudianteIdAndActividadId);
+        List<Inscripcion> sinEquipo = sincronizadas.sinEquipo();
+        List<Inscripcion> actuales = todas.stream().filter(i -> !sinEquipo.contains(i)).toList();
         List<String> preferencias = intereses.deUsuario(usuario.getId()).getIntereses();
         if (preferencias == null) preferencias = List.of();
         @SuppressWarnings("unchecked")
@@ -53,7 +58,8 @@ public class ContextoAgendaSugeridaService {
         if (publicadas != null) for (var a : publicadas) {
             if (a == null || a.get("id") == null) continue;
             String id = String.valueOf(a.get("id"));
-            if (actuales.stream().anyMatch(i -> id.equals(i.getActividadId()))) continue;
+            // Se compara con todas: una inscripción sin equipo sigue registrada y no se puede volver a inscribir.
+            if (todas.stream().anyMatch(i -> id.equals(i.getActividadId()))) continue;
             Object cupos = a.get("cuposDisponibles");
             if (cupos instanceof Number n && n.intValue() <= 0) continue;
             try {

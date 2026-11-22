@@ -70,6 +70,11 @@ import com.tecsup.tcweek.data.diaAnterior
 import com.tecsup.tcweek.data.diaSiguiente
 import com.tecsup.tcweek.data.etiquetaDia
 import com.tecsup.tcweek.ui.comun.Pildora
+import com.tecsup.tcweek.ui.comun.EsqueletoTarjetas
+import com.tecsup.tcweek.ui.comun.aparecer
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
+import androidx.compose.foundation.lazy.itemsIndexed
 import com.tecsup.tcweek.ui.theme.VynkBackground
 import com.tecsup.tcweek.ui.theme.VynkBlue
 import com.tecsup.tcweek.ui.theme.VynkBlueSoft
@@ -139,9 +144,7 @@ fun ProgramacionScreen(onVolver: () -> Unit, onVerUbicacion: (ActividadCatalogo)
         if (actual != null && actual.dias.isNotEmpty()) SelectorDias(actual, fecha.orEmpty()) { fecha = it }
 
         when {
-            cargando && actual == null -> Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = VynkBlue)
-            }
+            cargando && actual == null -> EsqueletoTarjetas(3)
 
             error != null -> EstadoVacio(
                 icono = Icons.Filled.ErrorOutline, titulo = "No pudimos cargar la programación",
@@ -165,11 +168,12 @@ fun ProgramacionScreen(onVolver: () -> Unit, onVerUbicacion: (ActividadCatalogo)
                         style = MaterialTheme.typography.labelMedium, color = VynkMuted
                     )
                 }
-                items(actual.actividades, key = { it.actividad.id }) { item ->
+                itemsIndexed(actual.actividades, key = { _, it -> it.actividad.id }) { i, item ->
                     TarjetaProgramada(
                         item,
                         onAbrir = { if (item.sePuedeAbrir) seleccionada = item.actividad },
-                        onUbicacion = { onVerUbicacion(item.actividad) }
+                        onUbicacion = { onVerUbicacion(item.actividad) },
+                        modifier = Modifier.aparecer(i)
                     )
                 }
             }
@@ -214,14 +218,15 @@ private fun SelectorDias(datos: ProgramacionDia, fecha: String, onElegir: (Strin
 }
 
 @Composable
-private fun TarjetaProgramada(item: ActividadProgramada, onAbrir: () -> Unit, onUbicacion: () -> Unit) {
+private fun TarjetaProgramada(item: ActividadProgramada, onAbrir: () -> Unit, onUbicacion: () -> Unit, modifier: Modifier = Modifier) {
     val a = item.actividad
     val apagada = item.estadoDia == EstadoDia.CANCELADA || item.estadoDia == EstadoDia.FINALIZADA
     Card(
         colors = CardDefaults.cardColors(containerColor = if (apagada) Color(0xFFF7F9FC) else Color.White),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, if (item.estadoDia == EstadoDia.EN_CURSO) VynkOk else VynkLine),
-        modifier = Modifier.fillMaxWidth().clickable(enabled = item.sePuedeAbrir, onClick = onAbrir)
+        shape = RoundedCornerShape(20.dp),
+        border = if (item.estadoDia == EstadoDia.EN_CURSO) BorderStroke(1.5.dp, VynkOk) else null,
+        modifier = modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(20.dp), if (apagada) 2.dp else 7.dp)
+            .presionable(enabled = item.sePuedeAbrir, onClick = onAbrir)
             .semantics { contentDescription = "${a.nombre}, ${rangoHoras(a.horaInicio, a.horaFin)}, ${a.ubicacion}" }
     ) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -1,6 +1,25 @@
 
 package com.tecsup.tcweek.ui.main
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
+import com.tecsup.tcweek.ui.theme.VynkBackground
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -183,7 +202,8 @@ fun MainScreen(onLogout: () -> Unit) {
                     onAgenda = { navMenu.navigate(Destino.AGENDA.ruta) { launchSingleTop = true } },
                     onAsistente = { navMenu.navigate(Destino.ASISTENTE.ruta) { launchSingleTop = true } },
                     onResultados = { navMenu.navigate(RUTA_CLASIFICACION) { launchSingleTop = true } },
-                    onProgramacion = { navMenu.navigate(RUTA_PROGRAMACION) { launchSingleTop = true } }
+                    onProgramacion = { navMenu.navigate(RUTA_PROGRAMACION) { launchSingleTop = true } },
+                    onVerUbicacion = { navMenu.navigate("ubicacion/$it") }
                 )
             }
 
@@ -256,11 +276,14 @@ fun MainScreen(onLogout: () -> Unit) {
             }
 
             composable(RUTA_AGENDA_SUGERIDA) {
-                AgendaSugeridaScreen(onVolver = { navMenu.popBackStack() })
+                AgendaInteligenteScreen(onVolver = { navMenu.popBackStack() })
             }
 
             composable(RUTA_RECOMENDACIONES) {
-                RecomendacionesScreen()
+                RecomendacionesScreen(
+                    onSubirHorario = { navMenu.navigate(RUTA_HORAS_LIBRES) { launchSingleTop = true } },
+                    onIntereses = { navMenu.navigate(RUTA_INTERESES) { launchSingleTop = true } }
+                )
             }
         }
     }
@@ -282,45 +305,53 @@ fun MainScreen(onLogout: () -> Unit) {
     }
 }
 
+/**
+ * Barra inferior flotante: el destino activo se marca con una píldora que crece y muestra su nombre; los demás solo
+ * con su ícono. El cambio se anima con resorte para que se sienta ágil.
+ */
 @Composable
 private fun BarraInferior(
     destinos: List<Destino>,
     rutaActual: String?,
     onIr: (Destino) -> Unit
 ) {
-    HorizontalDivider(color = VynkLine)
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
+    Box(
+        Modifier.fillMaxWidth().background(VynkBackground).navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        destinos.forEach { destino ->
-            NavigationBarItem(
-                selected = rutaActual == destino.ruta ||
-                        (
-                                destino == Destino.PERFIL &&
-                                        rutaActual == RUTA_INTERESES
-                                ) || (destino == Destino.AGENDA && (rutaActual == RUTA_AGENDA_SUGERIDA || rutaActual == RUTA_HORAS_LIBRES))
-                        || (destino == Destino.CATALOGO && (rutaActual == RUTA_PROGRAMACION || rutaActual == RUTA_UBICACION)),
-                onClick = {
-                    onIr(destino)
-                },
-                icon = {
-                    Icon(
-                        imageVector = destino.icono(),
-                        contentDescription = null
-                    )
-                },
-                label = {
-                    Text(destino.titulo, style = MaterialTheme.typography.labelSmall)
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = VynkBlue,
-                    selectedTextColor = VynkNavy,
-                    indicatorColor = VynkBlueSoft,
-                    unselectedIconColor = GrisTexto,
-                    unselectedTextColor = GrisTexto
-                )
-            )
+        Row(
+            Modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(26.dp), 12.dp)
+                .clip(RoundedCornerShape(26.dp)).background(Color.White).padding(horizontal = 6.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            destinos.forEach { destino ->
+                val activo = rutaActual == destino.ruta ||
+                    (destino == Destino.PERFIL && rutaActual == RUTA_INTERESES) ||
+                    (destino == Destino.AGENDA && (rutaActual == RUTA_AGENDA_SUGERIDA || rutaActual == RUTA_HORAS_LIBRES)) ||
+                    (destino == Destino.CATALOGO && (rutaActual == RUTA_PROGRAMACION || rutaActual == RUTA_UBICACION))
+                ItemBarra(destino, activo) { onIr(destino) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemBarra(destino: Destino, activo: Boolean, onClick: () -> Unit) {
+    val fondo by animateColorAsState(if (activo) VynkNavy else Color.Transparent, tween(260), label = "fondo")
+    val icono by animateColorAsState(if (activo) Color.White else GrisTexto, tween(260), label = "icono")
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(fondo)
+            .presionable(onClick = onClick)
+            .semantics { contentDescription = destino.titulo; selected = activo }
+            .padding(horizontal = if (activo) 14.dp else 12.dp, vertical = 10.dp)
+            .animateContentSize(spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(destino.icono(), contentDescription = null, tint = icono, modifier = Modifier.size(22.dp))
+        if (activo) {
+            Spacer(Modifier.width(6.dp))
+            Text(destino.titulo, style = MaterialTheme.typography.labelLarge, color = Color.White, maxLines = 1)
         }
     }
 }

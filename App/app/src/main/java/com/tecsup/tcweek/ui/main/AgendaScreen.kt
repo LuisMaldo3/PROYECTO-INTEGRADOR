@@ -112,7 +112,7 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}, onVerHuecos: () -> Unit = {}) {
             )
             Button(onClick = onVerSugerida, modifier = Modifier.fillMaxWidth().padding(top = 12.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF124DAB)), shape = RoundedCornerShape(12.dp)) {
                 androidx.compose.material3.Icon(Icons.Filled.AutoAwesome, contentDescription = null)
-                Text("  Ver mi agenda sugerida")
+                Text("  Ver mi agenda inteligente")
             }
             OutlinedButton(onClick = onVerHuecos, modifier = Modifier.fillMaxWidth()) {
                 Text("Mis horas libres", style = MaterialTheme.typography.labelLarge)

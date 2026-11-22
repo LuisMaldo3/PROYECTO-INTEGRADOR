@@ -1,205 +1,406 @@
 package com.tecsup.tcweek.ui.main
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AddComment
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadMomentoAsistente
-import com.tecsup.tcweek.data.EjemplosConsultasNaturales
-import com.tecsup.tcweek.data.esConsultaDeActividades
 import com.tecsup.tcweek.data.AsistenteApi
+import com.tecsup.tcweek.data.ConversacionChat
+import com.tecsup.tcweek.data.EjemplosConsultasNaturales
 import com.tecsup.tcweek.data.HistorialAsistente
+import com.tecsup.tcweek.data.LARGO_MAXIMO_PREGUNTA
 import com.tecsup.tcweek.data.MensajeAsistente
+import com.tecsup.tcweek.data.RequisitosAsistente
+import com.tecsup.tcweek.data.ResultadoEnvio
 import com.tecsup.tcweek.data.SesionGuardada
 import com.tecsup.tcweek.data.UbicacionAsistente
-import com.tecsup.tcweek.data.RequisitosAsistente
+import com.tecsup.tcweek.data.esConsultaDeActividades
+import com.tecsup.tcweek.data.mensajesTrasRespuesta
 import com.tecsup.tcweek.data.puedeIniciarNuevaConversacion
+import com.tecsup.tcweek.data.validarPregunta
+import com.tecsup.tcweek.data.textoVisible
+import com.tecsup.tcweek.ui.comun.DegradadoVynk
+import com.tecsup.tcweek.ui.comun.Esqueleto
+import com.tecsup.tcweek.ui.comun.FondoVivo
+import com.tecsup.tcweek.ui.comun.PuntoVivo
+import com.tecsup.tcweek.ui.comun.PuntosEscribiendo
+import com.tecsup.tcweek.ui.comun.aparecer
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
+import com.tecsup.tcweek.ui.theme.VynkBackground
+import com.tecsup.tcweek.ui.theme.VynkBlue
+import com.tecsup.tcweek.ui.theme.VynkBlueSoft
+import com.tecsup.tcweek.ui.theme.VynkError
+import com.tecsup.tcweek.ui.theme.VynkErrorSoft
+import com.tecsup.tcweek.ui.theme.VynkLine
+import com.tecsup.tcweek.ui.theme.VynkLineStrong
+import com.tecsup.tcweek.ui.theme.VynkMuted
+import com.tecsup.tcweek.ui.theme.VynkNavy
+import com.tecsup.tcweek.ui.theme.VynkOk
+import com.tecsup.tcweek.ui.theme.VynkSky
+import com.tecsup.tcweek.ui.theme.VynkSubtle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-private val AzulChat = Color(0xFF1765D8)
-private val MarinoChat = Color(0xFF0B2857)
-private val FondoChat = Color(0xFFF2F5F9)
-private val Sugerencias = EjemplosConsultasNaturales.preguntas
+private val AzulChat = VynkBlue
+private val MarinoChat = VynkNavy
 
-/** Jordi: chat conectado al servicio, historial por usuario y estados reales de carga/error. */
+/**
+ * US-75: el asistente virtual en el celular. Historial sincronizado con la web, preguntas sugeridas según el
+ * estudiante, indicador de «escribiendo», reintento de un mensaje que no salió y burbujas que entran con movimiento.
+ */
 @Composable
 fun AsistenteScreen() {
     val context = LocalContext.current
     val sesion = remember { SesionGuardada(context).leer() }
     val correo = sesion?.correo.orEmpty()
+    val token = sesion?.llave.orEmpty()
     val historial = remember(correo) { HistorialAsistente(context, correo) }
+    val conversacion = remember { ConversacionChat() }
     val mensajes = remember(correo) { mutableStateListOf<MensajeAsistente>().apply { addAll(historial.cargar()) } }
-    var borrador by remember { mutableStateOf("") }
-    var cargando by remember { mutableStateOf(false) }
+    var sugerencias by remember { mutableStateOf(EjemplosConsultasNaturales.preguntas) }
+    var borrador by rememberSaveable { mutableStateOf("") }
+    var escribiendo by remember { mutableStateOf(false) }
     var sincronizando by remember { mutableStateOf(true) }
     var reiniciando by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var estadoConexion by remember { mutableStateOf("Verificando conexión…") }
+    var enLinea by remember { mutableStateOf<Boolean?>(null) }
+    // Pregunta que no se pudo enviar: se muestra con «Reintentar».
+    var fallida by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var aviso by remember { mutableStateOf<String?>(null) }
     val lista = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val ocupado = escribiendo || sincronizando || reiniciando
 
     fun enviar(texto: String) {
-        val consulta = texto.trim()
-        if (consulta.isBlank() || cargando || sincronizando || reiniciando || consulta.length > 600) return
-        val token = sesion?.llave
-        if (token.isNullOrBlank()) {
-            error = "Inicia sesión para consultar el asistente."
-            return
-        }
-        mensajes.add(MensajeAsistente("usuario", consulta))
-        historial.guardar(mensajes)
+        if (ocupado) return
+        validarPregunta(texto)?.let { aviso = it; return }
+        if (token.isBlank()) { aviso = "Inicia sesión para consultar el asistente."; return }
+        val pregunta = texto.trim()
+        fallida = null
+        aviso = null
         borrador = ""
-        cargando = true
-        error = null
+        mensajes.add(MensajeAsistente("usuario", pregunta))
+        escribiendo = true
         scope.launch {
-            try {
-                val respuesta = AsistenteApi.preguntar(token, consulta)
-                mensajes.add(MensajeAsistente("asistente", respuesta.respuesta, respuesta.origen, respuesta.aviso, respuesta.ubicaciones, respuesta.tipoConsulta, respuesta.actividades, respuesta.requisitos))
-                historial.guardar(mensajes)
-            } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "No se pudo obtener la respuesta." }
-            finally { cargando = false }
+            when (val r = conversacion.enviar(token, pregunta)) {
+                is ResultadoEnvio.Respondida -> {
+                    val sinPregunta = mensajes.dropLast(1)
+                    val nuevos = mensajesTrasRespuesta(sinPregunta, pregunta, r)
+                    mensajes.clear(); mensajes.addAll(nuevos)
+                    historial.guardar(mensajes)
+                    enLinea = true
+                }
+                is ResultadoEnvio.Fallida -> {
+                    mensajes.removeAt(mensajes.lastIndex) // la pregunta vuelve como «no enviada»
+                    if (r.reintentable) fallida = pregunta to r.mensaje else { aviso = r.mensaje; borrador = pregunta }
+                }
+            }
+            escribiendo = false
         }
     }
 
     LaunchedEffect(correo) {
-        val token = sesion?.llave
         sincronizando = true
-        if (token.isNullOrBlank()) {
-            estadoConexion = "Inicia sesión para consultar"
-        } else {
+        if (token.isNotBlank()) {
             try {
                 val remotos = AsistenteApi.consultarConversacion(token)
-                mensajes.clear()
-                mensajes.addAll(remotos)
+                mensajes.clear(); mensajes.addAll(remotos)
                 historial.guardar(remotos)
+                enLinea = true
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = "Sin sincronización: ${e.message}" }
-            estadoConexion = if (AsistenteApi.verificar(token).contains("sin conexión", ignoreCase = true)) "Sin conexión con el servidor" else "En línea"
-        }
+            catch (e: Exception) { enLinea = false }
+            sugerencias = AsistenteApi.sugerencias(token)
+        } else enLinea = false
         sincronizando = false
     }
 
     fun nuevaConversacion() {
-        val token = sesion?.llave
-        if (token.isNullOrBlank() || cargando || sincronizando || reiniciando) return
+        if (token.isBlank() || ocupado) return
         reiniciando = true
         scope.launch {
             try {
                 AsistenteApi.nuevaConversacion(token)
-                mensajes.clear()
-                historial.borrar()
-                borrador = ""
-                error = null
+                mensajes.clear(); historial.borrar()
+                borrador = ""; fallida = null; aviso = null
+                sugerencias = AsistenteApi.sugerencias(token)
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "No fue posible borrar la conversación." }
+            catch (e: Exception) { aviso = e.message ?: "No fue posible iniciar una nueva conversación." }
             finally { reiniciando = false }
         }
     }
 
-    LaunchedEffect(mensajes.size, cargando) {
-        if (mensajes.isNotEmpty()) lista.animateScrollToItem(mensajes.size - 1 + if (cargando) 1 else 0)
+    // Al llegar una respuesta se ve la pregunta arriba y el comienzo de la respuesta debajo (se lee desde el
+    // principio); mientras escribe o si un mensaje falló, se baja hasta el final.
+    LaunchedEffect(mensajes.size, escribiendo, fallida) {
+        withFrameNanos { } // esperar a que la lista tenga los elementos nuevos
+        val total = lista.layoutInfo.totalItemsCount
+        if (total == 0) return@LaunchedEffect
+        val ultimaPregunta = mensajes.indexOfLast { it.rol == "usuario" }
+        if (!escribiendo && fallida == null && ultimaPregunta >= 0 && mensajes.last().rol == "asistente")
+            lista.animateScrollToItem(ultimaPregunta)
+        else lista.animateScrollToItem(total - 1, scrollOffset = 100_000)
     }
 
-    Column(Modifier.fillMaxSize().background(FondoChat)) {
-        Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AzulChat, modifier = Modifier.padding(10.dp).size(21.dp))
-            }
-            Spacer(Modifier.width(11.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Asistente de VYNK", color = MarinoChat, style = MaterialTheme.typography.titleSmall)
-                Text(if (sincronizando) "Sincronizando conversación…" else if (reiniciando) "Iniciando conversación…" else if (cargando) "Consultando el cronograma…" else estadoConexion, color = Color(0xFF68809D), style = MaterialTheme.typography.labelSmall)
-            }
-            TextButton(onClick = { nuevaConversacion() }, enabled = puedeIniciarNuevaConversacion(mensajes.size, cargando, sincronizando, reiniciando)) {
-                Icon(Icons.Filled.AddComment, contentDescription = null, modifier = Modifier.size(17.dp))
-                Spacer(Modifier.width(5.dp))
-                Text("Nueva conversación", style = MaterialTheme.typography.labelSmall)
-            }
-        }
-        HorizontalDivider(color = Color(0xFFE4EBF6))
+    Column(Modifier.fillMaxSize().background(VynkBackground).imePadding()) {
+        CabeceraChat(
+            estado = when {
+                sincronizando -> "Sincronizando…"
+                reiniciando -> "Nueva conversación…"
+                escribiendo -> "Escribiendo…"
+                enLinea == false -> "Sin conexión con el servidor"
+                else -> "En línea · responde con el cronograma oficial"
+            },
+            enLinea = enLinea != false,
+            puedeReiniciar = puedeIniciarNuevaConversacion(mensajes.size, escribiendo, sincronizando, reiniciando),
+            onNueva = { nuevaConversacion() }
+        )
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             state = lista,
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            if (mensajes.isEmpty()) {
-                item {
-                    BurbujaAsistente(MensajeAsistente("asistente", "Hola, soy el asistente de VYNK. Pregúntame por fechas, horarios, lugares, cupos o requisitos de las actividades."))
-                    Spacer(Modifier.height(20.dp))
-                    Text("Preguntas frecuentes", color = MarinoChat, style = MaterialTheme.typography.titleSmall)
-                    Spacer(Modifier.height(9.dp))
-                    Sugerencias.forEach { sugerencia ->
-                        OutlinedCard(
-                            onClick = { enviar(sugerencia) },
-                            enabled = !cargando && !sincronizando && !reiniciando,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(13.dp),
-                            colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
-                        ) {
-                            Text("↗  $sugerencia", modifier = Modifier.padding(15.dp), color = MarinoChat, style = MaterialTheme.typography.bodyMedium)
-                        }
+            if (mensajes.isEmpty() && !sincronizando) item(key = "bienvenida") { Bienvenida(sugerencias, !ocupado) { enviar(it) } }
+            if (mensajes.isEmpty() && sincronizando) item(key = "cargando") {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Esqueleto(Modifier.fillMaxWidth(0.7f).height(56.dp), RoundedCornerShape(18.dp))
+                    Esqueleto(Modifier.fillMaxWidth(0.5f).height(40.dp).align(Alignment.End), RoundedCornerShape(18.dp))
+                }
+            }
+            itemsIndexed(mensajes, key = { i, m -> "$i-${m.rol}-${m.contenido.hashCode()}" }) { _, mensaje ->
+                Box(Modifier.aparecer(desplazamiento = 14.dp)) { BurbujaAsistente(mensaje) }
+            }
+            if (escribiendo) item(key = "escribiendo") { Box(Modifier.aparecer()) { BurbujaEscribiendo() } }
+            fallida?.let { (pregunta, motivo) ->
+                item(key = "fallida") {
+                    Box(Modifier.aparecer()) {
+                        BurbujaFallida(pregunta, motivo, onReintentar = { fallida = null; enviar(pregunta) },
+                            onDescartar = { fallida = null; borrador = pregunta })
                     }
                 }
             }
-            items(mensajes) { mensaje -> BurbujaAsistente(mensaje) }
-            if (cargando) item {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp, color = AzulChat)
-                    Text("Consultando el catálogo de Tecsup…", color = Color(0xFF5E7696), style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            if (error != null) item {
-                Surface(color = Color(0xFFFFECEC), shape = RoundedCornerShape(14.dp)) {
-                    Text(error.orEmpty(), modifier = Modifier.fillMaxWidth().padding(16.dp), color = Color(0xFFA42938), style = MaterialTheme.typography.bodySmall)
-                }
+            if (mensajes.isNotEmpty() && !ocupado && fallida == null) item(key = "sugerencias") {
+                // No se vuelve a sugerir lo que ya preguntó.
+                val hechas = mensajes.filter { it.rol == "usuario" }.map { it.contenido.trim() }.toSet()
+                val pendientes = sugerencias.filter { it.trim() !in hechas }.take(3)
+                if (pendientes.isNotEmpty()) FilaSugerencias(pendientes) { enviar(it) }
             }
         }
-        Surface(shadowElevation = 8.dp, color = Color.White) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                OutlinedTextField(
-                    value = borrador,
-                    onValueChange = { if (it.length <= 600) borrador = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Pregunta por horarios, ubicaciones o requisitos…", style = MaterialTheme.typography.bodyMedium) },
-                    maxLines = 4,
-                    shape = RoundedCornerShape(17.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { enviar(borrador) }),
-                    enabled = !cargando && !sincronizando && !reiniciando,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AzulChat)
-                )
-                FilledIconButton(
-                    onClick = { enviar(borrador) },
-                    enabled = !cargando && !sincronizando && !reiniciando && borrador.isNotBlank(),
-                    modifier = Modifier.size(53.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = AzulChat)
-                ) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar pregunta") }
+        aviso?.let {
+            Text(it, color = VynkError, style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth().background(VynkErrorSoft).padding(horizontal = 16.dp, vertical = 8.dp))
+        }
+        BarraEscribir(
+            texto = borrador,
+            onCambiar = { if (it.length <= LARGO_MAXIMO_PREGUNTA) { borrador = it; aviso = null } },
+            habilitado = !sincronizando && !reiniciando,
+            puedeEnviar = !ocupado && borrador.isNotBlank(),
+            onEnviar = { enviar(borrador) }
+        )
+    }
+}
+
+@Composable
+private fun CabeceraChat(estado: String, enLinea: Boolean, puedeReiniciar: Boolean, onNueva: () -> Unit) {
+    Box(Modifier.fillMaxWidth()) {
+        FondoVivo(Modifier.matchParentSize())
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box {
+                Box(Modifier.size(46.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = VynkSky, modifier = Modifier.size(24.dp))
+                }
+                if (enLinea) PuntoVivo(modifier = Modifier.align(Alignment.BottomEnd))
             }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Asistente VYNK", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                AnimatedContent(estado, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "estado") { e ->
+                    Text(e, color = Color(0xFFCFE0F7), style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
+            }
+            IconButton(onClick = onNueva, enabled = puedeReiniciar) {
+                Icon(Icons.Filled.AddComment, contentDescription = "Nueva conversación",
+                    tint = if (puedeReiniciar) Color.White else Color.White.copy(alpha = 0.35f))
+            }
+        }
+    }
+}
+
+/** Primera vez: saludo y preguntas sugeridas para empezar sin escribir. */
+@Composable
+private fun Bienvenida(sugerencias: List<String>, habilitado: Boolean, onElegir: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Box(Modifier.aparecer(0)) {
+            BurbujaAsistente(MensajeAsistente("asistente",
+                "¡Hola! Soy el asistente de VYNK. Pregúntame dónde es una actividad, a qué hora empieza, si quedan cupos o qué requisitos tiene."))
+        }
+        Text("Prueba con una de estas", color = VynkMuted, style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(start = 46.dp).aparecer(1))
+        sugerencias.forEachIndexed { i, s ->
+            Row(
+                Modifier.padding(start = 46.dp).fillMaxWidth().aparecer(i + 2)
+                    .sombraSuave(RoundedCornerShape(16.dp), 4.dp).clip(RoundedCornerShape(16.dp)).background(Color.White)
+                    .presionable(enabled = habilitado) { onElegir(s) }.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = VynkSky, modifier = Modifier.size(16.dp))
+                Text(s, color = MarinoChat, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = VynkLineStrong, modifier = Modifier.size(15.dp))
+            }
+        }
+    }
+}
+
+/** Después de cada respuesta: sugerencias en chips para seguir la conversación con un toque. */
+@Composable
+private fun FilaSugerencias(sugerencias: List<String>, onElegir: (String) -> Unit) {
+    LazyRow(contentPadding = PaddingValues(start = 46.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(sugerencias) { s ->
+            Text(s, color = AzulChat, style = MaterialTheme.typography.labelLarge, maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = 260.dp).clip(RoundedCornerShape(50)).background(VynkBlueSoft)
+                    .presionable { onElegir(s) }.padding(horizontal = 14.dp, vertical = 9.dp))
+        }
+    }
+}
+
+@Composable
+private fun Avatar() {
+    Box(Modifier.size(36.dp).clip(CircleShape).background(DegradadoVynk), contentAlignment = Alignment.Center) {
+        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = VynkSky, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
+private fun BurbujaEscribiendo() {
+    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Avatar()
+        Box(Modifier.sombraSuave(RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp), 4.dp)
+            .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp)).background(Color.White).padding(horizontal = 18.dp, vertical = 16.dp)) {
+            PuntosEscribiendo()
+        }
+    }
+}
+
+@Composable
+private fun BurbujaFallida(pregunta: String, motivo: String, onReintentar: () -> Unit, onDescartar: () -> Unit) {
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(pregunta, color = Color.White, style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.fillMaxWidth(0.8f).wrapContentWidth(Alignment.End)
+                .clip(RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp)).background(AzulChat.copy(alpha = 0.45f))
+                .padding(horizontal = 16.dp, vertical = 12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.ErrorOutline, contentDescription = null, tint = VynkError, modifier = Modifier.size(15.dp))
+            Text(" No se envió", color = VynkError, style = MaterialTheme.typography.labelMedium)
+            TextButton(onClick = onReintentar) { Text("Reintentar") }
+            TextButton(onClick = onDescartar) { Text("Editar") }
+        }
+        Text(motivo, color = VynkMuted, style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.fillMaxWidth(0.8f).wrapContentWidth(Alignment.End))
+    }
+}
+
+/** Barra para escribir: píldora blanca y botón de enviar que se enciende cuando hay texto. */
+@Composable
+private fun BarraEscribir(texto: String, onCambiar: (String) -> Unit, habilitado: Boolean, puedeEnviar: Boolean, onEnviar: () -> Unit) {
+    val colorBoton by animateColorAsState(if (puedeEnviar) VynkNavy else VynkLine, tween(220), label = "boton")
+    val escala by animateFloatAsState(if (puedeEnviar) 1f else 0.9f, spring(Spring.DampingRatioMediumBouncy), label = "escala")
+    Row(
+        Modifier.fillMaxWidth().background(VynkBackground).padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            Modifier.weight(1f).sombraSuave(RoundedCornerShape(24.dp), 6.dp).clip(RoundedCornerShape(24.dp))
+                .background(Color.White).padding(horizontal = 18.dp, vertical = 14.dp)
+        ) {
+            if (texto.isEmpty()) Text("Pregunta por horarios, lugares o requisitos…", color = VynkSubtle, style = MaterialTheme.typography.bodyMedium)
+            BasicTextField(
+                value = texto, onValueChange = onCambiar, enabled = habilitado,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MarinoChat), maxLines = 4,
+                cursorBrush = SolidColor(AzulChat),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { if (puedeEnviar) onEnviar() }),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Escribe tu pregunta" }
+            )
+        }
+        Box(
+            Modifier.size(52.dp).graphicsLayer { scaleX = escala; scaleY = escala }.clip(CircleShape).background(colorBoton)
+                .presionable(enabled = puedeEnviar, onClick = onEnviar),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar pregunta", tint = Color.White, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -207,17 +408,18 @@ fun AsistenteScreen() {
 @Composable
 private fun BurbujaAsistente(mensaje: MensajeAsistente) {
     val esUsuario = mensaje.rol == "usuario"
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = if (esUsuario) Arrangement.End else Arrangement.Start) {
-        if (!esUsuario) {
-            Surface(color = Color(0xFFE5F0FF), shape = CircleShape) {
-                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = AzulChat, modifier = Modifier.padding(8.dp).size(17.dp))
-            }
-            Spacer(Modifier.width(8.dp))
-        }
-        Column(Modifier.fillMaxWidth(0.87f), horizontalAlignment = if (esUsuario) Alignment.End else Alignment.Start) {
-            Text(if (esUsuario) "Tú" else "VYNK", color = Color(0xFF6C829D), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp))
-            Surface(color = if (esUsuario) AzulChat else Color.White, shape = RoundedCornerShape(18.dp), shadowElevation = if (esUsuario) 0.dp else 1.dp) {
-                Text(mensaje.contenido, color = if (esUsuario) Color.White else MarinoChat, modifier = Modifier.padding(15.dp), style = MaterialTheme.typography.bodyMedium)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = if (esUsuario) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Bottom) {
+        if (!esUsuario) { Avatar(); Spacer(Modifier.width(10.dp)) }
+        Column(Modifier.fillMaxWidth(if (esUsuario) 0.82f else 1f), horizontalAlignment = if (esUsuario) Alignment.End else Alignment.Start) {
+            val forma = if (esUsuario) RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp)
+            Box(
+                Modifier.then(if (esUsuario) Modifier else Modifier.sombraSuave(forma, 4.dp)).clip(forma)
+                    .background(if (esUsuario) DegradadoUsuario else SolidColor(Color.White))
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(if (esUsuario) mensaje.contenido else textoVisible(mensaje),
+                    color = if (esUsuario) Color.White else MarinoChat, style = MaterialTheme.typography.bodyMedium)
             }
             if (!esUsuario && mensaje.ubicaciones.isNotEmpty()) {
                 Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -235,18 +437,23 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
                 }
             }
             if (!esUsuario && mensaje.origen.isNotBlank()) {
-                Text("Según el cronograma oficial", color = Color(0xFF567291), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 7.dp))
+                Row(Modifier.padding(top = 6.dp, start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Verified, contentDescription = null, tint = VynkOk, modifier = Modifier.size(13.dp))
+                    Text(" Según el cronograma oficial", color = VynkMuted, style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }
 }
+
+private val DegradadoUsuario = Brush.linearGradient(listOf(Color(0xFF1557D0), Color(0xFF0B2A5B)))
 
 /** La tarjeta muestra únicamente datos procedentes de la actividad publicada. */
 @Composable
 private fun TarjetaUbicacionAsistente(lugar: UbicacionAsistente) {
     OutlinedCard(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFE8F0FD)),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -279,7 +486,7 @@ private fun TarjetaUbicacionAsistente(lugar: UbicacionAsistente) {
 private fun TarjetaActividadMomento(actividad: ActividadMomentoAsistente) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFE8F0FD))
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
     ) {
         Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(10.dp)) {
@@ -306,7 +513,7 @@ private fun TarjetaActividadMomento(actividad: ActividadMomentoAsistente) {
 private fun TarjetaRequisitosAsistente(datos: RequisitosAsistente) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFE8F0FD))
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
     ) {
         Row(Modifier.padding(13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Surface(color = Color(0xFFE8F0FD), shape = RoundedCornerShape(10.dp)) {

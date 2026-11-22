@@ -74,23 +74,25 @@ fun FranjaAreasConNombre(colorTexto: Color = Color.White.copy(alpha = .9f)) {
     }
 }
 
-/** Título de sección con acción opcional a la derecha. */
+/** Título de sección con una barra de acento celeste y acción opcional a la derecha. */
 @Composable
 fun TituloSeccion(titulo: String, accion: String? = null, onAccion: () -> Unit = {}) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(titulo, style = MaterialTheme.typography.titleMedium, color = VynkNavy, modifier = Modifier.weight(1f))
+        Box(Modifier.width(4.dp).height(18.dp).background(VynkSky, RoundedCornerShape(2.dp)))
+        Text(titulo, style = MaterialTheme.typography.titleMedium, color = VynkNavy,
+            modifier = Modifier.weight(1f).padding(start = 8.dp))
         if (accion != null) TextButton(onClick = onAccion) { Text(accion, style = MaterialTheme.typography.labelLarge) }
     }
 }
 
-/** Tarjeta blanca con borde suave, base de todas las listas. */
+/** Tarjeta blanca con sombra azulada suave y esquinas amplias: base de todas las listas. */
 @Composable
 fun Tarjeta(modifier: Modifier = Modifier, contenido: @Composable () -> Unit) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(18.dp), 6.dp),
+        shape = RoundedCornerShape(18.dp),
         color = Color.White,
-        border = BorderStroke(1.dp, VynkLine),
+        border = BorderStroke(1.dp, VynkLine.copy(alpha = 0.6f)),
         content = contenido
     )
 }

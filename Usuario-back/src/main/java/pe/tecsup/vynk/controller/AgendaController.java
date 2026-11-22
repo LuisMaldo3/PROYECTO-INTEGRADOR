@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.tecsup.vynk.model.Inscripcion;
 import pe.tecsup.vynk.repository.InscripcionRepository;
 import pe.tecsup.vynk.repository.UsuarioRepository;
+import pe.tecsup.vynk.service.EquiposAgenda;
 import pe.tecsup.vynk.service.NombresUbicacion;
 
 @RestController
@@ -33,11 +34,12 @@ public class AgendaController {
             .or(() -> usuarios.findById(jwt.getSubject()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
         if (!usuario.isActivo()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        var todas = new java.util.LinkedHashMap<String, Inscripcion>();
-        for (Inscripcion i : inscripciones.findByEstudianteId(usuario.getId()))
-            if ("inscrita".equalsIgnoreCase(i.getEstado())) todas.put(i.getId(), i);
-        for (Inscripcion i : inscripciones.buscarPorIntegrante(usuario.getId()))
-            if ("inscrita".equalsIgnoreCase(i.getEstado())) todas.put(i.getId(), i);
+        // US-77-T06: las propias, sin las de un equipo que ya no está activo (igual que «mi-inscripcion»).
+        var sincronizadas = EquiposAgenda.sincronizar(inscripciones.findByEstudianteId(usuario.getId()),
+                inscripciones::findById, inscripciones::findByEstudianteIdAndActividadId);
+        var todas = unir(sincronizadas.entradas().stream().map(EquiposAgenda.Entrada::inscripcion).toList(),
+                inscripciones.buscarPorIntegrante(usuario.getId()),
+                sincronizadas.sinEquipo().stream().map(Inscripcion::getActividadId).toList());
         // La inscripción guarda el identificador del lugar: se responde con su nombre (sin guardarlo).
         Map<String, String> lugares = todas.isEmpty() ? Map.of() : ubicaciones.cargar();
         for (Inscripcion i : todas.values()) i.setUbicacion(NombresUbicacion.nombre(lugares, i.getUbicacion()));
@@ -46,5 +48,21 @@ public class AgendaController {
             .sorted(Comparator.comparing((Inscripcion i) -> i.getFecha() == null ? "" : i.getFecha())
                 .thenComparing(i -> i.getHoraInicio() == null ? "" : i.getHoraInicio()))
             .toList();
+    }
+
+    /**
+     * Una sola fila por actividad. Un integrante tiene su propia inscripción y además figura en la del capitán:
+     * antes salían las dos (la competencia aparecía repetida). Se muestra la propia; la del equipo solo si el
+     * estudiante figura en una lista antigua sin inscripción propia, y nunca la de un equipo del que ya salió.
+     */
+    static java.util.LinkedHashMap<String, Inscripcion> unir(List<Inscripcion> propias, List<Inscripcion> deEquipo,
+                                                              List<String> sinEquipo) {
+        var porActividad = new java.util.LinkedHashMap<String, Inscripcion>();
+        for (Inscripcion i : propias)
+            if ("inscrita".equalsIgnoreCase(i.getEstado())) porActividad.putIfAbsent(String.valueOf(i.getActividadId()), i);
+        for (Inscripcion i : deEquipo)
+            if ("inscrita".equalsIgnoreCase(i.getEstado()) && !sinEquipo.contains(i.getActividadId()))
+                porActividad.putIfAbsent(String.valueOf(i.getActividadId()), i);
+        return porActividad;
     }
 }

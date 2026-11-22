@@ -46,6 +46,8 @@ import com.tecsup.tcweek.data.empiezaPronto
 import com.tecsup.tcweek.data.textoFalta
 import com.tecsup.tcweek.data.vigentes
 import com.tecsup.tcweek.ui.comun.Pildora
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
 import com.tecsup.tcweek.ui.theme.VynkBlue
 import com.tecsup.tcweek.ui.theme.VynkBlueSoft
 import com.tecsup.tcweek.ui.theme.VynkLine
@@ -65,7 +67,7 @@ import kotlinx.coroutines.delay
  * celular, sin gastar datos. Al salir del Inicio la carga se detiene sola.
  */
 @Composable
-fun TarjetaProximamente(token: String) {
+fun TarjetaProximamente(token: String, omitir: String? = null) {
     var lista by remember { mutableStateOf<List<ActividadProxima>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var ahora by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -78,7 +80,7 @@ fun TarjetaProximamente(token: String) {
             ahora = System.currentTimeMillis()
             if (debeRecargarProximas(lista.orEmpty(), ultimaCarga, ahora)) {
                 try {
-                    lista = ProximasApi.cargar(token, 3)
+                    lista = ProximasApi.cargar(token, 4)
                     error = null
                 } catch (e: CancellationException) {
                     throw e
@@ -92,7 +94,8 @@ fun TarjetaProximamente(token: String) {
         }
     }
 
-    val visibles = vigentes(lista.orEmpty(), ahora)
+    // La que ya se muestra en «Mi próxima actividad» no se repite aquí.
+    val visibles = vigentes(lista.orEmpty(), ahora).filter { it.actividad.id != omitir }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(Icons.Filled.AccessTime, contentDescription = null, tint = VynkSky, modifier = Modifier.size(18.dp))
@@ -107,7 +110,7 @@ fun TarjetaProximamente(token: String) {
             visibles.isEmpty() -> Text("No hay actividades por empezar por ahora.", style = MaterialTheme.typography.bodySmall, color = VynkMuted)
             else -> {
                 Principal(visibles.first(), ahora)
-                visibles.drop(1).forEach { Siguiente(it, ahora) }
+                visibles.drop(1).take(2).forEach { Siguiente(it, ahora) }
             }
         }
     }
@@ -122,7 +125,7 @@ private fun Principal(p: ActividadProxima, ahora: Long) {
     Card(
         colors = CardDefaults.cardColors(containerColor = VynkNavy),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().clickable { AvisoPendiente.abrir(a.id) }
+        modifier = Modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(16.dp), 10.dp).presionable { AvisoPendiente.abrir(a.id) }
             .semantics { contentDescription = "Próxima actividad: ${a.nombre}. $falta" }
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -154,9 +157,8 @@ private fun Siguiente(p: ActividadProxima, ahora: Long) {
     val a = p.actividad
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, VynkLine),
-        modifier = Modifier.fillMaxWidth().clickable { AvisoPendiente.abrir(a.id) }
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(16.dp), 4.dp).presionable { AvisoPendiente.abrir(a.id) }
     ) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {

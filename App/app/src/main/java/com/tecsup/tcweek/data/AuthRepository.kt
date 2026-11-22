@@ -18,6 +18,7 @@ class AccessException(
 class AuthRepository(context: Context) {
 
     private val sesion = SesionGuardada(context.applicationContext)
+    private val guardadas = CacheRespuestas(context.applicationContext)
 
     companion object {
         fun isInstitutional(email: String): Boolean {
@@ -89,5 +90,9 @@ class AuthRepository(context: Context) {
         sesion.leer()?.takeIf { isInstitutional(it.correo) && !vencido(it.llave) }
 
     /** Cierra la sesión en el celular: borra todos los datos guardados (token, nombre, correo y rol). */
-    fun logout() = sesion.borrar()
+    fun logout() {
+        sesion.borrar()
+        guardadas.borrarTodo() // recomendaciones y agenda guardadas de esta cuenta
+        MemoriaPantallas.olvidar()
+    }
 }

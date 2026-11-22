@@ -11,6 +11,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.ui.layout.layout
+import com.tecsup.tcweek.data.AvisoPendiente
+import com.tecsup.tcweek.ui.comun.Esqueleto
+import com.tecsup.tcweek.ui.comun.FondoVivo
+import com.tecsup.tcweek.ui.comun.IconoDegradado
+import com.tecsup.tcweek.ui.comun.aparecer
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
+import com.tecsup.tcweek.ui.theme.VynkSky
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Event
@@ -70,7 +80,8 @@ fun InicioScreen(
     onAgenda: () -> Unit = {},
     onAsistente: () -> Unit = {},
     onResultados: () -> Unit = {},
-    onProgramacion: () -> Unit = {}
+    onProgramacion: () -> Unit = {},
+    onVerUbicacion: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val sesion = remember(context) { AuthRepository(context).currentSession() }
@@ -92,96 +103,137 @@ fun InicioScreen(
             .filter { it.estado != "cancelada" && it.fecha >= hoy }
     }
 
-    Column(
-        Modifier.fillMaxSize().background(VynkBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        Bienvenida(primerNombre, agenda.size, onCatalogo, onRecomendaciones)
+    val hoy = remember { LocalDate.now(java.time.ZoneId.of("America/Lima")) }
+    Column(Modifier.fillMaxSize().background(VynkBackground).verticalScroll(rememberScrollState())) {
+        Portada(primerNombre, agenda.size, hoy, onCatalogo, onProgramacion)
+        var idMiProxima by remember { mutableStateOf<String?>(null) }
 
-        // US-72: lo que empieza pronto en el campus.
-        TarjetaProximamente(token)
+        // US-74: dónde tengo que estar. Monta sobre la portada para que sea lo primero que se ve.
+        TarjetaMiProxima(
+            token = token,
+            onVerUbicacion = onVerUbicacion,
+            onAbrir = { AvisoPendiente.abrir(it) },
+            onExplorar = onCatalogo,
+            modifier = Modifier.padding(horizontal = 16.dp).subir(46.dp).aparecer(1),
+            onCargada = { idMiProxima = it }
+        )
 
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            TituloSeccion("Avisos de Tecsup")
-            val lista = avisos
-            when {
-                lista == null -> TextoSuave("Cargando avisos…")
-                lista.isEmpty() -> Tarjeta { TextoSuave("No hay avisos por ahora. Cuando administración publique uno, aparecerá aquí.", Modifier.padding(16.dp)) }
-                else -> {
-                    AvisoDestacado(lista.first())
-                    if (lista.size > 1) Tarjeta {
-                        Column {
-                            lista.drop(1).forEachIndexed { i, aviso ->
-                                if (i > 0) HorizontalDivider(color = VynkLine)
-                                AvisoPlegable(aviso)
+        Column(
+            Modifier.padding(horizontal = 16.dp).padding(top = 22.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(26.dp)
+        ) {
+            // US-72: lo que empieza pronto en el campus.
+            Box(Modifier.aparecer(2)) { TarjetaProximamente(token, omitir = idMiProxima) }
+
+            Column(Modifier.aparecer(3), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                TituloSeccion("Accesos rápidos")
+                val accesos = listOf(
+                    Triple("Actividades", Icons.Default.Search, VynkBlue) to onCatalogo,
+                    Triple("Por día", Icons.Default.CalendarMonth, colorArea("Electricidad").fuerte) to onProgramacion,
+                    Triple("Mi agenda", Icons.Default.Event, colorArea("Química").fuerte) to onAgenda,
+                    Triple("Asistente", Icons.Default.QuestionAnswer, colorArea("Digital").fuerte) to onAsistente,
+                    Triple("Resultados", Icons.Default.EmojiEvents, colorArea("Gestión").fuerte) to onResultados,
+                    Triple("Para ti", Icons.Default.AutoAwesome, VynkSky) to onRecomendaciones
+                )
+                accesos.chunked(3).forEach { fila ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        fila.forEach { (datos, accion) ->
+                            Acceso(datos.first, datos.second, datos.third, Modifier.weight(1f), accion)
+                        }
+                    }
+                }
+            }
+
+            Column(Modifier.aparecer(4), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                TituloSeccion("Avisos de Tecsup")
+                val lista = avisos
+                when {
+                    lista == null -> Esqueleto(Modifier.fillMaxWidth().height(120.dp), RoundedCornerShape(18.dp))
+                    lista.isEmpty() -> Tarjeta { TextoSuave("No hay avisos por ahora. Cuando administración publique uno, aparecerá aquí.", Modifier.padding(16.dp)) }
+                    else -> {
+                        AvisoDestacado(lista.first())
+                        if (lista.size > 1) Tarjeta {
+                            Column {
+                                lista.drop(1).forEachIndexed { i, aviso ->
+                                    if (i > 0) HorizontalDivider(color = VynkLine)
+                                    AvisoPlegable(aviso)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            TituloSeccion("Próximo en tu agenda", "Ver agenda", onAgenda)
-            if (agenda.isEmpty()) Tarjeta {
-                TextoSuave("No tienes actividades próximas. Explora las actividades y elige una.", Modifier.padding(16.dp))
-            } else Tarjeta {
-                Column {
-                    agenda.take(3).forEachIndexed { i, a ->
-                        if (i > 0) HorizontalDivider(color = VynkLine)
-                        FilaAgenda(a)
+            Column(Modifier.aparecer(5), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                TituloSeccion("Próximo en tu agenda", "Ver agenda", onAgenda)
+                if (agenda.isEmpty()) Tarjeta {
+                    TextoSuave("No tienes actividades próximas. Explora las actividades y elige una.", Modifier.padding(16.dp))
+                } else Tarjeta {
+                    Column {
+                        agenda.take(3).forEachIndexed { i, a ->
+                            if (i > 0) HorizontalDivider(color = VynkLine)
+                            FilaAgenda(a)
+                        }
                     }
                 }
             }
         }
-
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            TituloSeccion("Accesos rápidos")
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Acceso("Actividades", Icons.Default.Search, VynkBlue, Modifier.weight(1f), onCatalogo)
-                Acceso("Resultados", Icons.Default.EmojiEvents, colorArea("Gestión").fuerte, Modifier.weight(1f), onResultados)
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Acceso("Mi agenda", Icons.Default.Event, colorArea("Química").fuerte, Modifier.weight(1f), onAgenda)
-                Acceso("Asistente", Icons.Default.QuestionAnswer, colorArea("Digital").fuerte, Modifier.weight(1f), onAsistente)
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Acceso("Programación del día", Icons.Default.CalendarMonth, colorArea("Electricidad").fuerte, Modifier.weight(1f), onProgramacion)
-            }
-        }
-        Spacer(Modifier.height(4.dp))
     }
 }
 
+/** Sube el elemento [cuanto] sin dejar hueco debajo: para montar una tarjeta sobre la portada. */
+private fun Modifier.subir(cuanto: androidx.compose.ui.unit.Dp) = this.then(
+    Modifier.layout { medible, restricciones ->
+        val p = medible.measure(restricciones)
+        val px = cuanto.roundToPx()
+        layout(p.width, (p.height - px).coerceAtLeast(0)) { p.place(0, -px) }
+    }
+)
+
+/**
+ * Portada viva del Inicio: degradado de marca con destellos que flotan, la foto del campus como textura,
+ * el saludo con la fecha y dos accesos.
+ */
 @Composable
-private fun Bienvenida(nombre: String, inscripciones: Int, onCatalogo: () -> Unit, onRecomendaciones: () -> Unit) {
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(VynkNavy)) {
+private fun Portada(nombre: String, inscripciones: Int, hoy: LocalDate, onCatalogo: () -> Unit, onProgramacion: () -> Unit) {
+    Box(Modifier.fillMaxWidth()) {
+        FondoVivo(Modifier.matchParentSize())
         Image(painterResource(R.drawable.bg_campus), contentDescription = null, contentScale = ContentScale.Crop,
-            modifier = Modifier.matchParentSize())
-        Box(Modifier.matchParentSize().background(Brush.horizontalGradient(
-            0f to Color(0xF7092048), 0.6f to Color(0xE0092048), 1f to Color(0x99092048))))
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            alpha = 0.14f, modifier = Modifier.matchParentSize())
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 66.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(nombreDia(hoy.toString()).uppercase(Peru), color = VynkSky, style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.aparecer(0))
             Text(if (nombre.isBlank()) "Bienvenido a VYNK" else "Hola, $nombre", color = Color.White,
-                style = MaterialTheme.typography.headlineSmall)
-            Text(if (inscripciones == 1) "Tienes 1 actividad próxima." else if (inscripciones > 1) "Tienes $inscripciones actividades próximas." else "Encuentra actividades del campus e inscríbete.",
-                color = Color(0xFFE2ECFA), style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onCatalogo, shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = VynkNavy),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("Explorar", style = MaterialTheme.typography.labelLarge)
-                }
-                OutlinedButton(onClick = onRecomendaciones, shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = .5f)),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("Para ti", style = MaterialTheme.typography.labelLarge)
-                }
+                style = MaterialTheme.typography.headlineMedium, modifier = Modifier.aparecer(0))
+            Text(
+                when {
+                    inscripciones == 1 -> "Tienes 1 actividad en tu agenda."
+                    inscripciones > 1 -> "Tienes $inscripciones actividades en tu agenda."
+                    else -> "Descubre lo que pasa hoy en el campus."
+                },
+                color = Color(0xFFD6E4F7), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.aparecer(1)
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.aparecer(1)) {
+                BotonVidrio("Explorar", Icons.Default.Search, relleno = true, onClick = onCatalogo)
+                BotonVidrio("Por día", Icons.Default.CalendarMonth, relleno = false, onClick = onProgramacion)
             }
         }
+    }
+}
+
+/** Botón sobre la portada: blanco sólido o «vidrio» translúcido. */
+@Composable
+private fun BotonVidrio(texto: String, icono: ImageVector, relleno: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier.clip(RoundedCornerShape(14.dp))
+            .background(if (relleno) Color.White else Color.White.copy(alpha = 0.14f))
+            .presionable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(icono, contentDescription = null, tint = if (relleno) VynkNavy else Color.White, modifier = Modifier.size(17.dp))
+        Text(texto, style = MaterialTheme.typography.labelLarge, color = if (relleno) VynkNavy else Color.White)
     }
 }
 
@@ -270,13 +322,12 @@ private fun FilaAgenda(a: ActividadAgenda) {
 
 @Composable
 private fun Acceso(titulo: String, icono: ImageVector, color: Color, modifier: Modifier, onClick: () -> Unit) {
-    Tarjeta(modifier.clickable(onClick = onClick)) {
-        Row(Modifier.padding(horizontal = 14.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(36.dp).background(color.copy(alpha = .12f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
-            }
-            Text(titulo, style = MaterialTheme.typography.titleSmall, color = VynkNavy)
-        }
+    Column(
+        modifier.sombraSuave(RoundedCornerShape(18.dp), 5.dp).clip(RoundedCornerShape(18.dp)).background(Color.White)
+            .presionable(onClick = onClick).padding(vertical = 16.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        IconoDegradado(icono, color)
+        Text(titulo, style = MaterialTheme.typography.labelLarge, color = VynkNavy, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

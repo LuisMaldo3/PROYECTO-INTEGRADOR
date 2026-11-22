@@ -27,6 +27,9 @@ data class RespuestaAsistente(
     val requisitos: List<RequisitosAsistente> = emptyList()
 )
 
+/** Error del servicio del asistente con su código HTTP, para decidir si conviene reintentar (US-75 T03). */
+class ErrorAsistente(val codigo: Int, mensaje: String) : IllegalStateException(mensaje)
+
 /** Jordi: consume /api/asistente/preguntar con la misma sesión JWT de VYNK. */
 object AsistenteApi {
     /** Prueba de conectividad autenticada: estado real, no una suposición de la interfaz. */
@@ -82,6 +85,22 @@ object AsistenteApi {
         } finally { conexion.disconnect() }
     }
 
+    /** US-75 T01: preguntas sugeridas según el estudiante. Si falla, el chat usa las preguntas de ejemplo. */
+    suspend fun sugerencias(token: String): List<String> = withContext(Dispatchers.IO) {
+        val conexion = URL(Servidor.DIRECCION.trimEnd('/') + "/api/asistente/sugerencias").openConnection() as HttpURLConnection
+        try {
+            conexion.connectTimeout = 6000
+            conexion.readTimeout = 10000
+            conexion.setRequestProperty("Authorization", "Bearer $token")
+            if (conexion.responseCode !in 200..299) return@withContext EjemplosConsultasNaturales.preguntas
+            leerSugerencias(JSONObject(conexion.inputStream.bufferedReader().use { it.readText() }))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            EjemplosConsultasNaturales.preguntas
+        } finally { conexion.disconnect() }
+    }
+
     suspend fun preguntar(token: String, pregunta: String): RespuestaAsistente = withContext(Dispatchers.IO) {
         val url = Servidor.DIRECCION.trimEnd('/') + "/api/asistente/preguntar"
         val conexion = URL(url).openConnection() as HttpURLConnection
@@ -107,7 +126,7 @@ object AsistenteApi {
                     503 -> "MongoDB no está disponible. Comprueba la conexión del backend."
                     else -> "No se pudo consultar el asistente (HTTP $status)."
                 }
-                throw IllegalStateException(mensaje)
+                throw ErrorAsistente(status, mensaje)
             }
             val respuesta = JSONObject(conexion.inputStream.bufferedReader().use { it.readText() })
             val texto = respuesta.optString("respuesta", "").trim()

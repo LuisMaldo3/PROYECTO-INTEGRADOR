@@ -69,6 +69,12 @@ import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
+import com.tecsup.tcweek.ui.comun.EsqueletoTarjetas
+import com.tecsup.tcweek.ui.comun.aparecer
+import com.tecsup.tcweek.ui.comun.presionable
+import com.tecsup.tcweek.ui.comun.sombraSuave
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.graphics.Brush
 import com.tecsup.tcweek.data.FiltrosCatalogo
 import com.tecsup.tcweek.data.Franja
 import com.tecsup.tcweek.data.OpcionesFiltro
@@ -163,9 +169,7 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
         }
 
         when {
-            cargando -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ColorAzul)
-            }
+            cargando -> EsqueletoTarjetas(3)
 
             error != null -> EstadoVacio(
                 icono = Icons.Filled.ErrorOutline,
@@ -198,7 +202,9 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
                     item(key = "dia-${grupo.fecha}") {
                         EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
                     }
-                    items(grupo.items, key = { it.id }) { actividad -> TarjetaActividad(actividad) { seleccionada = actividad } }
+                    itemsIndexed(grupo.items, key = { _, a -> a.id }) { i, actividad ->
+                        Box(Modifier.aparecer(i)) { TarjetaActividad(actividad) { seleccionada = actividad } }
+                    }
                 }
             }
         }
@@ -219,16 +225,19 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, VynkLine),
+        shape = RoundedCornerShape(22.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        modifier = Modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(22.dp), 8.dp).presionable(onClick = onClick)
     ) {
         Box(Modifier.fillMaxWidth()) {
             if (a.portadaUrl.isNotBlank()) ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
             else Image(painter = painterResource(id = portadaTematica(a)), contentDescription = null,
                 contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+            // Velo inferior para que la hora se lea sobre cualquier portada.
+            Box(Modifier.matchParentSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to Color(0xCC0B2A5B))))
             if (a.tipoActividad == "competencia") Pildora("Competencia", Color.White, VynkNavy, Modifier.padding(10.dp))
+            Pildora(rangoHoras(a.horaInicio, a.horaFin), Color.White.copy(alpha = 0.92f), VynkNavy,
+                Modifier.align(Alignment.BottomStart).padding(10.dp))
         }
         Box(Modifier.fillMaxWidth().height(4.dp).background(area.fuerte))
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
