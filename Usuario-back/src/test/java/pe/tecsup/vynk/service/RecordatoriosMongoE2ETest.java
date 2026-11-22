@@ -84,7 +84,7 @@ class RecordatoriosMongoE2ETest {
         dispositivos = repositorios.getRepository(pe.tecsup.vynk.repository.DispositivoMovilRepository.class);
         push = new Falso();
         programador = new ProgramadorRecordatorios(inscripciones, recordatorios, 30, 48);
-        enviador = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push);
+        enviador = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push, new NombresUbicacion(mongo));
     }
 
     @AfterEach void limpiar() {
@@ -129,7 +129,7 @@ class RecordatoriosMongoE2ETest {
 
         // «Reinicio»: servicios nuevos sobre la misma base no repiten el aviso.
         var programador2 = new ProgramadorRecordatorios(inscripciones, recordatorios, 30, 48);
-        var enviador2 = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push);
+        var enviador2 = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push, new NombresUbicacion(mongo));
         assertEquals(0, programador2.programar(AHORA.plusSeconds(60)));
         assertEquals(0, enviador2.enviarPendientes(AHORA.plusSeconds(60)));
         assertEquals(1, push.tokens.size());
@@ -239,7 +239,7 @@ class RecordatoriosMongoE2ETest {
         CountDownLatch salida = new CountDownLatch(1);
         List<java.util.concurrent.Future<Integer>> trabajos = new ArrayList<>();
         for (int h = 0; h < hilos; h++) {
-            var propio = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push);
+            var propio = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push, new NombresUbicacion(mongo));
             trabajos.add(pool.submit(() -> { salida.await(); return propio.enviarPendientes(AHORA); }));
         }
         salida.countDown();

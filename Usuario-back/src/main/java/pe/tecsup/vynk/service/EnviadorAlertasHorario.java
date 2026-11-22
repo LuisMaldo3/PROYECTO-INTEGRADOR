@@ -2,8 +2,6 @@ package pe.tecsup.vynk.service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -13,7 +11,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import pe.tecsup.vynk.model.AlertaHorario;
-import pe.tecsup.vynk.model.DispositivoMovil;
 import pe.tecsup.vynk.model.Inscripcion;
 import pe.tecsup.vynk.repository.AlertaHorarioRepository;
 import pe.tecsup.vynk.repository.DispositivoMovilRepository;
@@ -28,17 +25,17 @@ public class EnviadorAlertasHorario {
 
     private final AlertaHorarioRepository alertas;
     private final InscripcionRepository inscripciones;
-    private final DispositivoMovilRepository dispositivos;
     private final MongoTemplate mongo;
     private final NotificadorPush push;
+    private final EntregaCelulares entrega;
 
     public EnviadorAlertasHorario(AlertaHorarioRepository alertas, InscripcionRepository inscripciones,
                                   DispositivoMovilRepository dispositivos, MongoTemplate mongo, NotificadorPush push) {
         this.alertas = alertas;
         this.inscripciones = inscripciones;
-        this.dispositivos = dispositivos;
         this.mongo = mongo;
         this.push = push;
+        this.entrega = new EntregaCelulares(dispositivos, push);
     }
 
     /** Devuelve cuántas alertas se entregaron. */
@@ -77,36 +74,22 @@ public class EnviadorAlertasHorario {
                 cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.CANCELADA, null, null);
                 return false;
             }
-            List<DispositivoMovil> celulares = dispositivos.findByUsuarioId(a.getUsuarioId());
-            if (celulares.isEmpty()) {
-                // Sin celular registrado: se espera a que abra la app, hasta que empiece la actividad.
-                cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.PENDIENTE, null, null);
-                return false;
-            }
-            Map<String, String> datos = MensajeCambioHorario.datos(a);
             // Si el celular está apagado, FCM la guarda hasta que empiece la actividad (al menos una hora).
             Duration vida = Duration.between(ahora, a.getComienzaEn());
             if (vida.compareTo(Duration.ofHours(1)) < 0) vida = Duration.ofHours(1);
-            int entregadas = 0;
-            boolean fallo = false;
-            for (DispositivoMovil celular : celulares) {
-                switch (push.enviar(celular.getToken(), datos, vida)) {
-                    case ENVIADO -> entregadas++;
-                    case TOKEN_INVALIDO -> dispositivos.deleteByToken(celular.getToken());
-                    case ERROR_TEMPORAL, ERROR_PERMANENTE -> fallo = true;
+            switch (entrega.entregar(a.getUsuarioId(), MensajeCambioHorario.datos(a), vida)) {
+                case ENTREGADA -> {
+                    cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.ENVIADA, null, ahora);
+                    return true;
+                }
+                // Sin celular registrado: se espera a que abra la app, sin gastar intentos.
+                case SIN_CELULAR -> cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.PENDIENTE, null, null);
+                case FALLO -> {
+                    int intentos = a.getIntentos() + 1;
+                    cerrar(a.getId(), AlertaHorario.ENVIANDO,
+                            intentos >= MAX_INTENTOS ? AlertaHorario.FALLIDA : AlertaHorario.PENDIENTE, intentos, null);
                 }
             }
-            if (entregadas > 0) {
-                cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.ENVIADA, null, ahora);
-                return true;
-            }
-            if (!fallo) {
-                cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.PENDIENTE, null, null);
-                return false;
-            }
-            int intentos = a.getIntentos() + 1;
-            cerrar(a.getId(), AlertaHorario.ENVIANDO,
-                    intentos >= MAX_INTENTOS ? AlertaHorario.FALLIDA : AlertaHorario.PENDIENTE, intentos, null);
             return false;
         } catch (RuntimeException e) {
             cerrar(a.getId(), AlertaHorario.ENVIANDO, AlertaHorario.PENDIENTE, a.getIntentos() + 1, null);

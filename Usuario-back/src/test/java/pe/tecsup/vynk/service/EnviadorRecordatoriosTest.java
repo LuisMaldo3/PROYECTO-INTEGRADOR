@@ -37,7 +37,8 @@ class EnviadorRecordatoriosTest {
     final DispositivoMovilRepository dispositivos = mock(DispositivoMovilRepository.class);
     final MongoTemplate mongo = mock(MongoTemplate.class);
     final NotificadorPush push = mock(NotificadorPush.class);
-    final EnviadorRecordatorios enviador = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push);
+    final EnviadorRecordatorios enviador = new EnviadorRecordatorios(recordatorios, inscripciones, dispositivos, mongo, push,
+            new NombresUbicacion(mongo));
 
     RecordatorioActividad recordatorio;
     Inscripcion inscripcion;
@@ -201,7 +202,7 @@ class EnviadorRecordatoriosTest {
     }
 
     @Test void elTextoDelAvisoIndicaActividadMinutosHoraYLugar() {
-        Map<String, String> datos = MensajeRecordatorio.datos(inscripcion, INICIO, AHORA);
+        Map<String, String> datos = MensajeRecordatorio.datos(inscripcion, inscripcion.getUbicacion(), INICIO, AHORA);
 
         assertEquals("Tu actividad empieza pronto", datos.get("titulo"));
         assertEquals("Torneo de fútbol empieza en 25 min (10:00) · Cancha 2", datos.get("cuerpo"));
@@ -212,7 +213,7 @@ class EnviadorRecordatoriosTest {
         inscripcion.setNombreActividad(null);
         inscripcion.setUbicacion("  ");
 
-        Map<String, String> datos = MensajeRecordatorio.datos(inscripcion, INICIO, INICIO.minusSeconds(10));
+        Map<String, String> datos = MensajeRecordatorio.datos(inscripcion, inscripcion.getUbicacion(), INICIO, INICIO.minusSeconds(10));
 
         assertEquals("Tu actividad empieza en 1 min (10:00)", datos.get("cuerpo"));
     }
@@ -220,7 +221,7 @@ class EnviadorRecordatoriosTest {
     @Test void recortaNombresLargosParaNoPasarseDelLimiteDeFcm() {
         inscripcion.setNombreActividad("A".repeat(500));
 
-        String cuerpo = MensajeRecordatorio.datos(inscripcion, INICIO, AHORA).get("cuerpo");
+        String cuerpo = MensajeRecordatorio.datos(inscripcion, inscripcion.getUbicacion(), INICIO, AHORA).get("cuerpo");
 
         assertTrue(cuerpo.length() < 160, cuerpo);
         assertTrue(cuerpo.contains("…"));

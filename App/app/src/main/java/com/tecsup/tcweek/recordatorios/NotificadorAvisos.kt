@@ -14,13 +14,13 @@ import androidx.core.content.ContextCompat
 import com.tecsup.tcweek.MainActivity
 import com.tecsup.tcweek.R
 import com.tecsup.tcweek.data.AvisoActividad
-import com.tecsup.tcweek.data.TIPO_AVISO_CAMBIO_HORARIO
 import com.tecsup.tcweek.data.idNotificacionAviso
 
-/** Muestra recordatorios y cambios de horario en la barra de notificaciones; al tocarlos abre la actividad. */
+/** Muestra recordatorios y cambios de horario o de lugar en la barra de notificaciones; al tocarlos abre la actividad. */
 object NotificadorAvisos {
     private const val CANAL = "recordatorios_actividad"
     private const val CANAL_HORARIO = "cambios_horario"
+    private const val CANAL_UBICACION = "cambios_ubicacion"
 
     /** Datos que viajan en el Intent de la notificación hacia MainActivity. */
     const val EXTRA_ACTIVIDAD_ID = "com.tecsup.tcweek.ACTIVIDAD_ID"
@@ -49,19 +49,24 @@ object NotificadorAvisos {
         val alTocar = PendingIntent.getActivity(
             context, numero, abrir, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        // Cambio de horario: el horario anterior y el nuevo, cada uno en su línea.
-        val estilo = if (aviso.esCambioHorario) NotificationCompat.InboxStyle()
-            .addLine("Antes: ${aviso.horarioAnterior}")
-            .addLine("Ahora: ${aviso.horarioNuevo}")
+        // Cambio de horario o de lugar: el valor anterior y el nuevo, cada uno en su línea.
+        val estilo = if (aviso.esCambio) NotificationCompat.InboxStyle()
+            .addLine("Antes: ${aviso.anterior}")
+            .addLine("Ahora: ${aviso.nuevo}")
             .setBigContentTitle(aviso.titulo)
         else NotificationCompat.BigTextStyle().bigText(aviso.cuerpo)
-        val notificacion = NotificationCompat.Builder(context, if (aviso.esCambioHorario) CANAL_HORARIO else CANAL)
+        val canal = when {
+            aviso.esCambioHorario -> CANAL_HORARIO
+            aviso.esCambioUbicacion -> CANAL_UBICACION
+            else -> CANAL
+        }
+        val notificacion = NotificationCompat.Builder(context, canal)
             .setSmallIcon(R.drawable.ic_notificacion)
             .setColor(0xFF0B2A5B.toInt())
             .setContentTitle(aviso.titulo)
-            .setContentText(if (aviso.esCambioHorario) "Ahora: ${aviso.horarioNuevo}" else aviso.cuerpo)
+            .setContentText(if (aviso.esCambio) "Ahora: ${aviso.nuevo}" else aviso.cuerpo)
             .setStyle(estilo)
-            .setCategory(if (aviso.esCambioHorario) NotificationCompat.CATEGORY_EVENT else NotificationCompat.CATEGORY_REMINDER)
+            .setCategory(if (aviso.esCambio) NotificationCompat.CATEGORY_EVENT else NotificationCompat.CATEGORY_REMINDER)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(alTocar)
@@ -81,6 +86,9 @@ object NotificadorAvisos {
         canal.description = "Te avisa antes de que empiece una actividad en la que te inscribiste."
         val horario = NotificationChannel(CANAL_HORARIO, "Cambios de horario", NotificationManager.IMPORTANCE_HIGH)
         horario.description = "Te avisa cuando cambia la fecha u hora de una actividad en la que te inscribiste."
-        context.getSystemService(NotificationManager::class.java).createNotificationChannels(listOf(canal, horario))
+        val ubicacion = NotificationChannel(CANAL_UBICACION, "Cambios de ubicación", NotificationManager.IMPORTANCE_HIGH)
+        ubicacion.description = "Te avisa cuando cambia el lugar de una actividad en la que te inscribiste."
+        context.getSystemService(NotificationManager::class.java)
+            .createNotificationChannels(listOf(canal, horario, ubicacion))
     }
 }

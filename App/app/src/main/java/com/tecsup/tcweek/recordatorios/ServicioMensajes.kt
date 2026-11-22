@@ -9,7 +9,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-/** Recibe lo que Firebase manda a este celular: recordatorios, cambios de horario y cambios de token. */
+/** Recibe lo que Firebase manda a este celular: recordatorios, cambios de horario o de lugar y cambios de token. */
 class ServicioMensajes : FirebaseMessagingService() {
     private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

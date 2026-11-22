@@ -24,7 +24,7 @@ import kotlinx.coroutines.CancellationException
 /**
  * Abre el detalle de la actividad de un aviso. Usa el mismo diálogo del catálogo, así el estudiante ve fecha,
  * lugar y su estado de inscripción igual que si la hubiera buscado él mismo. Si el aviso fue un cambio de
- * horario, [nota] muestra arriba el horario anterior y el nuevo.
+ * horario o de lugar, [nota] muestra arriba el valor anterior y el nuevo.
  */
 @Composable
 internal fun ActividadDeAviso(actividadId: String, token: String, nota: String = "", alCerrar: () -> Unit) {

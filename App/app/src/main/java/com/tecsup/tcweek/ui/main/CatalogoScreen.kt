@@ -298,7 +298,7 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
                     contentDescription = "Ilustración de ${a.nombre}", contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth().height(155.dp))
                 else ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
-                // Abierta desde una alerta de cambio de horario: el horario anterior y el nuevo, resaltados.
+                // Abierta desde una alerta de cambio (horario o lugar): el valor anterior y el nuevo, resaltados.
                 if (nota.isNotBlank()) Text(nota, color = Color(0xFF0B2A5B), fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF4D6), RoundedCornerShape(10.dp)).padding(12.dp))
                 Text(a.descripcion, color = Color(0xFF49627D))

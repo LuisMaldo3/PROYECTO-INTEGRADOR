@@ -32,14 +32,17 @@ public class EnviadorRecordatorios {
     private final DispositivoMovilRepository dispositivos;
     private final MongoTemplate mongo;
     private final NotificadorPush push;
+    private final NombresUbicacion ubicaciones;
 
     public EnviadorRecordatorios(RecordatorioActividadRepository recordatorios, InscripcionRepository inscripciones,
-                                 DispositivoMovilRepository dispositivos, MongoTemplate mongo, NotificadorPush push) {
+                                 DispositivoMovilRepository dispositivos, MongoTemplate mongo, NotificadorPush push,
+                                 NombresUbicacion ubicaciones) {
         this.recordatorios = recordatorios;
         this.inscripciones = inscripciones;
         this.dispositivos = dispositivos;
         this.mongo = mongo;
         this.push = push;
+        this.ubicaciones = ubicaciones;
     }
 
     /** Envía los avisos vencidos. Devuelve cuántos recordatorios se entregaron. */
@@ -47,10 +50,12 @@ public class EnviadorRecordatorios {
         if (!push.disponible()) return 0;
         liberarAtascados(ahora);
         int enviados = 0;
+        Map<String, String> lugares = null; // se cargan solo si hay algo que enviar
         for (RecordatorioActividad r : recordatorios
                 .findTop200ByEstadoAndEnviarEnLessThanEqualOrderByEnviarEnAsc(RecordatorioActividad.PENDIENTE, ahora)) {
             try {
-                if (procesar(r, ahora)) enviados++;
+                if (lugares == null) lugares = ubicaciones.cargar();
+                if (procesar(r, ahora, lugares)) enviados++;
             } catch (RuntimeException e) {
                 log.error("Falló el recordatorio {}: {}", r.getId(), e.toString());
             }
@@ -58,7 +63,7 @@ public class EnviadorRecordatorios {
         return enviados;
     }
 
-    private boolean procesar(RecordatorioActividad pendiente, Instant ahora) {
+    private boolean procesar(RecordatorioActividad pendiente, Instant ahora, Map<String, String> lugares) {
         if (!pendiente.getInicio().isAfter(ahora)) {
             // Ya empezó: un aviso tardío confundiría más de lo que ayuda.
             cerrar(pendiente.getId(), RecordatorioActividad.PENDIENTE, RecordatorioActividad.VENCIDO, null, null);
@@ -83,7 +88,8 @@ public class EnviadorRecordatorios {
                 cerrar(r.getId(), RecordatorioActividad.ENVIANDO, RecordatorioActividad.PENDIENTE, null, null);
                 return false;
             }
-            Map<String, String> datos = MensajeRecordatorio.datos(inscripcion, r.getInicio(), ahora);
+            Map<String, String> datos = MensajeRecordatorio.datos(inscripcion,
+                    NombresUbicacion.nombre(lugares, inscripcion.getUbicacion()), r.getInicio(), ahora);
             int entregados = 0;
             boolean fallo = false;
             for (DispositivoMovil celular : celulares) {

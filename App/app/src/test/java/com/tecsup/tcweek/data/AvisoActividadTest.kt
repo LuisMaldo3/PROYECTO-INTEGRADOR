@@ -80,8 +80,8 @@ class AvisoActividadTest {
         assertTrue(aviso.esCambioHorario)
         assertEquals("act1", aviso.actividadId)
         assertEquals("Cambió el horario de Torneo de fútbol", aviso.titulo)
-        assertEquals("dom 22/11 · 10:00–11:00", aviso.horarioAnterior)
-        assertEquals("lun 23/11 · 15:00–16:30", aviso.horarioNuevo)
+        assertEquals("dom 22/11 · 10:00–11:00", aviso.anterior)
+        assertEquals("lun 23/11 · 15:00–16:30", aviso.nuevo)
         assertEquals("Antes: dom 22/11 · 10:00–11:00\nAhora: lun 23/11 · 15:00–16:30", aviso.cuerpo)
         assertEquals("El horario cambió.\nAntes: dom 22/11 · 10:00–11:00\nAhora: lun 23/11 · 15:00–16:30", aviso.nota)
     }
@@ -100,8 +100,47 @@ class AvisoActividadTest {
     @Test fun laAlertaUsaTextosPorDefectoYRecortaLoLargo() {
         val aviso = leerAvisoActividad(cambio("titulo" to "", "horarioAnterior" to "", "horarioNuevo" to "N".repeat(200)))!!
         assertEquals("Cambió el horario de tu actividad", aviso.titulo)
-        assertEquals("sin horario", aviso.horarioAnterior)
-        assertEquals(60, aviso.horarioNuevo.length)
+        assertEquals("sin horario", aviso.anterior)
+        assertEquals(60, aviso.nuevo.length)
+    }
+
+    // ---------- Cambio de ubicación ----------
+
+    private fun lugar(vararg pares: Pair<String, String>) = mapOf(
+        "tipo" to TIPO_AVISO_CAMBIO_UBICACION,
+        "actividadId" to "act1",
+        "titulo" to "Cambió el lugar de Torneo de fútbol",
+        "ubicacionAnterior" to "Cancha 2",
+        "ubicacionNueva" to "Auditorio principal"
+    ) + pares
+
+    @Test fun leeLaAlertaDeCambioDeUbicacionConElLugarAnteriorYElNuevo() {
+        val aviso = leerAvisoActividad(lugar())!!
+        assertTrue(aviso.esCambioUbicacion)
+        assertTrue(aviso.esCambio)
+        assertTrue(!aviso.esCambioHorario)
+        assertEquals("Cambió el lugar de Torneo de fútbol", aviso.titulo)
+        assertEquals("Cancha 2", aviso.anterior)
+        assertEquals("Auditorio principal", aviso.nuevo)
+        assertEquals("Antes: Cancha 2\nAhora: Auditorio principal", aviso.cuerpo)
+        assertEquals("El lugar cambió.\nAntes: Cancha 2\nAhora: Auditorio principal", aviso.nota)
+    }
+
+    @Test fun laAlertaDeUbicacionSinLugarNuevoSeIgnoraYUsaTextosPorDefecto() {
+        assertNull(leerAvisoActividad(lugar("ubicacionNueva" to "")))
+        assertNull(leerAvisoActividad(lugar("actividadId" to "a b")))
+        val aviso = leerAvisoActividad(lugar("titulo" to " ", "ubicacionAnterior" to ""))!!
+        assertEquals("Cambió el lugar de tu actividad", aviso.titulo)
+        assertEquals("Ubicación por confirmar", aviso.anterior)
+    }
+
+    @Test fun losTresTiposDeAvisoDeUnaActividadNoSeBorranEntreSi() {
+        val ids = setOf(
+            idNotificacionAviso("act1"),
+            idNotificacionAviso("act1", TIPO_AVISO_CAMBIO_HORARIO),
+            idNotificacionAviso("act1", TIPO_AVISO_CAMBIO_UBICACION)
+        )
+        assertEquals(3, ids.size)
     }
 
     // ---------- Apertura al tocar ----------

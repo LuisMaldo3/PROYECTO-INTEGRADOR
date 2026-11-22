@@ -18,10 +18,11 @@ public final class MensajeRecordatorio {
 
     private MensajeRecordatorio() {}
 
-    public static Map<String, String> datos(Inscripcion i, Instant inicio, Instant ahora) {
+    /** @param lugar nombre de la ubicación (la inscripción solo guarda su identificador). */
+    public static Map<String, String> datos(Inscripcion i, String lugar, Instant inicio, Instant ahora) {
         long minutos = Math.max(1, (Duration.between(ahora, inicio).toSeconds() + 59) / 60);
         String nombre = recortar(i.getNombreActividad(), 80, "Tu actividad");
-        String lugar = recortar(i.getUbicacion(), 60, "");
+        lugar = NombresUbicacion.POR_CONFIRMAR.equals(lugar) ? "" : recortar(lugar, 60, "");
         String hora = HORA.format(inicio.atZone(ProgramadorRecordatorios.LIMA));
         String cuerpo = nombre + " empieza en " + minutos + " min (" + hora + ")"
                 + (lugar.isEmpty() ? "" : " · " + lugar);
