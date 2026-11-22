@@ -9,7 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Cada minuto: detecta los cambios de horario y de ubicación (y deja al día las inscripciones), programa los recordatorios que faltan
+ * Cada minuto: detecta cancelaciones y cambios de horario y de ubicación (y deja al día las inscripciones), elige las
+ * recomendaciones del día, programa los recordatorios que faltan
  * y envía al celular las alertas y recordatorios que ya tocan. Detectar primero evita avisar con una hora vieja.
  * Se apaga con vynk.recordatorios.activo=false (por ejemplo, en una segunda copia del servidor).
  */
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "vynk.recordatorios.activo", havingValue = "true", matchIfMissing = true)
 public class TareaRecordatorios {
     private static final Logger log = LoggerFactory.getLogger(TareaRecordatorios.class);
+    private final DetectorCancelaciones cancelaciones;
+    private final SelectorRecomendaciones recomendaciones;
+    private final EnviadorAvisosPush avisos;
     private final DetectorCambiosHorario detector;
     private final EnviadorAlertasHorario alertas;
     private final DetectorCambiosUbicacion detectorUbicacion;
@@ -25,9 +29,13 @@ public class TareaRecordatorios {
     private final ProgramadorRecordatorios programador;
     private final EnviadorRecordatorios enviador;
 
-    public TareaRecordatorios(DetectorCambiosHorario detector, EnviadorAlertasHorario alertas,
+    public TareaRecordatorios(DetectorCancelaciones cancelaciones, SelectorRecomendaciones recomendaciones,
+                              EnviadorAvisosPush avisos, DetectorCambiosHorario detector, EnviadorAlertasHorario alertas,
                               DetectorCambiosUbicacion detectorUbicacion, EnviadorAlertasUbicacion alertasUbicacion,
                               ProgramadorRecordatorios programador, EnviadorRecordatorios enviador) {
+        this.cancelaciones = cancelaciones;
+        this.recomendaciones = recomendaciones;
+        this.avisos = avisos;
         this.detector = detector;
         this.alertas = alertas;
         this.detectorUbicacion = detectorUbicacion;
@@ -40,6 +48,16 @@ public class TareaRecordatorios {
             initialDelayString = "${vynk.recordatorios.retraso-inicial-ms:20000}")
     public void ejecutar() {
         Instant ahora = Instant.now();
+        // Primero las cancelaciones: así no se avisa un cambio ni se recuerda una actividad que ya no se hará.
+        try {
+            int canceladas = cancelaciones.detectar(ahora);
+            int recomendadas = recomendaciones.elegir(ahora);
+            int enviadas = avisos.enviarPendientes(ahora);
+            if (canceladas > 0 || recomendadas > 0 || enviadas > 0)
+                log.info("Notificaciones: {} cancelaciones, {} recomendaciones, {} enviadas", canceladas, recomendadas, enviadas);
+        } catch (RuntimeException e) {
+            log.error("No se pudo completar el ciclo de cancelaciones y recomendaciones: {}", e.toString());
+        }
         try {
             int cambios = detector.detectar(ahora);
             int avisadas = alertas.enviarPendientes(ahora);

@@ -22,6 +22,8 @@ class RepositoriosRecordatoriosTest {
             assertNotNull(fabrica.getRepository(InscripcionRepository.class));
             assertNotNull(fabrica.getRepository(AlertaHorarioRepository.class));
             assertNotNull(fabrica.getRepository(AlertaUbicacionRepository.class));
+            assertNotNull(fabrica.getRepository(AvisoPushRepository.class));
+            assertNotNull(fabrica.getRepository(PreferenciasNotificacionRepository.class));
         }
     }
 }

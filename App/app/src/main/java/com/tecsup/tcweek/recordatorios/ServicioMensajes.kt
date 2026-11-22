@@ -2,6 +2,8 @@ package com.tecsup.tcweek.recordatorios
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.tecsup.tcweek.data.CambiosAgenda
+import com.tecsup.tcweek.data.PreferenciaRecomendaciones
 import com.tecsup.tcweek.data.leerAvisoActividad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +11,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-/** Recibe lo que Firebase manda a este celular: recordatorios, cambios de horario o de lugar y cambios de token. */
+/** Recibe lo que Firebase manda a este celular: recordatorios, cambios, cancelaciones, recomendaciones y cambios de token. */
 class ServicioMensajes : FirebaseMessagingService() {
     private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -22,7 +24,11 @@ class ServicioMensajes : FirebaseMessagingService() {
     /** Llega con la app abierta, en segundo plano o cerrada, porque el backend envía solo «datos». */
     override fun onMessageReceived(message: RemoteMessage) {
         val aviso = leerAvisoActividad(message.data) ?: return
+        // Si apagó las recomendaciones, una que ya venía en camino tampoco se muestra.
+        if (aviso.esRecomendacion && !PreferenciaRecomendaciones(applicationContext).activas()) return
         NotificadorAvisos.mostrar(applicationContext, aviso)
+        // Si la app está abierta en la agenda, se vuelve a cargar (por ejemplo, para quitar la actividad cancelada).
+        if (aviso.cambiaAgenda) CambiosAgenda.avisar()
     }
 
     override fun onDestroy() {

@@ -246,7 +246,18 @@ fun MainScreen(onLogout: () -> Unit) {
     }
 
     val abrir = aperturaAviso
-    if (abrir != null && !comprobandoIntereses && !primerIngreso) {
+    val listo = abrir != null && !comprobandoIntereses && !primerIngreso
+    // Cancelación: la actividad ya no existe para el estudiante; se muestra su agenda ya sin ella.
+    LaunchedEffect(abrir, listo) {
+        if (listo && abrir!!.agenda) {
+            navMenu.navigate(Destino.AGENDA.ruta) {
+                popUpTo(Destino.INICIO.ruta) { saveState = true }
+                launchSingleTop = true
+            }
+            AvisoPendiente.consumir()
+        }
+    }
+    if (listo && !abrir!!.agenda) {
         ActividadDeAviso(abrir.actividadId, user.llave, nota = abrir.nota, alCerrar = AvisoPendiente::consumir)
     }
 }

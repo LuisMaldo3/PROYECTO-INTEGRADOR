@@ -96,6 +96,9 @@ fun PerfilScreen(user: DatosDeEntrada, rol: String, onLogout: () -> Unit, onInte
 
             Text("Mis intereses", style = MaterialTheme.typography.titleMedium, color = TextoOscuro)
             ResumenIntereses(onElegir = onIntereses)
+
+            Text("Notificaciones", style = MaterialTheme.typography.titleMedium, color = TextoOscuro)
+            NotificacionesRecomendaciones(token = user.llave)
         }
 
         OutlinedButton(

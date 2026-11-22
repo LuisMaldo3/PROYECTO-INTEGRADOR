@@ -67,10 +67,12 @@ class MainActivity : ComponentActivity() {
     private fun recibirAviso(intent: Intent?) {
         val actividadId = intent?.getStringExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID) ?: return
         val nota = intent.getStringExtra(NotificadorAvisos.EXTRA_NOTA)
+        val agenda = intent.getBooleanExtra(NotificadorAvisos.EXTRA_ABRIR_AGENDA, false)
         // Ya se atendió: no repetir tras recrear la pantalla.
         intent.removeExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID)
         intent.removeExtra(NotificadorAvisos.EXTRA_NOTA)
-        AvisoPendiente.abrir(actividadId, nota)
+        intent.removeExtra(NotificadorAvisos.EXTRA_ABRIR_AGENDA)
+        AvisoPendiente.abrir(actividadId, nota, agenda)
     }
 
     /** Android 13+: sin este permiso los recordatorios no se muestran. Si lo niega, la app sigue igual. */

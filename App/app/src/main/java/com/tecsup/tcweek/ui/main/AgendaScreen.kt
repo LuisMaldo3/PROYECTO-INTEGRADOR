@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadAgenda
 import com.tecsup.tcweek.data.AgendaApi
+import com.tecsup.tcweek.data.CambiosAgenda
 import com.tecsup.tcweek.data.AlternativasCruceApi
 import com.tecsup.tcweek.data.AvisoAlternativasCruce
 import com.tecsup.tcweek.data.SesionGuardada
@@ -65,8 +67,10 @@ fun AgendaScreen(onVerSugerida: () -> Unit = {}, onVerHuecos: () -> Unit = {}) {
     var upcoming by remember { mutableStateOf(false) }
     var avisos by remember { mutableStateOf<List<AvisoAlternativasCruce>>(emptyList()) }
     var errorCruces by remember { mutableStateOf<String?>(null) }
+    // Llegó una cancelación o un cambio de horario o de lugar: se vuelve a cargar la agenda.
+    val cambiosAgenda by CambiosAgenda.version.collectAsState()
 
-    LaunchedEffect(reload) {
+    LaunchedEffect(reload, cambiosAgenda) {
         loading = true
         error = null
         try {

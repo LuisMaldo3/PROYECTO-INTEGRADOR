@@ -8,6 +8,13 @@ import org.json.JSONArray
 
 data class ActividadAgenda(val id: String, val nombre: String, val fecha: String, val inicio: String, val fin: String, val ubicacion: String, val categoria: String, val estado: String)
 
+/**
+ * Solo las actividades vigentes: si el servidor (o una respuesta guardada) trae una cancelada, no se muestra.
+ * Lógica pura para poder probarla.
+ */
+fun agendaVigente(items: List<ActividadAgenda>): List<ActividadAgenda> =
+    items.filter { it.estado.equals("inscrita", ignoreCase = true) }
+
 object AgendaApi {
     suspend fun cargar(token: String): List<ActividadAgenda> = withContext(Dispatchers.IO) {
         val conn = URL(Servidor.DIRECCION + "/api/agenda").openConnection() as HttpURLConnection
@@ -23,7 +30,7 @@ object AgendaApi {
             (0 until json.length()).map { index ->
                 val item = json.getJSONObject(index)
                 ActividadAgenda(item.optString("id"), item.optString("nombreActividad", "Actividad"), item.optString("fecha"), item.optString("horaInicio"), item.optString("horaFin"), item.optString("ubicacion", "Por confirmar"), item.optString("categoria", "Actividad"), item.optString("estado", "inscrita"))
-            }.sortedWith(compareBy({ it.fecha }, { it.inicio }))
+            }.let(::agendaVigente).sortedWith(compareBy({ it.fecha }, { it.inicio }))
         } finally { conn.disconnect() }
     }
 }
