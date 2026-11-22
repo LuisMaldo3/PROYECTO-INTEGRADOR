@@ -25,8 +25,8 @@ public class NotificadorFcm implements NotificadorPush {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String ALCANCE = "https://www.googleapis.com/auth/firebase.messaging";
     static final String URL_FCM = "https://fcm.googleapis.com";
-    /** Un aviso que no se pudo entregar en este tiempo ya no sirve: la actividad habrá empezado. */
-    private static final Duration VIDA = Duration.ofMinutes(30);
+    /** FCM no guarda un aviso más de 28 días. */
+    private static final Duration VIDA_MAXIMA = Duration.ofDays(28);
 
     private final Supplier<String> tokenDeAcceso;
     private final URI destino;
@@ -67,12 +67,13 @@ public class NotificadorFcm implements NotificadorPush {
     @Override public boolean disponible() { return true; }
 
     @Override
-    public Resultado enviar(String tokenDispositivo, Map<String, String> datos) {
+    public Resultado enviar(String tokenDispositivo, Map<String, String> datos, Duration vida) {
+        long segundos = Math.max(60, Math.min(vida == null ? 1800 : vida.toSeconds(), VIDA_MAXIMA.toSeconds()));
         try {
             String cuerpo = JSON.writeValueAsString(Map.of("message", Map.of(
                     "token", tokenDispositivo,
                     "data", datos,
-                    "android", Map.of("priority", "HIGH", "ttl", VIDA.toSeconds() + "s"))));
+                    "android", Map.of("priority", "HIGH", "ttl", segundos + "s"))));
             HttpRequest peticion = HttpRequest.newBuilder(destino)
                     .timeout(Duration.ofSeconds(15))
                     .header("Authorization", "Bearer " + tokenDeAcceso.get())

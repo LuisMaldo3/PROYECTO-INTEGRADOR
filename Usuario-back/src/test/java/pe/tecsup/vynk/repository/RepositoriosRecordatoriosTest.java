@@ -20,6 +20,7 @@ class RepositoriosRecordatoriosTest {
             assertNotNull(fabrica.getRepository(RecordatorioActividadRepository.class));
             assertNotNull(fabrica.getRepository(DispositivoMovilRepository.class));
             assertNotNull(fabrica.getRepository(InscripcionRepository.class));
+            assertNotNull(fabrica.getRepository(AlertaHorarioRepository.class));
         }
     }
 }

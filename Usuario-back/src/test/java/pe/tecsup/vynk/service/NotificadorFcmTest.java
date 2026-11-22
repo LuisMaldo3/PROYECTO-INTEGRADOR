@@ -63,6 +63,13 @@ class NotificadorFcmTest {
         assertNull(mensaje.get("notification"), "va solo como datos: la app decide cómo mostrarlo");
     }
 
+    @Test void lasAlertasDeHorarioSeGuardanMasTiempoPeroNuncaMasDe28Dias() throws Exception {
+        fcm.enviar("token-del-celular-0123456789", Map.of(), java.time.Duration.ofDays(10));
+        assertEquals("864000s", new ObjectMapper().readTree(cuerpoRecibido.get()).get("message").get("android").get("ttl").asText());
+        fcm.enviar("token-del-celular-0123456789", Map.of(), java.time.Duration.ofDays(60));
+        assertEquals("2419200s", new ObjectMapper().readTree(cuerpoRecibido.get()).get("message").get("android").get("ttl").asText());
+    }
+
     @Test void unCelularQueYaNoExisteSeReportaComoTokenInvalido() {
         estado = 404;
         respuesta = "{\"error\":{\"code\":404,\"status\":\"NOT_FOUND\",\"details\":[{\"errorCode\":\"UNREGISTERED\"}]}}";

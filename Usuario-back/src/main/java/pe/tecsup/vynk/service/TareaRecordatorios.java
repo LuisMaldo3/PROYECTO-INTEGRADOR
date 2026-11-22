@@ -9,7 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Cada minuto programa los recordatorios que faltan y envía los que ya toca.
+ * Cada minuto: detecta los cambios de horario (y deja al día las inscripciones), programa los recordatorios que faltan
+ * y envía al celular las alertas y recordatorios que ya tocan. Detectar primero evita avisar con una hora vieja.
  * Se apaga con vynk.recordatorios.activo=false (por ejemplo, en una segunda copia del servidor).
  */
 @Component
@@ -17,10 +18,15 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "vynk.recordatorios.activo", havingValue = "true", matchIfMissing = true)
 public class TareaRecordatorios {
     private static final Logger log = LoggerFactory.getLogger(TareaRecordatorios.class);
+    private final DetectorCambiosHorario detector;
+    private final EnviadorAlertasHorario alertas;
     private final ProgramadorRecordatorios programador;
     private final EnviadorRecordatorios enviador;
 
-    public TareaRecordatorios(ProgramadorRecordatorios programador, EnviadorRecordatorios enviador) {
+    public TareaRecordatorios(DetectorCambiosHorario detector, EnviadorAlertasHorario alertas,
+                              ProgramadorRecordatorios programador, EnviadorRecordatorios enviador) {
+        this.detector = detector;
+        this.alertas = alertas;
         this.programador = programador;
         this.enviador = enviador;
     }
@@ -28,14 +34,22 @@ public class TareaRecordatorios {
     @Scheduled(fixedDelayString = "${vynk.recordatorios.intervalo-ms:60000}",
             initialDelayString = "${vynk.recordatorios.retraso-inicial-ms:20000}")
     public void ejecutar() {
+        Instant ahora = Instant.now();
         try {
-            Instant ahora = Instant.now();
+            int cambios = detector.detectar(ahora);
+            int avisadas = alertas.enviarPendientes(ahora);
+            if (cambios > 0 || avisadas > 0)
+                log.info("Cambios de horario: {} alertas registradas, {} enviadas", cambios, avisadas);
+        } catch (RuntimeException e) {
+            // Una falla aquí no debe impedir los recordatorios ni los ciclos siguientes.
+            log.error("No se pudo completar el ciclo de cambios de horario: {}", e.toString());
+        }
+        try {
             int programados = programador.programar(ahora);
             int enviados = enviador.enviarPendientes(ahora);
             if (programados > 0 || enviados > 0)
                 log.info("Recordatorios: {} programados o reprogramados, {} enviados", programados, enviados);
         } catch (RuntimeException e) {
-            // Una falla de la base de datos no debe detener los ciclos siguientes.
             log.error("No se pudo completar el ciclo de recordatorios: {}", e.toString());
         }
     }

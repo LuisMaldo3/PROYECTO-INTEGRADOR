@@ -1,5 +1,6 @@
 package pe.tecsup.vynk.service;
 
+import java.time.Duration;
 import java.util.Map;
 
 /** Envía un aviso a un celular. Hoy lo hace Firebase Cloud Messaging; las pruebas usan uno falso. */
@@ -17,6 +18,14 @@ public interface NotificadorPush {
     /** Falso cuando el servidor no tiene credenciales de Firebase: no se intenta enviar nada. */
     boolean disponible();
 
-    /** @param datos pares texto-texto que la app recibe tal cual (no se muestran solos). */
-    Resultado enviar(String tokenDispositivo, Map<String, String> datos);
+    /** Aviso que FCM guarda hasta 30 min si el celular está apagado (sirve para recordatorios). */
+    default Resultado enviar(String tokenDispositivo, Map<String, String> datos) {
+        return enviar(tokenDispositivo, datos, Duration.ofMinutes(30));
+    }
+
+    /**
+     * @param datos pares texto-texto que la app recibe tal cual (no se muestran solos).
+     * @param vida  cuánto tiempo FCM intenta entregarlo si el celular está apagado (máximo 28 días).
+     */
+    Resultado enviar(String tokenDispositivo, Map<String, String> datos, Duration vida);
 }

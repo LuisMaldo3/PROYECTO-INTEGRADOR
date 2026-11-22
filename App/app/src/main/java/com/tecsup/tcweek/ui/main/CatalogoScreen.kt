@@ -256,7 +256,7 @@ private fun portadaTematica(a: ActividadCatalogo): Int {
 }
 
 @Composable
-internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit, onVerActividad: (ActividadCatalogo) -> Unit = {}) {
+internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit, onVerActividad: (ActividadCatalogo) -> Unit = {}, nota: String = "") {
     var consultando by remember(a.id) { mutableStateOf(true) }
     var similares by remember(a.id) { mutableStateOf<List<ActividadCatalogo>>(emptyList()) }
     var similaresError by remember(a.id) { mutableStateOf("") }
@@ -298,6 +298,9 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
                     contentDescription = "Ilustración de ${a.nombre}", contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth().height(155.dp))
                 else ImagenPortadaCatalogo(a.portadaUrl, a.nombre, portadaTematica(a))
+                // Abierta desde una alerta de cambio de horario: el horario anterior y el nuevo, resaltados.
+                if (nota.isNotBlank()) Text(nota, color = Color(0xFF0B2A5B), fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF4D6), RoundedCornerShape(10.dp)).padding(12.dp))
                 Text(a.descripcion, color = Color(0xFF49627D))
                 Text("Fecha: ${a.fecha} · ${a.horaInicio}", fontWeight = FontWeight.SemiBold)
                 Text("Lugar: ${a.ubicacion.ifBlank { "Por confirmar" }}")

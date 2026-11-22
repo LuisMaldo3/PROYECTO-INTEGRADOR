@@ -56,18 +56,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** Con la app abierta (MainActivity es singleTop), tocar un recordatorio llega por aquí. */
+    /** Con la app abierta (MainActivity es singleTop), tocar un aviso llega por aquí. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         recibirAviso(intent)
     }
 
-    /** Guarda la actividad del recordatorio tocado; la pantalla principal la abre cuando ya hay sesión. */
+    /** Guarda la actividad del aviso tocado (y el cambio de horario, si lo hubo); se abre cuando ya hay sesión. */
     private fun recibirAviso(intent: Intent?) {
         val actividadId = intent?.getStringExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID) ?: return
-        intent.removeExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID) // ya se atendió: no repetir tras recrear la pantalla
-        AvisoPendiente.abrir(actividadId)
+        val nota = intent.getStringExtra(NotificadorAvisos.EXTRA_NOTA)
+        // Ya se atendió: no repetir tras recrear la pantalla.
+        intent.removeExtra(NotificadorAvisos.EXTRA_ACTIVIDAD_ID)
+        intent.removeExtra(NotificadorAvisos.EXTRA_NOTA)
+        AvisoPendiente.abrir(actividadId, nota)
     }
 
     /** Android 13+: sin este permiso los recordatorios no se muestran. Si lo niega, la app sigue igual. */

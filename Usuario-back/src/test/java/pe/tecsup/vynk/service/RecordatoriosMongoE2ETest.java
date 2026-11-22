@@ -55,7 +55,7 @@ class RecordatoriosMongoE2ETest {
         final List<Map<String, String>> mensajes = Collections.synchronizedList(new ArrayList<>());
         volatile Resultado resultado = Resultado.ENVIADO;
         @Override public boolean disponible() { return true; }
-        @Override public Resultado enviar(String token, Map<String, String> datos) {
+        @Override public Resultado enviar(String token, Map<String, String> datos, java.time.Duration vida) {
             tokens.add(token); mensajes.add(datos);
             return resultado;
         }

@@ -123,8 +123,8 @@ fun MainScreen(onLogout: () -> Unit) {
     LaunchedEffect(user.llave) {
         RegistroDispositivo(context).sincronizar()
     }
-    // Actividad del recordatorio que el estudiante tocó: se abre cuando ya pasó la pantalla de intereses.
-    val avisoActividadId by AvisoPendiente.actividadId.collectAsState()
+    // Actividad del aviso que el estudiante tocó: se abre cuando ya pasó la pantalla de intereses.
+    val aperturaAviso by AvisoPendiente.apertura.collectAsState()
 
     val entradaActual by navMenu.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
@@ -245,9 +245,9 @@ fun MainScreen(onLogout: () -> Unit) {
         }
     }
 
-    val abrirActividad = avisoActividadId
-    if (abrirActividad != null && !comprobandoIntereses && !primerIngreso) {
-        ActividadDeAviso(abrirActividad, user.llave, alCerrar = AvisoPendiente::consumir)
+    val abrir = aperturaAviso
+    if (abrir != null && !comprobandoIntereses && !primerIngreso) {
+        ActividadDeAviso(abrir.actividadId, user.llave, nota = abrir.nota, alCerrar = AvisoPendiente::consumir)
     }
 }
 

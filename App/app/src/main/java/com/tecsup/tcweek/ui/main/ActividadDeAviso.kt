@@ -22,11 +22,12 @@ import com.tecsup.tcweek.ui.theme.VynkBlue
 import kotlinx.coroutines.CancellationException
 
 /**
- * Abre el detalle de la actividad de un recordatorio. Usa el mismo diálogo del catálogo, así el estudiante
- * ve fecha, lugar y su estado de inscripción igual que si la hubiera buscado él mismo.
+ * Abre el detalle de la actividad de un aviso. Usa el mismo diálogo del catálogo, así el estudiante ve fecha,
+ * lugar y su estado de inscripción igual que si la hubiera buscado él mismo. Si el aviso fue un cambio de
+ * horario, [nota] muestra arriba el horario anterior y el nuevo.
  */
 @Composable
-internal fun ActividadDeAviso(actividadId: String, token: String, alCerrar: () -> Unit) {
+internal fun ActividadDeAviso(actividadId: String, token: String, nota: String = "", alCerrar: () -> Unit) {
     var actividad by remember(actividadId) { mutableStateOf<ActividadCatalogo?>(null) }
     var error by remember(actividadId) { mutableStateOf<String?>(null) }
 
@@ -46,7 +47,9 @@ internal fun ActividadDeAviso(actividadId: String, token: String, alCerrar: () -
     val fallo = error
     when {
         cargada != null -> DialogoActividad(
-            cargada, token, alCerrar = alCerrar, onVerActividad = { actividad = it }
+            cargada, token, alCerrar = alCerrar, onVerActividad = { actividad = it },
+            // La nota es de esta actividad: no se arrastra a una «similar» que se abra desde el diálogo.
+            nota = if (cargada.id == actividadId) nota else ""
         )
 
         fallo != null -> AlertDialog(
