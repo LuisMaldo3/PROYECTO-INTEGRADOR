@@ -89,6 +89,48 @@ public class UbicacionesActividadesService {
         return datos;
     }
 
+    /**
+     * Ficha publicable de un lugar para la app: nombre, sede, pabellón, aula, dirección, referencia y, solo si
+     * están cargadas y son válidas, las coordenadas. Nunca inventa una dirección: lo que falta queda vacío.
+     */
+    public static Map<String, Object> ficha(Map<String, ?> ubicacion) {
+        String lugar = primerValor(ubicacion, "nombre", "nombreUbicacion", "lugar");
+        String sede = primerValor(ubicacion, "sede");
+        String pabellon = primerValor(ubicacion, "pabellon", "edificio");
+        String aula = primerValor(ubicacion, "aula", "salon", "ambiente");
+        String direccion = primerValor(ubicacion, "direccion");
+        String referencia = primerValor(ubicacion, "referencia", "indicaciones");
+        boolean confirmada = !(lugar + sede + pabellon + aula + direccion).isBlank();
+        if (lugar.isBlank()) lugar = !aula.isBlank() ? aula : !pabellon.isBlank() ? pabellon : !sede.isBlank() ? sede : direccion;
+        Map<String, Object> datos = new LinkedHashMap<>();
+        datos.put("lugar", confirmada ? lugar : "Ubicación por confirmar");
+        datos.put("sede", sede);
+        datos.put("pabellon", pabellon);
+        datos.put("aula", aula);
+        datos.put("direccion", direccion);
+        datos.put("referencia", referencia);
+        datos.put("confirmada", confirmada);
+        Double latitud = coordenada(ubicacion, 90, "latitud", "lat");
+        Double longitud = coordenada(ubicacion, 180, "longitud", "lng", "lon");
+        if (latitud != null && longitud != null) {
+            datos.put("latitud", latitud);
+            datos.put("longitud", longitud);
+        }
+        return datos;
+    }
+
+    private static Double coordenada(Map<String, ?> mapa, double limite, String... nombres) {
+        if (mapa == null) return null;
+        for (String nombre : nombres) {
+            Object valor = mapa.get(nombre);
+            try {
+                double numero = valor instanceof Number n ? n.doubleValue() : Double.parseDouble(texto(valor));
+                if (Double.isFinite(numero) && Math.abs(numero) <= limite && numero != 0) return numero;
+            } catch (NumberFormatException e) { /* no es una coordenada */ }
+        }
+        return null;
+    }
+
     private static boolean esNombreLegible(String valor) {
         String limpio = valor.trim();
         return limpio.length() >= 4 && !limpio.matches("[0-9a-fA-F]{24}")

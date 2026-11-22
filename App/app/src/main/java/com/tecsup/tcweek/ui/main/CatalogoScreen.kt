@@ -69,6 +69,11 @@ import androidx.compose.ui.unit.dp
 import com.tecsup.tcweek.data.ActividadCatalogo
 import com.tecsup.tcweek.data.AuthRepository
 import com.tecsup.tcweek.data.CatalogoApi
+import com.tecsup.tcweek.data.CambiosAgenda
+import com.tecsup.tcweek.data.RespaldoPortada
+import com.tecsup.tcweek.data.portadaRemotaSegura
+import com.tecsup.tcweek.data.respaldoPortada
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.CancellationException
 import androidx.compose.material.icons.filled.Place
 import com.tecsup.tcweek.ui.comun.EtiquetaArea
@@ -85,7 +90,7 @@ import java.net.URL
 
 /** Catálogo: las actividades publicadas, agrupadas por día. */
 @Composable
-fun CatalogoScreen() {
+fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCatalogo) -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember(context) { AuthRepository(context) }
     val token = remember { repository.currentSession()?.llave.orEmpty() }
@@ -123,6 +128,10 @@ fun CatalogoScreen() {
                     style = MaterialTheme.typography.bodySmall,
                     color = ColorGris
                 )
+            }
+            TextButton(onClick = onProgramacion) {
+                Icon(Icons.Filled.Event, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text("  Por día", style = MaterialTheme.typography.labelLarge)
             }
             TextButton(onClick = { recarga++ }, enabled = !cargando) {
                 Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -163,7 +172,8 @@ fun CatalogoScreen() {
             }
         }
         if (seleccionada != null) {
-            DialogoActividad(seleccionada!!, token, alCerrar = { seleccionada = null; recarga++ }, onVerActividad = { seleccionada = it })
+            DialogoActividad(seleccionada!!, token, alCerrar = { seleccionada = null; recarga++ }, onVerActividad = { seleccionada = it },
+                onVerUbicacion = { seleccionada = null; onVerUbicacion(it) })
         }
     }
 }
@@ -205,7 +215,9 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             HorizontalDivider(color = VynkLine, modifier = Modifier.padding(vertical = 2.dp))
             DatoConIcono(Icons.Filled.Schedule, rangoHoras(a.horaInicio, a.horaFin))
-            if (a.ubicacion.isNotBlank()) DatoConIcono(Icons.Filled.Place, a.ubicacion)
+            // US-71 T02: el lugar en cada tarjeta, con su referencia si existe.
+            if (a.ubicacion.isNotBlank()) DatoConIcono(Icons.Filled.Place,
+                a.ubicacion + if (a.ubicacionReferencia.isNotBlank()) " · ${a.ubicacionReferencia}" else "")
         }
     }
 }
@@ -213,9 +225,10 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
 
 /** Muestra portadas publicadas. No se envía la clave de Gemini a Android. */
 @Composable
-fun ImagenPortadaCatalogo(url: String, nombre: String, respaldo: Int = R.drawable.vynk_actividades) {
+fun ImagenPortadaCatalogo(url: String, nombre: String, respaldo: Int = R.drawable.vynk_actividades, alto: Dp = 158.dp) {
     var foto by remember(url) { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(url) {
+        if (!portadaRemotaSegura(url)) return@LaunchedEffect // solo https o el propio backend
         foto = withContext(Dispatchers.IO) {
             try {
                 val conexion = URL(url).openConnection() as HttpURLConnection
@@ -229,34 +242,33 @@ fun ImagenPortadaCatalogo(url: String, nombre: String, respaldo: Int = R.drawabl
             } catch (_: Exception) { null }
         }
     }
+    // US-71 T06: mientras carga, o si no se pudo descargar (sin red, enlace caído), se ve la ilustración local.
     if (foto == null) {
         Image(painter = painterResource(respaldo), contentDescription = "Ilustración de $nombre",
-            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(158.dp))
+            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(alto))
     } else {
         Image(bitmap = foto!!, contentDescription = "Portada de $nombre",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().height(158.dp)
+            modifier = Modifier.fillMaxWidth().height(alto)
                 .background(Color(0xFF123B5F)))
     }
 }
 
 
-/** Portada ilustrada local si una actividad antigua todavía no tiene una foto oficial. */
-private fun portadaTematica(a: ActividadCatalogo): Int {
-    val texto = (a.nombre + " " + a.areaTecsup).lowercase()
-    return when {
-        "fútbol" in texto || "futbol" in texto -> R.drawable.vynk_futbol
-        "química" in texto || "minería" in texto || "laboratorio" in texto -> R.drawable.vynk_quimica
-        "electrónica" in texto || "electricidad" in texto -> R.drawable.vynk_electronica
-        "mecánica" in texto || "taller" in texto -> R.drawable.vynk_mecanica
-        "digital" in texto || "software" in texto || "programación" in texto -> R.drawable.vynk_digital
-        "gestión" in texto || "producción" in texto -> R.drawable.vynk_gestion
-        else -> R.drawable.vynk_actividades
-    }
+/** US-71 T05: ilustración local por área (o por tema) si la actividad no tiene portada o no se puede descargar. */
+internal fun portadaTematica(a: ActividadCatalogo): Int = when (respaldoPortada(a.nombre, a.areaTecsup, a.categoriaId)) {
+    RespaldoPortada.DEPORTES -> R.drawable.vynk_futbol
+    RespaldoPortada.QUIMICA -> R.drawable.vynk_quimica
+    RespaldoPortada.ELECTRONICA -> R.drawable.vynk_electronica
+    RespaldoPortada.MECANICA -> R.drawable.vynk_mecanica
+    RespaldoPortada.DIGITAL -> R.drawable.vynk_digital
+    RespaldoPortada.GESTION -> R.drawable.vynk_gestion
+    RespaldoPortada.GENERAL -> R.drawable.vynk_actividades
 }
 
 @Composable
-internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit, onVerActividad: (ActividadCatalogo) -> Unit = {}, nota: String = "") {
+internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () -> Unit, onVerActividad: (ActividadCatalogo) -> Unit = {}, nota: String = "",
+                               onVerUbicacion: ((ActividadCatalogo) -> Unit)? = null) {
     var consultando by remember(a.id) { mutableStateOf(true) }
     var similares by remember(a.id) { mutableStateOf<List<ActividadCatalogo>>(emptyList()) }
     var similaresError by remember(a.id) { mutableStateOf("") }
@@ -304,6 +316,11 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
                 Text(a.descripcion, color = Color(0xFF49627D))
                 Text("Fecha: ${a.fecha} · ${a.horaInicio}", fontWeight = FontWeight.SemiBold)
                 Text("Lugar: ${a.ubicacion.ifBlank { "Por confirmar" }}")
+                if (a.ubicacionReferencia.isNotBlank()) Text("Cómo llegar: ${a.ubicacionReferencia}", color = Color(0xFF49627D))
+                if (onVerUbicacion != null) TextButton(onClick = { onVerUbicacion(a) }) {
+                    Icon(Icons.Filled.Place, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Text("  Ver ubicación")
+                }
                 Text("Encargado: ${a.organizador.ifBlank { "Tecsup" }}")
                 if (a.areaTecsup.isNotBlank()) Text("Área: ${a.areaTecsup}")
                 Text("Disponibles: ${a.cupos?.toString() ?: "Por confirmar"} ${if (esEquipos) "equipos" else "cupos"}")
@@ -349,6 +366,7 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
                                 else InscripcionApi.inscribir(token, a.id, if (esEquipos) nombreEquipo else "")
                             codigoPrivado = r.optString("codigoEquipo")
                             inscrito = !inscrito
+                            CambiosAgenda.avisar() // la agenda y la programación se actualizan solas
                         } catch (e: Exception) { error = e.message.orEmpty() }
                         finally { procesando = false }
                     }

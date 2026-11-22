@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pe.tecsup.vynk.service.ActividadesSimilaresService;
+import pe.tecsup.vynk.service.UbicacionesActividadesService;
 
 /** Catálogo del estudiante: incluye detalle individual y recomendaciones US-22. */
 @RestController
@@ -34,7 +35,7 @@ public class CatalogoController {
     @GetMapping
     public Map<String, Object> listar() {
         List<Document> docs = mongo.find(new Query(Criteria.where("estado").is("programada")), Document.class, "actividades");
-        Map<String, String> ubicaciones = ubicaciones();
+        Map<String, Document> ubicaciones = ubicaciones();
         List<Map<String, Object>> actividades = new ArrayList<>();
         Map<String, String> categorias = nombresDeCategorias();
         for (Document doc : docs) {
@@ -57,7 +58,7 @@ public class CatalogoController {
     @GetMapping("/{id}/similares")
     public Map<String, Object> similares(@PathVariable String id) {
         Document origen = buscarVisible(id);
-        Map<String, String> ubicaciones = ubicaciones();
+        Map<String, Document> ubicaciones = ubicaciones();
         List<Map<String, Object>> lista = new ArrayList<>();
         for (Document doc : similares.buscar(origen, 4)) lista.add(mapearActividad(doc, ubicaciones));
         return Map.of("actividadId", id, "total", lista.size(), "actividades", lista);
@@ -74,14 +75,45 @@ public class CatalogoController {
         return doc;
     }
 
-    private Map<String, String> ubicaciones() {
-        Map<String, String> nombres = new HashMap<>();
-        for (Document u : mongo.find(new Query(), Document.class, "ubicaciones"))
-            nombres.put(String.valueOf(u.get("_id")), String.valueOf(u.getOrDefault("nombre", "")));
-        return nombres;
+    private Map<String, Document> ubicaciones() {
+        Map<String, Document> lugares = new HashMap<>();
+        for (Document u : mongo.find(new Query(), Document.class, "ubicaciones")) lugares.put(String.valueOf(u.get("_id")), u);
+        return lugares;
     }
 
-    private Map<String, Object> mapearActividad(Document doc, Map<String, String> ubicaciones) {
+    /** US-70: todas las actividades publicadas de un día (programadas, finalizadas y canceladas), por hora de inicio. */
+    public List<Map<String, Object>> delDia(String fecha) {
+        List<Document> docs = mongo.find(new Query(Criteria.where("fecha").is(fecha)
+                .and("estado").in(ESTADOS_PROGRAMACION)), Document.class, "actividades");
+        Map<String, Document> lugares = ubicaciones();
+        Map<String, String> categorias = nombresDeCategorias();
+        List<Map<String, Object>> actividades = new ArrayList<>();
+        for (Document doc : docs) {
+            Map<String, Object> a = mapearActividad(doc, lugares);
+            Object nombre = categorias.get(String.valueOf(doc.get("categoriaId")));
+            if (nombre != null) a.put("categoria", nombre);
+            actividades.add(a);
+        }
+        actividades.sort(Comparator.comparing((Map<String, Object> a) -> String.valueOf(a.getOrDefault("horaInicio", "")))
+                .thenComparing(a -> String.valueOf(a.getOrDefault("nombre", ""))));
+        return actividades;
+    }
+
+    /** US-70: fechas (yyyy-MM-dd) que tienen actividades publicadas, con cuántas hay en cada una. */
+    public Map<String, Integer> diasConActividades() {
+        Query consulta = new Query(Criteria.where("estado").in(ESTADOS_PROGRAMACION));
+        consulta.fields().include("fecha");
+        Map<String, Integer> dias = new java.util.TreeMap<>();
+        for (Document d : mongo.find(consulta, Document.class, "actividades")) {
+            Object fecha = d.get("fecha");
+            if (fecha instanceof String f && f.matches("\\d{4}-\\d{2}-\\d{2}")) dias.merge(f, 1, Integer::sum);
+        }
+        return dias;
+    }
+
+    private static final List<String> ESTADOS_PROGRAMACION = List.of("programada", "finalizada", "cancelada");
+
+    private Map<String, Object> mapearActividad(Document doc, Map<String, Document> ubicaciones) {
         Map<String, Object> a = new LinkedHashMap<>();
         a.put("id", String.valueOf(doc.get("_id")));
         for (String campo : List.of("nombre", "descripcion", "areaTecsup", "fecha", "horaInicio", "horaFin",
@@ -106,7 +138,11 @@ public class CatalogoController {
         int inscritos = (int) a.get("participantesInscritos");
         a.put("cuposDisponibles", max instanceof Number n ? Math.max(0, n.intValue() - inscritos) : null);
         a.put("unidadCupo", "competencia".equals(doc.get("tipoActividad")) && "equipos".equals(doc.get("modalidad")) ? "equipos" : "estudiantes");
-        a.put("ubicacion", ubicaciones.getOrDefault(String.valueOf(doc.get("ubicacionId")), "Ubicación por confirmar"));
+        // US-71: el nombre del lugar y su ficha (sede, pabellón, aula, referencia; coordenadas solo si existen).
+        Map<String, Object> ficha = UbicacionesActividadesService.ficha(ubicaciones.get(String.valueOf(doc.get("ubicacionId"))));
+        a.put("ubicacion", ficha.get("lugar"));
+        a.put("ubicacionReferencia", ficha.get("referencia"));
+        a.put("ubicacionDetalle", ficha);
         Object org = doc.get("organizador");
         a.put("organizador", org instanceof Map<?, ?> m ? String.valueOf(m.get("nombre") == null ? "" : m.get("nombre")) : org == null ? "" : String.valueOf(org));
         return a;

@@ -6,11 +6,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
+/**
+ * US-70 T07: inscripción individual (y por equipos) desde el detalle móvil.
+ *
+ *  GET    /api/actividades/{id}/mi-inscripcion   -> { inscrito, detalle?, capitan? }
+ *  POST   /api/actividades/{id}/inscripcion      { nombreEquipo }   -> datos de la inscripción
+ *  POST   /api/actividades/{id}/unirse-equipo    { codigoEquipo }
+ *  DELETE /api/actividades/{id}/inscripcion      -> { inscrito: false }
+ */
 object InscripcionApi {
+    /** Dirección del backend; las pruebas de contrato la apuntan a un servidor local. */
+    internal var direccion: String = Servidor.DIRECCION
+
     private suspend fun pedir(token: String, id: String, sufijo: String,
         metodo: String = "GET", contenido: JSONObject? = null): JSONObject = withContext(Dispatchers.IO) {
         require(id.matches(Regex("[a-zA-Z0-9_-]{1,100}"))) { "Identificador de actividad inválido" }
-        val url = URL(Servidor.DIRECCION.trimEnd('/') + "/api/actividades/" + id + sufijo)
+        val url = URL(direccion.trimEnd('/') + "/api/actividades/" + id + sufijo)
         val conn = url.openConnection() as HttpURLConnection
         try {
             conn.requestMethod = metodo; conn.connectTimeout = 8000; conn.readTimeout = 14000

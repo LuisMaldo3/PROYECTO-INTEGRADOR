@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.QuestionAnswer
@@ -68,7 +69,8 @@ fun InicioScreen(
     onRecomendaciones: () -> Unit = {},
     onAgenda: () -> Unit = {},
     onAsistente: () -> Unit = {},
-    onResultados: () -> Unit = {}
+    onResultados: () -> Unit = {},
+    onProgramacion: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val sesion = remember(context) { AuthRepository(context).currentSession() }
@@ -141,6 +143,9 @@ fun InicioScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Acceso("Mi agenda", Icons.Default.Event, colorArea("Química").fuerte, Modifier.weight(1f), onAgenda)
                 Acceso("Asistente", Icons.Default.QuestionAnswer, colorArea("Digital").fuerte, Modifier.weight(1f), onAsistente)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Acceso("Programación del día", Icons.Default.CalendarMonth, colorArea("Electricidad").fuerte, Modifier.weight(1f), onProgramacion)
             }
         }
         Spacer(Modifier.height(4.dp))

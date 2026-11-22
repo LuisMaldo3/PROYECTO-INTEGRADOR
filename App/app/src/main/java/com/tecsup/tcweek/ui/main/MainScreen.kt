@@ -67,6 +67,8 @@ private const val RUTA_RECOMENDACIONES = "recomendaciones"
 private const val RUTA_CLASIFICACION = "clasificacion"
 private const val RUTA_AGENDA_SUGERIDA = "agenda-sugerida"
 private const val RUTA_HORAS_LIBRES = "horas-libres"
+private const val RUTA_PROGRAMACION = "programacion"
+private const val RUTA_UBICACION = "ubicacion/{actividadId}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,12 +182,30 @@ fun MainScreen(onLogout: () -> Unit) {
                     onRecomendaciones = { navMenu.navigate(RUTA_RECOMENDACIONES) { launchSingleTop = true } },
                     onAgenda = { navMenu.navigate(Destino.AGENDA.ruta) { launchSingleTop = true } },
                     onAsistente = { navMenu.navigate(Destino.ASISTENTE.ruta) { launchSingleTop = true } },
-                    onResultados = { navMenu.navigate(RUTA_CLASIFICACION) { launchSingleTop = true } }
+                    onResultados = { navMenu.navigate(RUTA_CLASIFICACION) { launchSingleTop = true } },
+                    onProgramacion = { navMenu.navigate(RUTA_PROGRAMACION) { launchSingleTop = true } }
                 )
             }
 
             composable(Destino.CATALOGO.ruta) {
-                CatalogoScreen()
+                CatalogoScreen(
+                    onProgramacion = { navMenu.navigate(RUTA_PROGRAMACION) { launchSingleTop = true } },
+                    onVerUbicacion = { navMenu.navigate("ubicacion/${it.id}") }
+                )
+            }
+
+            // US-70: programación completa del día.
+            composable(RUTA_PROGRAMACION) {
+                ProgramacionScreen(
+                    onVolver = { navMenu.popBackStack() },
+                    onVerUbicacion = { navMenu.navigate("ubicacion/${it.id}") }
+                )
+            }
+
+            // US-71: dónde es una actividad.
+            composable(RUTA_UBICACION) { entrada ->
+                val actividadId = entrada.arguments?.getString("actividadId").orEmpty()
+                UbicacionScreen(actividadId = actividadId, onVolver = { navMenu.popBackStack() })
             }
             composable(RUTA_CLASIFICACION) {
                 ClasificacionScreen(onVolver = { navMenu.popBackStack() })
@@ -279,7 +299,8 @@ private fun BarraInferior(
                         (
                                 destino == Destino.PERFIL &&
                                         rutaActual == RUTA_INTERESES
-                                ) || (destino == Destino.AGENDA && (rutaActual == RUTA_AGENDA_SUGERIDA || rutaActual == RUTA_HORAS_LIBRES)),
+                                ) || (destino == Destino.AGENDA && (rutaActual == RUTA_AGENDA_SUGERIDA || rutaActual == RUTA_HORAS_LIBRES))
+                        || (destino == Destino.CATALOGO && (rutaActual == RUTA_PROGRAMACION || rutaActual == RUTA_UBICACION)),
                 onClick = {
                     onIr(destino)
                 },

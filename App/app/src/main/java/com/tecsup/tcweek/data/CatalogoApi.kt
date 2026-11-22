@@ -27,7 +27,11 @@ data class ActividadCatalogo(
     val reglas: String = "",
     val areaTecsup: String = "",
     val ubicacion: String = "",
-    val estado: String = "programada"
+    val estado: String = "programada",
+    /** US-71: cómo llegar al lugar (por ejemplo «Frente a la biblioteca, 2.º piso»), si se cargó. */
+    val ubicacionReferencia: String = "",
+    /** US-71: ficha completa del lugar para la pantalla de ubicación. */
+    val ubicacionDetalle: UbicacionActividad = UbicacionActividad()
 )
 
 object CatalogoApi {
@@ -95,7 +99,11 @@ object CatalogoApi {
             reglas = a.optString("reglasCompetencia").takeUnless { it == "null" }.orEmpty(),
             areaTecsup = a.optString("areaTecsup").takeUnless { it == "null" }.orEmpty(),
             ubicacion = a.optString("ubicacion").takeUnless { it == "null" }.orEmpty(),
-            estado = a.optString("estado", "programada")
+            estado = a.optString("estado", "programada"),
+            ubicacionReferencia = a.optString("ubicacionReferencia").takeUnless { it == "null" }.orEmpty(),
+            ubicacionDetalle = UbicacionActividad.leer(
+                a.optJSONObject("ubicacionDetalle"), a.optString("ubicacion").takeUnless { it == "null" }.orEmpty()
+            )
         )
     }
 }
