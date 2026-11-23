@@ -97,6 +97,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.AutoAwesome
+import com.tecsup.tcweek.ui.theme.VynkSky
+import com.tecsup.tcweek.ui.theme.VynkBlue
+import com.tecsup.tcweek.data.PreferenciaOrdenCatalogo
+import com.tecsup.tcweek.data.ResultadoCatalogo
+import com.tecsup.tcweek.data.seccionesCatalogo
 
 /** Catálogo: las actividades publicadas, agrupadas por día. */
 @Composable
@@ -113,17 +123,22 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
     var franjaId by rememberSaveable { mutableStateOf("") }
     var categoriaId by rememberSaveable { mutableStateOf("") }
     var areaId by rememberSaveable { mutableStateOf("") }
-    val filtros = FiltrosCatalogo(Franja.de(franjaId), categoriaId, areaId)
+    // US-80 T2: «Para ti primero» o «Por fecha», recordado entre aperturas.
+    val preferenciaOrden = remember(context) { PreferenciaOrdenCatalogo(context) }
+    var porFecha by rememberSaveable { mutableStateOf(preferenciaOrden.porFecha) }
+    val filtros = FiltrosCatalogo(Franja.de(franjaId), categoriaId, areaId, porFecha)
     var opciones by remember { mutableStateOf(OpcionesFiltro()) }
+    var resultado by remember { mutableStateOf(ResultadoCatalogo(emptyList(), OpcionesFiltro())) }
 
     // US-73 T03: cada cambio de filtro pide al servidor la lista filtrada; el pedido anterior se cancela solo.
     LaunchedEffect(token, recarga, filtros) {
         cargando = true
         error = null
         try {
-            val resultado = CatalogoApi.buscar(token, filtros)
-            actividades = resultado.actividades
-            opciones = resultado.opciones
+            val nuevo = CatalogoApi.buscar(token, filtros)
+            resultado = nuevo
+            actividades = nuevo.actividades
+            opciones = nuevo.opciones
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -133,7 +148,8 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
         }
     }
 
-    val grupos = remember(actividades) { agruparPorDia(actividades, { it.fecha }, { it.horaInicio }) }
+    val secciones = remember(resultado) { seccionesCatalogo(resultado) }
+    val grupos = remember(secciones) { agruparPorDia(secciones.resto, { it.fecha }, { it.horaInicio }) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF2F5F9))) {
         Row(
@@ -167,6 +183,11 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
             categoriaId = nuevo.categoria
             areaId = nuevo.area
         }
+        // Solo tiene sentido elegir el orden si hay intereses guardados.
+        if (resultado.intereses.isNotEmpty() || porFecha) SelectorOrden(porFecha) { valor ->
+            porFecha = valor
+            preferenciaOrden.porFecha = valor
+        }
 
         when {
             cargando -> EsqueletoTarjetas(3)
@@ -198,6 +219,17 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // US-80 T3: primero lo que te interesa.
+                if (secciones.paraTi.isNotEmpty()) {
+                    item(key = "para-ti") { EncabezadoParaTi(secciones.paraTi.size, resultado.intereses) }
+                    itemsIndexed(secciones.paraTi, key = { _, a -> "pt-" + a.id }) { i, actividad ->
+                        Box(Modifier.aparecer(i)) { TarjetaActividad(actividad) { seleccionada = actividad } }
+                    }
+                    if (secciones.resto.isNotEmpty()) item(key = "mas") {
+                        Text("Más actividades", style = MaterialTheme.typography.titleMedium, color = VynkNavy,
+                            modifier = Modifier.padding(top = 10.dp))
+                    }
+                }
                 grupos.forEach { grupo ->
                     item(key = "dia-${grupo.fecha}") {
                         EncabezadoDia(nombreDia(grupo.fecha), cantidad(grupo.items.size, "actividad", "actividades"))
@@ -211,6 +243,54 @@ fun CatalogoScreen(onProgramacion: () -> Unit = {}, onVerUbicacion: (ActividadCa
         if (seleccionada != null) {
             DialogoActividad(seleccionada!!, token, alCerrar = { seleccionada = null; recarga++ }, onVerActividad = { seleccionada = it },
                 onVerUbicacion = { seleccionada = null; onVerUbicacion(it) })
+        }
+    }
+}
+
+/** US-80 T3: marca «Para ti» sobre la portada. */
+@Composable
+fun InsigniaParaTi(modifier: Modifier = Modifier) {
+    Row(
+        modifier.clip(RoundedCornerShape(50)).background(Brush.horizontalGradient(listOf(VynkSky, VynkBlue)))
+            .padding(horizontal = 10.dp, vertical = 5.dp).semantics { contentDescription = "Para ti" },
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+        Text("Para ti", color = Color.White, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun EncabezadoParaTi(total: Int, intereses: List<String>) {
+    Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.size(34.dp).clip(RoundedCornerShape(11.dp)).background(Brush.linearGradient(listOf(VynkSky, VynkBlue))),
+            contentAlignment = Alignment.Center) {
+            Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text("Para ti · " + cantidad(total, "actividad", "actividades"), style = MaterialTheme.typography.titleMedium, color = VynkNavy)
+            if (intereses.isNotEmpty()) Text("Según tus intereses: " + intereses.take(4).joinToString(", "),
+                style = MaterialTheme.typography.bodySmall, color = VynkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** US-80 T2: elegir el orden del catálogo. */
+@Composable
+private fun SelectorOrden(porFecha: Boolean, onCambiar: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Orden", style = MaterialTheme.typography.labelMedium, color = VynkMuted)
+        listOf(false to "Para ti primero", true to "Por fecha").forEach { (valor, texto) ->
+            val activo = porFecha == valor
+            Text(texto, style = MaterialTheme.typography.labelLarge,
+                color = if (activo) Color.White else VynkNavy,
+                modifier = Modifier.clip(RoundedCornerShape(50))
+                    .background(if (activo) VynkNavy else Color.White)
+                    .border(1.dp, if (activo) VynkNavy else VynkLine, RoundedCornerShape(50))
+                    .presionable { onCambiar(valor) }
+                    .padding(horizontal = 12.dp, vertical = 7.dp))
         }
     }
 }
@@ -236,6 +316,7 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
             // Velo inferior para que la hora se lea sobre cualquier portada.
             Box(Modifier.matchParentSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to Color(0xCC0B2A5B))))
             if (a.tipoActividad == "competencia") Pildora("Competencia", Color.White, VynkNavy, Modifier.padding(10.dp))
+            if (a.paraTi) InsigniaParaTi(Modifier.align(Alignment.TopEnd).padding(10.dp))
             Pildora(rangoHoras(a.horaInicio, a.horaFin), Color.White.copy(alpha = 0.92f), VynkNavy,
                 Modifier.align(Alignment.BottomStart).padding(10.dp))
         }
@@ -251,6 +332,11 @@ private fun TarjetaActividad(a: ActividadCatalogo, onClick: () -> Unit) {
                 Text(cupos.texto, style = MaterialTheme.typography.labelMedium, color = cupos.tono.color())
             }
             Text(a.nombre, style = MaterialTheme.typography.titleMedium, color = VynkNavy)
+            if (a.paraTi && a.motivoParaTi.isNotBlank()) Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = VynkSky, modifier = Modifier.size(14.dp))
+                Text(a.motivoParaTi, style = MaterialTheme.typography.labelMedium, color = VynkBlue)
+            }
             if (descripcion != null) Text(descripcion, style = MaterialTheme.typography.bodySmall, color = VynkMuted,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             HorizontalDivider(color = VynkLine, modifier = Modifier.padding(vertical = 2.dp))

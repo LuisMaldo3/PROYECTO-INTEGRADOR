@@ -31,7 +31,10 @@ data class ActividadCatalogo(
     /** US-71: cómo llegar al lugar (por ejemplo «Frente a la biblioteca, 2.º piso»), si se cargó. */
     val ubicacionReferencia: String = "",
     /** US-71: ficha completa del lugar para la pantalla de ubicación. */
-    val ubicacionDetalle: UbicacionActividad = UbicacionActividad()
+    val ubicacionDetalle: UbicacionActividad = UbicacionActividad(),
+    /** US-80: coincide con los intereses del estudiante, y por qué («Te interesa: deportes»). */
+    val paraTi: Boolean = false,
+    val motivoParaTi: String = ""
 )
 
 object CatalogoApi {
@@ -46,7 +49,10 @@ object CatalogoApi {
         val json = obtener(token, "/api/catalogo" + filtros.consulta())
         val lista = json.optJSONArray("actividades")
         val actividades = if (lista == null) emptyList() else (0 until lista.length()).map { parsear(lista.getJSONObject(it)) }
-        return ResultadoCatalogo(actividades, leerOpcionesFiltro(json.optJSONObject("filtros")))
+        val intereses = json.optJSONArray("intereses")
+        return ResultadoCatalogo(actividades, leerOpcionesFiltro(json.optJSONObject("filtros")),
+            orden = json.optString("orden", "fecha"), paraTi = json.optInt("paraTi", 0),
+            intereses = (0 until (intereses?.length() ?: 0)).map { intereses!!.optString(it) }.filter { it.isNotBlank() })
     }
 
     /** US-22: abre incluso un evento finalizado que ya salió del catálogo de inscripciones. */
@@ -115,7 +121,9 @@ object CatalogoApi {
             ubicacionReferencia = a.optString("ubicacionReferencia").takeUnless { it == "null" }.orEmpty(),
             ubicacionDetalle = UbicacionActividad.leer(
                 a.optJSONObject("ubicacionDetalle"), a.optString("ubicacion").takeUnless { it == "null" }.orEmpty()
-            )
+            ),
+            paraTi = a.optBoolean("paraTi", false),
+            motivoParaTi = (if (a.isNull("motivoParaTi")) "" else a.optString("motivoParaTi"))
         )
     }
 }

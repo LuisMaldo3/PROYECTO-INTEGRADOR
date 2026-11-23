@@ -55,7 +55,7 @@ public class AgendaController {
      * antes salían las dos (la competencia aparecía repetida). Se muestra la propia; la del equipo solo si el
      * estudiante figura en una lista antigua sin inscripción propia, y nunca la de un equipo del que ya salió.
      */
-    static java.util.LinkedHashMap<String, Inscripcion> unir(List<Inscripcion> propias, List<Inscripcion> deEquipo,
+    public static java.util.LinkedHashMap<String, Inscripcion> unir(List<Inscripcion> propias, List<Inscripcion> deEquipo,
                                                               List<String> sinEquipo) {
         var porActividad = new java.util.LinkedHashMap<String, Inscripcion>();
         for (Inscripcion i : propias)

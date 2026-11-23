@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.tecsup.vynk.service.ActividadesSimilaresService;
+import pe.tecsup.vynk.service.SugerenciasAsistenteService;
+import pe.tecsup.vynk.service.PersonalizacionCatalogo;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import pe.tecsup.vynk.service.FiltrosCatalogo;
 import pe.tecsup.vynk.service.UbicacionesActividadesService;
 
@@ -29,18 +33,30 @@ public class CatalogoController {
     private final MongoTemplate mongo;
     private final ActividadesSimilaresService similares;
 
+    private PersonalizacionCatalogo personalizacion;
+
     public CatalogoController(MongoTemplate mongo, ActividadesSimilaresService similares) {
         this.mongo = mongo;
         this.similares = similares;
+    }
+
+    /** US-80: opcional para que los servicios y pruebas que crean el catálogo a mano sigan funcionando. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPersonalizacion(PersonalizacionCatalogo personalizacion) {
+        this.personalizacion = personalizacion;
     }
 
     /**
      * US-73: GET /api/catalogo con filtros opcionales por horario (franja=manana|tarde|noche, desde/hasta=HH:mm,
      * fecha=AAAA-MM-DD), categoría (categoria=id) y área (area=una de las cinco). Sin filtros devuelve todo, como antes.
      * Además entrega «filtros» (opciones con su cantidad) y «aplicados».
+     * US-80: con sesión y con intereses elegidos, las actividades «Para ti» van primero (orden=fecha lo desactiva);
+     * cada una trae paraTi, afinidad y motivoParaTi. La respuesta dice el «orden» usado y cuántas son «paraTi».
      */
     @GetMapping
-    public Map<String, Object> buscar(@RequestParam(required = false) String franja,
+    public Map<String, Object> buscar(@AuthenticationPrincipal Jwt jwt,
+                                      @RequestParam(required = false) String orden,
+                                      @RequestParam(required = false) String franja,
                                       @RequestParam(required = false) String desde,
                                       @RequestParam(required = false) String hasta,
                                       @RequestParam(required = false) String fecha,
@@ -49,13 +65,26 @@ public class CatalogoController {
         FiltrosCatalogo filtros = FiltrosCatalogo.desde(franja, desde, hasta, fecha, categoria, area);
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> todas = (List<Map<String, Object>>) listar().get("actividades");
-        List<Map<String, Object>> elegidas = filtros.aplicar(todas);
+        List<String> intereses = personalizacion == null || jwt == null ? List.of() : personalizacion.intereses(jwt.getSubject());
+        boolean porIntereses = !"fecha".equalsIgnoreCase(orden) && !intereses.isEmpty();
+        List<Map<String, Object>> elegidas = PersonalizacionCatalogo.ordenar(filtros.aplicar(todas), intereses, porIntereses);
         Map<String, Object> respuesta = new LinkedHashMap<>();
         respuesta.put("total", elegidas.size());
         respuesta.put("actividades", elegidas);
         respuesta.put("filtros", FiltrosCatalogo.opciones(todas));
         respuesta.put("aplicados", filtros.aplicados());
+        respuesta.put("orden", porIntereses ? "intereses" : "fecha");
+        respuesta.put("paraTi", elegidas.stream().filter(a -> Boolean.TRUE.equals(a.get("paraTi"))).count());
+        respuesta.put("intereses", intereses.stream().map(i -> {
+            String tema = SugerenciasAsistenteService.temaDeInteres(i);
+            return tema == null ? i : tema;
+        }).toList());
         return respuesta;
+    }
+
+    /** US-73: el mismo catálogo sin sesión ni orden por intereses (lo usan otros servicios y las pruebas). */
+    public Map<String, Object> buscar(String franja, String desde, String hasta, String fecha, String categoria, String area) {
+        return buscar(null, null, franja, desde, hasta, fecha, categoria, area);
     }
 
     /** Todas las actividades programadas, sin filtros. La usan otros servicios (agenda sugerida, asistente, etc.). */

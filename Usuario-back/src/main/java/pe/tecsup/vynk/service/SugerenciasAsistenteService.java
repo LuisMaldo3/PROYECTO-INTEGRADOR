@@ -76,7 +76,7 @@ public class SugerenciasAsistenteService {
     }
 
     /** «deportes» → «deportes»; «ia» → «inteligencia artificial»: el tema con el nombre que usaría el estudiante. */
-    static String temaDeInteres(String id) {
+    public static String temaDeInteres(String id) {
         if (id == null || id.isBlank()) return null;
         for (Interes i : InteresesIniciales.CATALOGO) {
             if (!i.getId().equals(id)) continue;

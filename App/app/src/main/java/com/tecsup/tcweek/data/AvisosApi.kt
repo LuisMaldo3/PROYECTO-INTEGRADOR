@@ -22,7 +22,9 @@ object AvisosApi {
             (0 until minOf(a.length(), 5)).map { i ->
                 val d = a.getJSONObject(i)
                 val portada = d.optJSONObject("portada")
-                val url = portada?.optString("url").orEmpty()
+                val archivo = portada?.optString("archivoId").orEmpty()
+                // US-81-T06: las imágenes subidas o generadas solo traen archivoId (antes no se veían).
+                val url = if (archivo.matches(Regex("[a-fA-F0-9]{24}"))) "/api/portadas/archivo/$archivo" else portada?.optString("url").orEmpty()
                 AvisoCampus(d.optString("id"), d.optString("titulo"), d.optString("mensaje"),
                     d.optString("publicadoEn"), if (url.startsWith("/api/portadas/archivo/"))
                         Servidor.DIRECCION.trimEnd('/') + url else if (url.startsWith("https://")) url else "",

@@ -108,9 +108,11 @@ internal suspend fun pedirJson(ruta: String, token: String, que: String, lectura
 object MemoriaPantallas {
     @Volatile var recomendaciones: Pair<PaqueteRecomendaciones, Marca>? = null
     @Volatile var agenda: Pair<AgendaInteligente, Marca>? = null
+    @Volatile var inicio: Pair<ResumenInicio, Marca>? = null
 
     fun olvidar() {
         recomendaciones = null
         agenda = null
+        inicio = null
     }
 }
