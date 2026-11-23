@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.School
@@ -113,6 +114,7 @@ fun AgendaInteligenteScreen(onVolver: () -> Unit) {
     var mensaje by remember { mutableStateOf<Pair<String, TipoMensaje>?>(null) }
     var detalleId by remember { mutableStateOf<String?>(null) }
     var rapida by remember { mutableStateOf<ObjetivoInscripcion?>(null) }
+    var noPuedo by remember { mutableStateOf<BloqueAgenda?>(null) }
     val agenda = carga.datos?.let { vigentes(it, ahora) }
 
     LazyColumn(
@@ -190,6 +192,7 @@ fun AgendaInteligenteScreen(onVolver: () -> Unit) {
                                     "${nombreDia(b.fecha)} · ${b.horaInicio} – ${b.horaFin}", b.ubicacion)
                                 else detalleId = b.actividadId
                             },
+                            onNoPuedo = { noPuedo = b },
                             modifier = Modifier.padding(horizontal = 16.dp).animateItem().aparecer(i + 2)
                         )
                     }
@@ -207,6 +210,12 @@ fun AgendaInteligenteScreen(onVolver: () -> Unit) {
     val token = carga.token
     if (token != null) {
         detalleId?.let { id -> ActividadDeAviso(id, token, alCerrar = { detalleId = null }) }
+        noPuedo?.let { b ->
+            HojaNoPuedoAsistir(b.actividadId, b.nombre, token, onCerrar = { noPuedo = null }, onCambiado = { texto ->
+                noPuedo = null
+                mensaje = texto to if (texto.startsWith("Listo")) TipoMensaje.OK else TipoMensaje.ERROR
+            })
+        }
         rapida?.let { objetivo ->
             DialogoInscripcionRapida(objetivo, token, onCerrar = { rapida = null }, onInscrita = { nombre ->
                 rapida = null
@@ -301,7 +310,8 @@ private fun AvisoEquipo(texto: String) {
 /** Hora a la izquierda, riel con punto en el medio y la tarjeta a la derecha. */
 @Composable
 private fun FilaLineaTiempo(
-    b: BloqueAgenda, enCurso: Boolean, onAbrir: () -> Unit, onInscribir: () -> Unit, modifier: Modifier = Modifier
+    b: BloqueAgenda, enCurso: Boolean, onAbrir: () -> Unit, onInscribir: () -> Unit, onNoPuedo: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         Column(Modifier.width(48.dp).padding(top = 14.dp), horizontalAlignment = Alignment.End) {
@@ -326,14 +336,14 @@ private fun FilaLineaTiempo(
             when {
                 b.clase -> TarjetaClase(b)
                 b.sugerida -> TarjetaSugerida(b, onAbrir, onInscribir)
-                else -> TarjetaInscrita(b, enCurso, onAbrir)
+                else -> TarjetaInscrita(b, enCurso, onAbrir, onNoPuedo)
             }
         }
     }
 }
 
 @Composable
-private fun TarjetaInscrita(b: BloqueAgenda, enCurso: Boolean, onAbrir: () -> Unit) {
+private fun TarjetaInscrita(b: BloqueAgenda, enCurso: Boolean, onAbrir: () -> Unit, onNoPuedo: () -> Unit) {
     val forma = RoundedCornerShape(18.dp)
     val acento = if (enCurso) VynkOk else VynkBlue
     Row(
@@ -355,6 +365,13 @@ private fun TarjetaInscrita(b: BloqueAgenda, enCurso: Boolean, onAbrir: () -> Un
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             Lugar(b.ubicacion)
             b.equipo?.let { ChipEquipo(it) }
+            // US-79 T2: lo que está pasando ya no tiene alternativa útil.
+            if (!enCurso && b.actividadId.isNotBlank()) Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.clip(RoundedCornerShape(50)).presionable(onClick = onNoPuedo).padding(vertical = 4.dp, horizontal = 2.dp)) {
+                Icon(Icons.Filled.EventBusy, contentDescription = null, tint = VynkWarn, modifier = Modifier.size(15.dp))
+                Text("No puedo asistir", color = VynkWarn, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium)
+            }
         }
     }
 }

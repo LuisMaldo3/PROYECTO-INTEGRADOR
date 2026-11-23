@@ -33,7 +33,10 @@ class HistorialAsistente(context: Context, correo: String) {
                         put(JSONObject().put("id", a.id).put("nombre", a.nombre)
                             .put("fecha", a.fecha).put("horaInicio", a.horaInicio)
                             .put("horaFin", a.horaFin).put("organizador", a.organizador)
-                            .put("cuposDisponibles", a.cuposDisponibles ?: JSONObject.NULL))
+                            .put("cuposDisponibles", a.cuposDisponibles ?: JSONObject.NULL)
+                            .put("ubicacion", a.ubicacion).put("estadoAhora", a.estadoAhora).put("minutos", a.minutos)
+                            .put("detalleAhora", a.detalleAhora).put("inscrito", a.inscrito)
+                            .put("cruzaCon", a.cruzaCon).put("inscripcionDirecta", a.inscripcionDirecta))
                     }
                 })
                 .put("requisitos", JSONArray().apply {

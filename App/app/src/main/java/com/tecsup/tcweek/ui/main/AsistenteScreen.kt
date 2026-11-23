@@ -113,6 +113,14 @@ import com.tecsup.tcweek.ui.theme.VynkSky
 import com.tecsup.tcweek.ui.theme.VynkSubtle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import com.tecsup.tcweek.data.PREGUNTA_AHORA
+import com.tecsup.tcweek.ui.theme.VynkWarn
+import com.tecsup.tcweek.ui.theme.VynkWarnSoft
+import com.tecsup.tcweek.ui.theme.VynkOkSoft
 
 private val AzulChat = VynkBlue
 private val MarinoChat = VynkNavy
@@ -139,6 +147,7 @@ fun AsistenteScreen() {
     // Pregunta que no se pudo enviar: se muestra con «Reintentar».
     var fallida by remember { mutableStateOf<Pair<String, String>?>(null) }
     var aviso by remember { mutableStateOf<String?>(null) }
+    var detalleId by remember { mutableStateOf<String?>(null) }
     val lista = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val ocupado = escribiendo || sincronizando || reiniciando
@@ -240,7 +249,7 @@ fun AsistenteScreen() {
                 }
             }
             itemsIndexed(mensajes, key = { i, m -> "$i-${m.rol}-${m.contenido.hashCode()}" }) { _, mensaje ->
-                Box(Modifier.aparecer(desplazamiento = 14.dp)) { BurbujaAsistente(mensaje) }
+                Box(Modifier.aparecer(desplazamiento = 14.dp)) { BurbujaAsistente(mensaje, onAbrir = { detalleId = it }) }
             }
             if (escribiendo) item(key = "escribiendo") { Box(Modifier.aparecer()) { BurbujaEscribiendo() } }
             fallida?.let { (pregunta, motivo) ->
@@ -262,6 +271,8 @@ fun AsistenteScreen() {
             Text(it, color = VynkError, style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.fillMaxWidth().background(VynkErrorSoft).padding(horizontal = 16.dp, vertical = 8.dp))
         }
+        // US-78 T2: siempre a mano, sin escribir nada.
+        BotonQueHayAhora(habilitado = !ocupado, onClick = { enviar(PREGUNTA_AHORA) })
         BarraEscribir(
             texto = borrador,
             onCambiar = { if (it.length <= LARGO_MAXIMO_PREGUNTA) { borrador = it; aviso = null } },
@@ -269,6 +280,26 @@ fun AsistenteScreen() {
             puedeEnviar = !ocupado && borrador.isNotBlank(),
             onEnviar = { enviar(borrador) }
         )
+    }
+    detalleId?.let { id -> if (token.isNotBlank()) ActividadDeAviso(id, token, alCerrar = { detalleId = null }) }
+}
+
+/** US-78 T2: botón «¿Qué hay ahora?» encima de la barra para escribir. */
+@Composable
+private fun BotonQueHayAhora(habilitado: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().background(VynkBackground).padding(start = 12.dp, end = 12.dp, top = 6.dp)) {
+        Row(
+            Modifier.sombraSuave(RoundedCornerShape(50), 5.dp).clip(RoundedCornerShape(50))
+                .background(if (habilitado) DegradadoVynk else SolidColor(VynkLine))
+                .presionable(enabled = habilitado, onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .semantics { contentDescription = "Qué hay ahora: buscar actividades de este momento" },
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (habilitado) PuntoVivo(VynkSky) else Box(Modifier.size(7.dp).background(VynkSubtle, CircleShape))
+            Icon(Icons.Filled.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(17.dp))
+            Text(PREGUNTA_AHORA, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+        }
     }
 }
 
@@ -306,6 +337,7 @@ private fun Bienvenida(sugerencias: List<String>, habilitado: Boolean, onElegir:
             BurbujaAsistente(MensajeAsistente("asistente",
                 "¡Hola! Soy el asistente de VYNK. Pregúntame dónde es una actividad, a qué hora empieza, si quedan cupos o qué requisitos tiene."))
         }
+        Box(Modifier.padding(start = 46.dp).aparecer(1)) { TarjetaQueHayAhora(habilitado) { onElegir(PREGUNTA_AHORA) } }
         Text("Prueba con una de estas", color = VynkMuted, style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(start = 46.dp).aparecer(1))
         sugerencias.forEachIndexed { i, s ->
@@ -319,6 +351,28 @@ private fun Bienvenida(sugerencias: List<String>, habilitado: Boolean, onElegir:
                 Text(s, color = MarinoChat, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = VynkLineStrong, modifier = Modifier.size(15.dp))
             }
+        }
+    }
+}
+
+/** Invitación grande en la bienvenida: lo más útil cuando uno está en el campus. */
+@Composable
+private fun TarjetaQueHayAhora(habilitado: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().sombraSuave(RoundedCornerShape(20.dp), 8.dp).clip(RoundedCornerShape(20.dp))
+            .presionable(enabled = habilitado, onClick = onClick)
+    ) {
+        FondoVivo(Modifier.matchParentSize())
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.Bolt, contentDescription = null, tint = VynkSky, modifier = Modifier.size(24.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text(PREGUNTA_AHORA, color = Color.White, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)
+                Text("Lo que está pasando y lo que empieza en la próxima hora", color = Color(0xFFD5E6FF),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -406,7 +460,7 @@ private fun BarraEscribir(texto: String, onCambiar: (String) -> Unit, habilitado
 }
 
 @Composable
-private fun BurbujaAsistente(mensaje: MensajeAsistente) {
+private fun BurbujaAsistente(mensaje: MensajeAsistente, onAbrir: (String) -> Unit = {}) {
     val esUsuario = mensaje.rol == "usuario"
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (esUsuario) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom) {
@@ -428,7 +482,10 @@ private fun BurbujaAsistente(mensaje: MensajeAsistente) {
             }
             if (!esUsuario && esConsultaDeActividades(mensaje.tipoConsulta) && mensaje.actividades.isNotEmpty()) {
                 Column(Modifier.fillMaxWidth().padding(top = 9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    mensaje.actividades.take(7).forEach { actividad -> TarjetaActividadMomento(actividad) }
+                    mensaje.actividades.take(7).forEachIndexed { i, actividad ->
+                        if (mensaje.tipoConsulta == "ahora") TarjetaAhora(actividad, Modifier.aparecer(i), onAbrir)
+                        else TarjetaActividadMomento(actividad)
+                    }
                 }
             }
             if (!esUsuario && mensaje.tipoConsulta == "requisitos" && mensaje.requisitos.isNotEmpty()) {
@@ -507,6 +564,53 @@ private fun TarjetaActividadMomento(actividad: ActividadMomentoAsistente) {
     }
 }
 
+
+/**
+ * US-78 T3: actividad de este momento. Verde si está en curso, azul si empieza pronto; dice si ya estás inscrito o
+ * si se cruza con algo tuyo. Al tocarla se abre el detalle (con inscripción).
+ */
+@Composable
+private fun TarjetaAhora(a: ActividadMomentoAsistente, modifier: Modifier = Modifier, onAbrir: (String) -> Unit) {
+    val color = if (a.enCurso) VynkOk else AzulChat
+    val forma = RoundedCornerShape(18.dp)
+    Row(
+        modifier.fillMaxWidth().height(IntrinsicSize.Min).sombraSuave(forma, 5.dp).clip(forma).background(Color.White)
+            .presionable(enabled = a.id.isNotBlank()) { onAbrir(a.id) }
+            .semantics { contentDescription = "${a.nombre}. ${a.etiquetaAhora()}" }
+    ) {
+        Box(Modifier.width(5.dp).fillMaxHeight().background(color))
+        Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (a.enCurso) PuntoVivo(VynkOk) else Icon(Icons.Filled.Schedule, null, tint = color, modifier = Modifier.size(14.dp))
+                Text(a.etiquetaAhora(), color = color, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.labelMedium)
+            }
+            Text(a.nombre, color = MarinoChat, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleSmall)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Icon(Icons.Filled.Schedule, null, tint = VynkMuted, modifier = Modifier.size(14.dp))
+                Text("${a.horaInicio} – ${a.horaFin}", color = VynkMuted, style = MaterialTheme.typography.bodySmall)
+                if (a.ubicacion.isNotBlank()) {
+                    Icon(Icons.Filled.Place, null, tint = VynkMuted, modifier = Modifier.size(14.dp).padding(start = 2.dp))
+                    Text(a.ubicacion, color = VynkMuted, style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                }
+            }
+            when {
+                a.inscrito -> Etiqueta("Ya estás inscrito", VynkOk, VynkOkSoft)
+                a.cruzaCon.isNotBlank() -> Etiqueta("Se cruza con «${a.cruzaCon}»", VynkWarn, VynkWarnSoft)
+                a.cuposDisponibles != null && a.cuposDisponibles <= 5 -> Etiqueta(
+                    if (a.cuposDisponibles == 1) "Queda 1 cupo" else "Quedan ${a.cuposDisponibles} cupos", VynkWarn, VynkWarnSoft)
+            }
+        }
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = VynkLineStrong,
+            modifier = Modifier.align(Alignment.CenterVertically).padding(end = 8.dp))
+    }
+}
+
+@Composable
+private fun Etiqueta(texto: String, color: Color, fondo: Color) {
+    Text(texto, color = color, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.clip(RoundedCornerShape(50)).background(fondo).padding(horizontal = 10.dp, vertical = 4.dp))
+}
 
 /** Tarjeta de requisitos sin suponer condiciones no registradas por administración. */
 @Composable

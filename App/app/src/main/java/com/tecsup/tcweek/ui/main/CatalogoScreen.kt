@@ -326,6 +326,9 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
     var procesando by remember(a.id) { mutableStateOf(false) }
     var error by remember(a.id) { mutableStateOf("") }
     var codigoPrivado by remember(a.id) { mutableStateOf("") }
+    // US-79: «No puedo asistir» abre las alternativas; tras cambiarse se muestra el resultado aquí.
+    var noPuedo by remember(a.id) { mutableStateOf(false) }
+    var resultadoCambio by remember(a.id) { mutableStateOf("") }
     var nombreEquipo by remember(a.id) { mutableStateOf("") }
     var modoEquipo by remember(a.id) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -390,6 +393,8 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
                 if (inscrito && capitan && esEquipos)
                     Text("Atención: cancelar como capitán retirará a tu equipo completo de esta competencia.",
                         color = Color(0xFF954B1B), fontWeight = FontWeight.Bold)
+                if (inscrito && !finalizada && !consultando) BotonNoPuedoAsistir(onClick = { noPuedo = true })
+                if (resultadoCambio.isNotBlank()) Text(resultadoCambio, color = Color(0xFF12805C), fontWeight = FontWeight.SemiBold)
                 if (codigoPrivado.isNotBlank()) Text("Código del equipo: $codigoPrivado · Compártelo con tus integrantes.",
                     color = Color(0xFF0F5D9B), fontWeight = FontWeight.Bold)
                 if (error.isNotBlank()) Text(error, color = Color(0xFFB92F39))
@@ -417,4 +422,10 @@ internal fun DialogoActividad(a: ActividadCatalogo, token: String, alCerrar: () 
         dismissButton = { TextButton(onClick = alCerrar) { Text("Cerrar") } },
         containerColor = Color.White, shape = RoundedCornerShape(19.dp)
     )
+    if (noPuedo) HojaNoPuedoAsistir(a.id, a.nombre, token, onCerrar = { noPuedo = false }, onCambiado = { mensaje ->
+        noPuedo = false
+        resultadoCambio = mensaje
+        // Si la cancelación falló, el estado real se vuelve a consultar al abrir de nuevo el detalle.
+        if (mensaje.startsWith("Listo")) inscrito = false
+    })
 }

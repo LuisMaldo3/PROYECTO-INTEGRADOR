@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import pe.tecsup.vynk.model.ConversacionAsistente;
+import pe.tecsup.vynk.service.ActividadesAhoraService;
 import pe.tecsup.vynk.service.AsistenteHorariosService;
 import pe.tecsup.vynk.service.ConversacionesAsistenteService;
 
@@ -21,10 +22,13 @@ import pe.tecsup.vynk.service.ConversacionesAsistenteService;
 public class AsistenteController {
     private final AsistenteHorariosService servicio;
     private final ConversacionesAsistenteService conversaciones;
+    private final ActividadesAhoraService ahora;
 
-    public AsistenteController(AsistenteHorariosService servicio, ConversacionesAsistenteService conversaciones) {
+    public AsistenteController(AsistenteHorariosService servicio, ConversacionesAsistenteService conversaciones,
+                               ActividadesAhoraService ahora) {
         this.servicio = servicio;
         this.conversaciones = conversaciones;
+        this.ahora = ahora;
     }
 
     /** El historial legado del cliente ya no se usa: evita suplantar mensajes anteriores. */
@@ -57,7 +61,10 @@ public class AsistenteController {
         var previos = conversacion.getMensajes();
         var contexto = previos.stream().skip(Math.max(0, previos.size() - 10))
                 .map(m -> new AsistenteHorariosService.Mensaje(m.rol(), m.contenido())).toList();
-        var respuesta = servicio.responder(peticion.mensaje().trim(), contexto, previos);
+        // US-78: «¿Qué hay ahora?» usa la hora real y la agenda del estudiante (inscrito o con cruce).
+        var respuesta = ActividadesAhoraService.esPreguntaAhora(peticion.mensaje())
+                ? ahora.responder(id, java.time.Instant.now())
+                : servicio.responder(peticion.mensaje().trim(), contexto, previos);
         boolean guardado = conversaciones.guardarIntercambio(id, conversacion.getRevision(),
                 ConversacionAsistente.Mensaje.usuario(peticion.mensaje().trim()),
                 ConversacionAsistente.Mensaje.asistente(respuesta));

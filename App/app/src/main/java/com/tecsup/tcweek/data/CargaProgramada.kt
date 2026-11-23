@@ -81,12 +81,13 @@ internal suspend fun pedirJson(ruta: String, token: String, que: String, lectura
             val codigo = conn.responseCode
             if (codigo !in 200..299) {
                 val detalle = runCatching {
-                    JSONObject(conn.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()).optString("mensaje")
+                    val cuerpo = JSONObject(conn.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty())
+                    cuerpo.optString("mensaje").ifBlank { cuerpo.optString("message") }
                 }.getOrDefault("")
                 throw ErrorCarga(codigo, when (codigo) {
                     401 -> "Tu sesión expiró. Vuelve a iniciar sesión."
                     403 -> "Tu cuenta no tiene acceso a $que."
-                    404 -> "El servidor todavía no tiene $que. Actualiza Spring Boot."
+                    404 -> detalle.ifBlank { "El servidor todavía no tiene $que. Actualiza Spring Boot." }
                     503 -> "El servidor no pudo conectarse con la base de datos."
                     else -> detalle.ifBlank { "No se pudo cargar $que (HTTP $codigo)." }
                 })

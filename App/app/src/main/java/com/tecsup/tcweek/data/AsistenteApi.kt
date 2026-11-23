@@ -175,7 +175,14 @@ internal fun leerActividadesMomento(array: JSONArray?): List<ActividadMomentoAsi
             id = dato.optString("id").take(100), nombre = dato.optString("nombre").take(220),
             fecha = dato.optString("fecha").take(35), horaInicio = dato.optString("horaInicio").take(16),
             horaFin = dato.optString("horaFin").take(16), organizador = dato.optString("organizador").take(150),
-            cuposDisponibles = cupos
+            cuposDisponibles = cupos,
+            ubicacion = dato.optString("ubicacion").takeUnless { it == "null" }.orEmpty().take(150),
+            estadoAhora = dato.optString("estadoAhora").takeUnless { it == "null" }.orEmpty(),
+            minutos = dato.optInt("minutos", 0).coerceAtLeast(0),
+            detalleAhora = dato.optString("detalleAhora").takeUnless { it == "null" }.orEmpty().take(120),
+            inscrito = dato.optBoolean("inscrito", false),
+            cruzaCon = (if (dato.isNull("cruzaCon")) "" else dato.optString("cruzaCon")).take(150),
+            inscripcionDirecta = dato.optBoolean("inscripcionDirecta", false)
         ).takeIf { it.esMostrable() }
     }
 }
