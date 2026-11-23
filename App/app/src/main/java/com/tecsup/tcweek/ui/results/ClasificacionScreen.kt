@@ -1,0 +1,224 @@
+package com.tecsup.tcweek.ui.results
+
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.draw.clip
+import com.tecsup.tcweek.ui.components.CabeceraColor
+import com.tecsup.tcweek.ui.components.ChipCabecera
+import com.tecsup.tcweek.ui.components.CifraCabecera
+import com.tecsup.tcweek.ui.theme.ColorSeccion
+import com.tecsup.tcweek.ui.catalog.DialogoActividad
+import com.tecsup.tcweek.ui.catalog.ImagenPortadaCatalogo
+import com.tecsup.tcweek.ui.catalog.TorneosVista
+import com.tecsup.tcweek.ui.theme.Departamentos
+import com.tecsup.tcweek.ui.theme.VynkBlue
+import com.tecsup.tcweek.ui.theme.VynkBlueSoft
+import com.tecsup.tcweek.ui.theme.VynkLine
+import com.tecsup.tcweek.ui.theme.VynkMuted
+import com.tecsup.tcweek.ui.theme.VynkNavy
+import com.tecsup.tcweek.ui.theme.VynkSurface2
+import com.tecsup.tcweek.ui.theme.colorArea
+import com.tecsup.tcweek.ui.components.FranjaAreas
+import com.tecsup.tcweek.ui.components.Tarjeta
+import com.tecsup.tcweek.ui.theme.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.tecsup.tcweek.data.repository.AuthRepository
+import com.tecsup.tcweek.data.remote.ClasificacionApi
+import com.tecsup.tcweek.data.remote.TablaTcw
+import com.tecsup.tcweek.data.remote.ResultadosCompetenciasApi
+import com.tecsup.tcweek.data.remote.ResultadoOficial
+import com.tecsup.tcweek.data.remote.ActividadCatalogo
+import com.tecsup.tcweek.data.remote.CatalogoApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import com.tecsup.tcweek.R
+
+/** Sprint 4: clasificación de las cinco áreas desde puntajes oficiales publicados. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClasificacionScreen(onVolver: () -> Unit) {
+    val contexto = LocalContext.current
+    val token = remember { AuthRepository(contexto).currentSession()?.llave.orEmpty() }
+    var tabla by remember { mutableStateOf<TablaTcw?>(null) }
+    var error by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(true) }
+    var version by remember { mutableIntStateOf(0) }
+    var seccion by remember { mutableIntStateOf(0) }
+    var resultados by remember { mutableStateOf<List<ResultadoOficial>>(emptyList()) }
+    var errorResultados by remember { mutableStateOf("") }
+    var seleccionado by remember { mutableStateOf<ResultadoOficial?>(null) }
+    var otraActividad by remember { mutableStateOf<ActividadCatalogo?>(null) }
+    var similares by remember { mutableStateOf<List<ActividadCatalogo>>(emptyList()) }
+    var cargandoRelacionadas by remember { mutableStateOf(false) }
+    LaunchedEffect(token, version) {
+        errorResultados = ""
+        try { resultados = ResultadosCompetenciasApi.listar(token) }
+        catch (e: Exception) { errorResultados = e.message ?: "No se encontraron resultados oficiales." }
+    }
+    LaunchedEffect(seleccionado?.actividadId, token) {
+        similares = emptyList()
+        if (seleccionado != null) {
+            cargandoRelacionadas = true
+            try { similares = CatalogoApi.similares(token, seleccionado!!.actividadId) }
+            catch (_: Exception) { /* Un error en recomendaciones no oculta resultados oficiales. */ }
+            finally { cargandoRelacionadas = false }
+        }
+    }
+    LaunchedEffect(token, version) {
+        cargando = true; error = ""
+        try { tabla = ClasificacionApi.consultar(token) }
+        catch (e: Exception) { error = e.message ?: "No se pudieron cargar los puntos oficiales." }
+        finally { cargando = false }
+    }
+    Column(Modifier.fillMaxSize().background(com.tecsup.tcweek.ui.theme.VynkBackground)
+        .verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        CabeceraColor(
+            titulo = "Clasificación",
+            subtitulo = "T&C Week · resultados oficiales",
+            icono = Icons.Filled.EmojiEvents,
+            color = ColorSeccion.CLASIFICACION,
+            modifier = Modifier.clip(RoundedCornerShape(22.dp)),
+            acciones = {
+                IconButton(onClick = onVolver) { Icon(Icons.Filled.Close, contentDescription = "Volver al inicio", tint = Color.White) }
+            },
+            extra = { FranjaAreas(alto = 4) }
+        )
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            listOf("General", "T&C ARENA").forEachIndexed { i, titulo ->
+                SegmentedButton(selected = seccion == i, onClick = { seccion = i }, shape = SegmentedButtonDefaults.itemShape(i, 2),
+                    colors = SegmentedButtonDefaults.colors(activeContainerColor = VynkBlueSoft, activeContentColor = VynkNavy),
+                    icon = {}) { Text(titulo, style = MaterialTheme.typography.labelLarge) }
+            }
+        }
+        if (seccion == 1) TorneosVista("arena")
+        if (seccion == 0 && cargando) CircularProgressIndicator(color = Color(0xFF1768B8))
+        if (seccion == 0 && error.isNotBlank()) {
+            Text(error, color = Color(0xFFB32938))
+            Button(onClick = { version++ }) { Text("Volver a intentar") }
+        }
+        if (seccion == 0 && !cargando && error.isBlank()) {
+            Text("${tabla?.totalCompetencias ?: 0} competencias con resultados oficiales",
+                color = Color(0xFF355978))
+            HorizontalDivider(color = Color(0xFFDDE4EE))
+            Text("Resultados por competencia", color = Color(0xFF0B2A5B),
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+            if (errorResultados.isNotBlank()) Text(errorResultados, color = Color(0xFF905261))
+            if (resultados.isEmpty() && errorResultados.isBlank())
+                Text("Aún no se han publicado ganadores oficiales.", color = Color(0xFF60788F))
+            resultados.forEach { resultado ->
+                Surface(onClick = { seleccionado = resultado }, color = Color.White,
+                    shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, Color(0xFFD9E7F3))) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = Color(0xFF1E74A8))
+                            Text(resultado.nombre, color = Color(0xFF133A62), fontWeight = FontWeight.Bold)
+                        }
+                        resultado.posiciones.firstOrNull { it.puesto == 1 }?.let { ganador ->
+                            Text("Ganador: ${ganador.nombre}", color = VynkMuted, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("Ver posiciones", color = VynkBlue,
+                            style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+            HorizontalDivider(color = Color(0xFFDDE4EE))
+            Text("Clasificación por áreas", color = Color(0xFF0B2A5B),
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+            val maximo = (tabla?.areas?.maxOfOrNull { it.puntos } ?: 0).coerceAtLeast(1)
+            Tarjeta {
+                Column(Modifier.padding(vertical = 6.dp)) {
+                    tabla?.areas?.forEachIndexed { i, area ->
+                        val c = colorArea(area.nombre)
+                        if (i > 0) HorizontalDivider(color = VynkLine)
+                        Row(Modifier.fillMaxWidth().background(if (i == 0) c.suave else Color.Transparent)
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(Modifier.size(30.dp).background(c.fuerte, CircleShape), contentAlignment = Alignment.Center) {
+                                Text("${area.posicion}", color = c.texto, style = MaterialTheme.typography.titleSmall)
+                            }
+                            Departamentos.deArea(area.nombre)?.let { Image(painterResource(it.escudo), contentDescription = "Escudo de ${it.nombre}", modifier = Modifier.height(32.dp).width(27.dp)) }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(Departamentos.deArea(area.nombre)?.nombre ?: area.nombre, color = VynkNavy, style = MaterialTheme.typography.titleSmall)
+                                Box(Modifier.fillMaxWidth().height(8.dp).background(VynkSurface2, RoundedCornerShape(50))) {
+                                    Box(Modifier.fillMaxWidth(area.puntos.toFloat() / maximo).height(8.dp).background(c.fuerte, RoundedCornerShape(50)))
+                                }
+                            }
+                            Text("${area.puntos}", color = VynkNavy, style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    seleccionado?.let { resultado ->
+        AlertDialog(
+            onDismissRequest = { seleccionado = null },
+            title = { Text(resultado.nombre, color = Color(0xFF0F355C), fontWeight = FontWeight.Bold) },
+            text = {
+                Column(Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(11.dp)) {
+                    if (resultado.portadaUrl.isNotBlank())
+                        ImagenPortadaCatalogo(resultado.portadaUrl, resultado.nombre)
+                    else
+                        Image(painter = painterResource(R.drawable.vynk_actividades),
+                            contentDescription = "Ilustración de la competencia ${resultado.nombre}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxWidth().height(160.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Filled.Verified, contentDescription = null, tint = Color(0xFF176B55), modifier = Modifier.size(18.dp))
+                        Text("Resultado oficial validado por administración", color = Color(0xFF176B55),
+                            fontWeight = FontWeight.Bold)
+                    }
+                    resultado.posiciones.forEach { posicion ->
+                        Surface(color = if (posicion.puesto == 1) Color(0xFFE8F0FD) else Color(0xFFF2F5F9),
+                            shape = RoundedCornerShape(10.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("${posicion.puesto}.º · ${posicion.nombre}", fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF163B64))
+                                Text("${posicion.area.ifBlank { "Área por confirmar" }} · ${posicion.puntos} puntos",
+                                    color = Color(0xFF52748C))
+                            }
+                        }
+                    }
+                    Text("Portada de la competencia; no es una fotografía personal del ganador.",
+                        color = Color(0xFF627D96), style = MaterialTheme.typography.labelSmall)
+                    HorizontalDivider(color = Color(0xFFDCE8F3))
+                    Text("Actividades similares", color = Color(0xFF173F68), fontWeight = FontWeight.Bold)
+                    if (cargandoRelacionadas) CircularProgressIndicator(modifier = Modifier.size(21.dp))
+                    if (!cargandoRelacionadas && similares.isEmpty())
+                        Text("No hay actividades similares abiertas en este momento.", color = Color(0xFF687E93))
+                    similares.forEach { actividad ->
+                        OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+                            otraActividad = actividad
+                            seleccionado = null
+                        }) { Text("${actividad.nombre} →", maxLines = 2) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { seleccionado = null }) { Text("Cerrar") } }
+        )
+    }
+    otraActividad?.let { actividad ->
+        DialogoActividad(actividad, token, alCerrar = { otraActividad = null },
+            onVerActividad = { otraActividad = it })
+    }
+}

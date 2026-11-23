@@ -1,0 +1,99 @@
+/* =====================================================================
+   VYNK estudiantes · acabado con color por sección
+   Se carga al final: cabecera de color, fondo con tinte, menú y acentos.
+   ===================================================================== */
+.shell { --sec: #1557d0; --sec-2: #0b2a5b; }
+.shell[data-ruta='inicio'] { --sec: #1557d0; --sec-2: #0b2a5b; }
+.shell[data-ruta='actividades'] { --sec: #0891b2; --sec-2: #0b4d66; }
+.shell[data-ruta='recomendaciones'] { --sec: #4f46e5; --sec-2: #28216f; }
+.shell[data-ruta='resultados'] { --sec: #e07b00; --sec-2: #8a3f00; }
+.shell[data-ruta='agenda'] { --sec: #0f9d58; --sec-2: #0a5c3a; }
+.shell[data-ruta='asistente'] { --sec: #7c3aed; --sec-2: #3b1580; }
+.shell[data-ruta='perfil'], .shell[data-ruta='intereses'] { --sec: #db2777; --sec-2: #7a1442; }
+.shell[data-ruta^='organizador'] { --sec: #0d9488; --sec-2: #0b4f4a; }
+
+/* Fondo con tinte, no blanco liso */
+@media (min-width: 761px) {
+  .shell {
+    background:
+      radial-gradient(1000px 520px at 100% -10%, rgba(34, 181, 232, .10), transparent 60%),
+      radial-gradient(900px 600px at 30% 110%, rgba(124, 58, 237, .07), transparent 60%),
+      linear-gradient(90deg, #0a2557 var(--lateral), #eaf0f9 0);
+  }
+}
+@media (max-width: 760px) { .shell { background: #eaf0f9; } }
+
+/* Menú lateral */
+.shell-lateral { background: linear-gradient(180deg, #0c2f66 0%, #0a2557 55%, #081f4a 100%); }
+.shell-menu a { border-radius: 10px; }
+.shell-menu a[aria-current='page'] {
+  background: linear-gradient(90deg, rgba(34, 181, 232, .22), rgba(255, 255, 255, .08));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.shell-menu a[aria-current='page'] svg {
+  box-sizing: content-box; padding: 5px; margin: -5px 0 -5px -5px;
+  border-radius: 8px; background: var(--celeste); color: #0a2557;
+}
+
+/* Cabecera de cada pantalla: banda de color de la sección */
+.shell-cabecera {
+  position: relative; overflow: hidden;
+  border-bottom: 0;
+  background: linear-gradient(120deg, var(--sec) 0%, var(--sec-2) 100%);
+  color: #fff;
+}
+.shell-cabecera::before, .shell-cabecera::after {
+  content: ''; position: absolute; border-radius: 50%; pointer-events: none; background: rgba(255, 255, 255, .08);
+}
+.shell-cabecera::before { width: 300px; height: 300px; right: 8%; top: -170px; }
+.shell-cabecera::after { width: 150px; height: 150px; left: 45%; bottom: -100px; background: rgba(255, 255, 255, .06); }
+.shell-cabecera-in { position: relative; z-index: 1; padding-top: 28px; padding-bottom: 26px; }
+.shell-cabecera h1 { color: #fff; }
+.shell-cabecera p {
+  color: rgba(255, 255, 255, .82);
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.shell-usuario { border-color: rgba(255, 255, 255, .28); background: rgba(255, 255, 255, .12); color: #fff; }
+.shell-usuario:hover { border-color: rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .2); }
+.shell-usuario__info small { color: rgba(255, 255, 255, .78); }
+.shell-usuario__avatar { background: #fff; color: var(--sec-2); font-weight: 800; }
+
+/* Tarjetas con sombra suave y sin borde gris */
+.tarjeta, .catalogo-tarjeta, .actividad-tarjeta { box-shadow: 0 1px 2px rgba(11, 42, 91, .05), 0 8px 22px rgba(11, 42, 91, .07); }
+
+/* Estados vacíos: caja blanca con ícono de color, sin borde punteado */
+.inicio-panel__vacio, .horario-libre__vacio, .org-historial__vacio {
+  border: 0 !important;
+  background: #fff;
+  border-left: 4px solid var(--sec) !important;
+  box-shadow: 0 6px 18px rgba(11, 42, 91, .06);
+}
+
+/* Segmentos y botones con el color de la sección */
+:is(.vynk-up-tabs, .segmentos, .agenda-vistas, .org-chips) button:is([aria-pressed='true'], [aria-selected='true'], [aria-current]) {
+  background: var(--sec); color: #fff; box-shadow: 0 2px 8px color-mix(in srgb, var(--sec) 35%, transparent);
+}
+.shell-main .boton:not(.boton--claro):not(.boton--chico):not(.boton--peligro) {
+  background: var(--sec); box-shadow: 0 4px 12px color-mix(in srgb, var(--sec) 30%, transparent);
+}
+.shell-main .boton:not(.boton--claro):not(.boton--chico):not(.boton--peligro):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--sec) 82%, #000);
+}
+.shell-main :is(input, select, textarea):focus {
+  border-color: var(--sec); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sec) 20%, transparent);
+}
+
+@media (max-width: 760px) {
+  .shell-cabecera-in { padding-top: 20px; padding-bottom: 20px; }
+  .shell-cabecera::after { display: none; }
+  .shell-lateral { background: #0a2557; box-shadow: 0 -4px 18px rgba(8, 24, 52, .25); }
+  .shell-menu a[aria-current='page'] svg { margin: -5px 0; }
+}
+
+/* Botones de envío y estados vacíos con el color de la sección */
+.shell-main .btn-blue-submit { background: var(--sec); border-color: var(--sec); box-shadow: 0 4px 12px color-mix(in srgb, var(--sec) 30%, transparent); }
+.shell-main .btn-blue-submit:hover:not(:disabled) { background: color-mix(in srgb, var(--sec) 82%, #000); }
+.estado-pantalla:not(.estado-pantalla--error) { border: 0; box-shadow: 0 6px 18px rgba(11, 42, 91, .06); }
+.estado-pantalla:not(.estado-pantalla--error) .estado-pantalla__icono {
+  background: color-mix(in srgb, var(--sec) 14%, #fff); color: var(--sec);
+}
